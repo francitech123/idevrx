@@ -6,7 +6,7 @@ interface LogoMarkProps {
 export function LogoMark({ size = 32, className }: LogoMarkProps) {
   return (
     <img
-      src="/brand/idevrx-mark.png"
+      src="/brand/idevrx-mark.svg"
       width={size}
       height={size}
       alt=""
