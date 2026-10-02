@@ -1,8 +1,12 @@
+import { LogoMark } from '@/components/brand/LogoMark';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
 
 export function HomePage() {
   return (
+    <div className="mb-6">
+  <LogoMark size={56} />
+</div>
     <div className="max-w-container mx-auto px-6 py-16">
       <div className="max-w-reading">
         <p className="text-sm font-mono text-brand-primary mb-3">IDEVRX FOUNDATION</p>
