@@ -1,3 +1,4 @@
+import { Wordmark } from '@/components/brand/Wordmark';
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useCurrentUser, useLogout } from '@/features/auth/useAuth';
 import { Button } from '@/components/ui/Button';
@@ -16,9 +17,9 @@ export function Layout() {
     <div className="min-h-screen flex flex-col bg-bg">
       <header className="h-[68px] border-b border-border bg-surface">
         <div className="max-w-container mx-auto h-full px-6 flex items-center justify-between gap-6">
-          <Link to="/" className="font-bold text-lg tracking-tight">
-            IDEVRX
-          </Link>
+          <Link to="/" aria-label="IDEVRX home">
+  <Wordmark />
+</Link>
 
           <nav className="hidden md:flex items-center gap-6 text-sm">
             <NavLink
