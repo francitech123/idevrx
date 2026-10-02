@@ -6,9 +6,9 @@ interface WordmarkProps {
 }
 
 const sizeMap = {
-  sm: { icon: 20, text: 'text-base', tracking: 'tracking-tight' },
-  md: { icon: 26, text: 'text-lg',   tracking: 'tracking-tight' },
-  lg: { icon: 34, text: 'text-2xl',  tracking: 'tracking-tight' },
+  sm: { icon: 20, text: 'text-base' },
+  md: { icon: 26, text: 'text-lg' },
+  lg: { icon: 34, text: 'text-2xl' },
 };
 
 export function Wordmark({ size = 'md', className }: WordmarkProps) {
@@ -17,7 +17,7 @@ export function Wordmark({ size = 'md', className }: WordmarkProps) {
     <span className={`inline-flex items-center gap-2 ${className ?? ''}`}>
       <LogoMark size={s.icon} />
       <span
-        className={`font-bold ${s.text} ${s.tracking} text-text-primary`}
+        className={`font-bold ${s.text} text-text-primary`}
         style={{ letterSpacing: '-0.02em' }}
       >
         IDEVRX
