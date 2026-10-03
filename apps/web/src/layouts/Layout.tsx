@@ -22,18 +22,20 @@ export function Layout() {
           </Link>
 
           <nav className="hidden md:flex items-center gap-6 text-sm">
+            {/* Public links — for both guests and logged-in users */}
             <NavLink
-              to="/"
+              to="/explore"
               className={({ isActive }) =>
                 isActive
                   ? 'text-brand-primary font-medium'
                   : 'text-text-secondary hover:text-text-primary'
               }
             >
-              Home
+              Explore
             </NavLink>
 
-            {!isCreator(user) && user && (
+            {/* Logged-in extras */}
+            {user && !isCreator(user) && (
               <NavLink
                 to="/creator/apply"
                 className={({ isActive }) =>
@@ -46,7 +48,7 @@ export function Layout() {
               </NavLink>
             )}
 
-            {isModerator(user) && (
+            {user && isModerator(user) && (
               <NavLink
                 to="/admin/creator-applications"
                 className={({ isActive }) =>
