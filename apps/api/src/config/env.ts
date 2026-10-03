@@ -10,6 +10,13 @@ const EnvSchema = z.object({
   FRONTEND_URL: z.string().url(),
   APP_BASE_URL: z.string().url(),
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace']).default('info'),
+  STORAGE_PROVIDER: z.enum(['b2', 'r2', 's3', 'local']).default('b2'),
+  STORAGE_BUCKET: z.string().min(1),
+  STORAGE_REGION: z.string().min(1),
+  STORAGE_ENDPOINT: z.string().url(),
+  STORAGE_ACCESS_KEY: z.string().min(1),
+  STORAGE_SECRET_KEY: z.string().min(1),
+  STORAGE_PUBLIC_URL: z.string().default(''),
 });
 
 const parsed = EnvSchema.safeParse(process.env);
