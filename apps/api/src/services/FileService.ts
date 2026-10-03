@@ -38,10 +38,62 @@ function toPublicFile(f: any) {
   };
 }
 
-async function requireProjectOwnership(projectId: string, userId: string) {
-  const project = await Project.findById(projectId);
+/**
+ * Resolve a project reference that may be:
+ *  - a Mongo ObjectId (24 hex chars)
+ *  - a project number (numeric string, e.g. "1")
+ *  - a slug (e.g. "esp32-environmental-sensor")
+ * Returns the Project document or null.
+ */
+async function resolveProject(idOrNumber: string) {
+  // Numeric string → try projectNumber first
+  if (/^\d+$/.test(idOrNumber)) {
+    const byNumber = await Project.findOne({ projectNumber: Number(idOrNumber) });
+    if (byNumber) return byNumber;
+  }
+  // 24-hex string → try ObjectId
+  if (/^[0-9a-fA-F]{24}$/.test(idOrNumber)) {
+    const byId = await Project.findById(idOrNumber);
+    if (byId) return byId;
+  }
+  // Fallback → try slug
+  return Project.findOne({ slug: idOrNumber });
+}
+
+/**
+ * Load the project and verify the requester owns it. Throws if not found or not owner.
+ */
+async function requireProjectOwnership(projectRef: string, userId: string) {
+  const project = await resolveProject(projectRef);
   if (!project) throw new NotFoundError();
   if (project.authorId.toString() !== userId) throw new ForbiddenError();
+  return project;
+}
+
+/**
+ * Load the project and check the requester can see its files.
+ * Returns the Project document if visible; throws NotFoundError otherwise.
+ */
+async function requireProjectVisibility(
+  projectRef: string,
+  requester: { id: string; roles: string[] } | null
+) {
+  const project = await resolveProject(projectRef);
+  if (!project) throw new NotFoundError();
+
+  const isOwner = requester && project.authorId.toString() === requester.id;
+  const isPrivileged =
+    requester &&
+    (requester.roles.includes('moderator') ||
+      requester.roles.includes('admin') ||
+      requester.roles.includes('ceo'));
+
+  const isPubliclyVisible = project.status === 'published' && project.visibility === 'public';
+
+  if (!isPubliclyVisible && !isOwner && !isPrivileged) {
+    // Return 404, not 403 — prevents enumeration (File 05 §40)
+    throw new NotFoundError();
+  }
   return project;
 }
 
@@ -49,11 +101,9 @@ export const FileService = {
   async createUploadIntent(input: UploadIntentInput, req?: any) {
     const project = await requireProjectOwnership(input.projectId, input.userId);
 
-    // Validate category
     const maxBytes = SIZE_LIMITS[input.category];
     if (!maxBytes) throw new AppError(400, 'VALIDATION_ERROR', 'Unknown file category.');
 
-    // Validate size
     if (input.sizeBytes > maxBytes) {
       throw new AppError(
         400,
@@ -62,7 +112,6 @@ export const FileService = {
       );
     }
 
-    // Validate MIME
     const mimePattern = MIME_ALLOWLIST[input.category];
     if (mimePattern && !mimePattern.test(input.mimeType)) {
       throw new AppError(
@@ -72,21 +121,18 @@ export const FileService = {
       );
     }
 
-    // Generate server-side storage key
     const storageKey = generateStorageKey({
       projectNumber: project.projectNumber,
       category: input.category,
       originalFilename: input.filename,
     });
 
-    // Get presigned upload URL from B2
     const intent = await storage.generateUploadUrl({
       storageKey,
       contentType: input.mimeType,
       maxBytes,
     });
 
-    // Create pending ProjectFile record
     const file = await ProjectFile.create({
       projectId: project._id,
       uploadedBy: input.userId,
@@ -109,7 +155,11 @@ export const FileService = {
       resourceType: 'ProjectFile',
       resourceId: file._id.toString(),
       outcome: 'success',
-      metadata: { projectId: input.projectId, category: input.category, sizeBytes: input.sizeBytes },
+      metadata: {
+        projectId: project._id.toString(),
+        category: input.category,
+        sizeBytes: input.sizeBytes,
+      },
       req,
     });
 
@@ -122,14 +172,13 @@ export const FileService = {
   },
 
   async finalizeUpload(input: FinalizeInput) {
-    await requireProjectOwnership(input.projectId, input.userId);
+    const project = await requireProjectOwnership(input.projectId, input.userId);
 
     const file = await ProjectFile.findById(input.fileId);
     if (!file) throw new NotFoundError();
     if (file.uploadedBy.toString() !== input.userId) throw new ForbiddenError();
-    if (file.projectId.toString() !== input.projectId) throw new ForbiddenError();
+    if (file.projectId.toString() !== project._id.toString()) throw new ForbiddenError();
 
-    // Verify the object actually exists in B2
     const head = await storage.headObject(file.storageKey);
     if (!head) {
       file.processingStatus = 'failed';
@@ -137,7 +186,6 @@ export const FileService = {
       throw new AppError(400, 'VALIDATION_ERROR', 'Upload was not found in storage. Please retry.');
     }
 
-    // Update with actual metadata from B2
     file.sizeBytes = head.size;
     file.mimeType = head.contentType;
     file.processingStatus = 'ready';
@@ -146,29 +194,30 @@ export const FileService = {
     return toPublicFile(file);
   },
 
-  async listForProject(projectId: string, requester: { id: string; roles: string[] } | null) {
-    const project = await Project.findById(projectId);
-    if (!project) throw new NotFoundError();
+  async listForProject(projectRef: string, requester: { id: string; roles: string[] } | null) {
+    const project = await requireProjectVisibility(projectRef, requester);
 
-    const isOwner = requester && project.authorId.toString() === requester.id;
-    const isPrivileged =
-      requester &&
-      (requester.roles.includes('moderator') ||
-        requester.roles.includes('admin') ||
-        requester.roles.includes('ceo'));
-    const isPubliclyVisible = project.status === 'published' && project.visibility === 'public';
+    const files = await ProjectFile.find({
+      projectId: project._id,
+      processingStatus: 'ready',
+    }).sort({ createdAt: -1 });
 
-    if (!isPubliclyVisible && !isOwner && !isPrivileged) throw new NotFoundError();
-
-    const files = await ProjectFile.find({ projectId, processingStatus: 'ready' }).sort({
-      createdAt: -1,
-    });
     return files.map(toPublicFile);
   },
 
-  async getDownloadUrl(projectId: string, fileId: string, requester: { id: string; roles: string[] } | null) {
-    const project = await Project.findById(projectId);
-    if (!project) throw new NotFoundError();
+  async getDownloadUrl(
+    projectRef: string,
+    fileId: string,
+    requester: { id: string; roles: string[] } | null
+  ) {
+    const project = await requireProjectVisibility(projectRef, requester);
+
+    // Reject bad fileId early with a clear error rather than a CastError
+    if (!/^[0-9a-fA-F]{24}$/.test(fileId)) throw new NotFoundError();
+
+    const file = await ProjectFile.findById(fileId);
+    if (!file) throw new NotFoundError();
+    if (file.projectId.toString() !== project._id.toString()) throw new NotFoundError();
 
     const isOwner = requester && project.authorId.toString() === requester.id;
     const isPrivileged =
@@ -176,13 +225,7 @@ export const FileService = {
       (requester.roles.includes('moderator') ||
         requester.roles.includes('admin') ||
         requester.roles.includes('ceo'));
-    const isPubliclyVisible = project.status === 'published' && project.visibility === 'public';
 
-    if (!isPubliclyVisible && !isOwner && !isPrivileged) throw new NotFoundError();
-
-    const file = await ProjectFile.findById(fileId);
-    if (!file) throw new NotFoundError();
-    if (file.projectId.toString() !== projectId) throw new NotFoundError();
     if (!file.downloadEnabled && !isOwner && !isPrivileged) throw new ForbiddenError();
 
     const url = await storage.generateDownloadUrl({
@@ -193,18 +236,25 @@ export const FileService = {
     return { url, expiresIn: 300, filename: file.originalFilename };
   },
 
-  async deleteFile(projectId: string, fileId: string, userId: string, userRoles: string[], req?: any) {
-    await requireProjectOwnership(projectId, userId);
+  async deleteFile(
+    projectRef: string,
+    fileId: string,
+    userId: string,
+    userRoles: string[],
+    req?: any
+  ) {
+    const project = await requireProjectOwnership(projectRef, userId);
+
+    if (!/^[0-9a-fA-F]{24}$/.test(fileId)) throw new NotFoundError();
 
     const file = await ProjectFile.findById(fileId);
     if (!file) throw new NotFoundError();
-    if (file.projectId.toString() !== projectId) throw new NotFoundError();
+    if (file.projectId.toString() !== project._id.toString()) throw new NotFoundError();
 
-    // Delete from B2 first; if this fails, we abort
     try {
       await storage.deleteObject(file.storageKey);
-    } catch (err) {
-      // Log but continue — the metadata removal still matters
+    } catch {
+      // Best-effort: log but continue; metadata removal still matters
     }
 
     await ProjectFile.deleteOne({ _id: file._id });
@@ -216,7 +266,7 @@ export const FileService = {
       resourceType: 'ProjectFile',
       resourceId: file._id.toString(),
       outcome: 'success',
-      metadata: { projectId, storageKey: file.storageKey },
+      metadata: { projectId: project._id.toString(), storageKey: file.storageKey },
       req,
     });
 
