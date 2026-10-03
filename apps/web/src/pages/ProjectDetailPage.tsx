@@ -1,6 +1,8 @@
 import { Link, useParams } from 'react-router-dom';
 import { useProject, useCategories } from '@/features/projects/useProjects';
 import { Button } from '@/components/ui/Button';
+import { FileCard } from '@/components/file/FileCard';
+import { useProjectFiles, useDownloadFile } from '@/features/files/useFiles';
 
 export function ProjectDetailPage() {
   const { projectNumber, slug } = useParams<{ projectNumber: string; slug: string }>();
@@ -11,6 +13,10 @@ export function ProjectDetailPage() {
 
   const { data: project, isLoading, isError, error } = useProject(idOrNumber || undefined);
   const { data: categoriesData } = useCategories();
+
+  const { data: filesData } = useProjectFiles(idOrNumber || undefined);
+  const downloadFile = useDownloadFile(idOrNumber);
+  const files = filesData ?? [];
 
   if (isLoading) {
     return (
@@ -37,7 +43,6 @@ export function ProjectDetailPage() {
   }
 
   const category = categoriesData?.find((c) => c.id === project.categoryId);
-
   const formattedNumber = `PROJECT ${String(project.projectNumber).padStart(3, '0')}`;
 
   return (
@@ -56,7 +61,7 @@ export function ProjectDetailPage() {
         <div className="lg:col-span-2 space-y-6">
           <div className="rounded-card border border-border bg-surface p-6">
             <div className="aspect-[16/10] bg-muted rounded-button flex items-center justify-center text-text-muted text-sm">
-              {project.coverFileId ? 'Cover image (Phase 3)' : 'No cover image'}
+              {project.coverFileId ? 'Cover image (Phase 4)' : 'No cover image'}
             </div>
           </div>
 
@@ -90,9 +95,25 @@ export function ProjectDetailPage() {
             </div>
           )}
 
+          {files.length > 0 && (
+            <div className="rounded-card border border-border bg-surface p-6">
+              <h2 className="font-semibold mb-4">Files</h2>
+              <div className="space-y-2">
+                {files.map((f) => (
+                  <FileCard
+                    key={f.id}
+                    file={f}
+                    onDownload={(file) => downloadFile.mutate(file)}
+                    downloading={downloadFile.isPending}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className="rounded-card border border-dashed border-border bg-surface p-6 text-center">
             <p className="text-sm text-text-secondary">
-              Steps, BOM, files, and gallery will appear here in later phases.
+              Steps, BOM, and gallery will appear here in later phases.
             </p>
           </div>
         </div>
