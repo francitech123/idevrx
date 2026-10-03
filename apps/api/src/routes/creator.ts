@@ -22,31 +22,26 @@ const applyLimiter = rateLimit({
 
 const router = Router();
 
-// --- User-facing ---
-router.post(
-  '/apply',
-  requireAuth,
-  applyLimiter,
-  validateBody(ApplySchema),
-  ctrl.apply
-);
+router.post('/apply', requireAuth, applyLimiter, validateBody(ApplySchema), ctrl.apply);
 router.get('/application', requireAuth, ctrl.getOwnApplication);
 
-// --- Admin-facing ---
-router.get(
-  '/admin/creator-applications',
+export default router;
+
+// Separately exported admin router
+export const adminCreatorRouter = Router();
+
+adminCreatorRouter.get(
+  '/creator-applications',
   requireAuth,
   requireRole('moderator', 'admin', 'ceo'),
   validateQuery(ListApplicationsQuerySchema),
   ctrl.listApplications
 );
 
-router.post(
-  '/admin/creator-applications/:id/review',
+adminCreatorRouter.post(
+  '/creator-applications/:id/review',
   requireAuth,
   requireRole('moderator', 'admin', 'ceo'),
   validateBody(ReviewSchema),
   ctrl.reviewApplication
 );
-
-export default router;
