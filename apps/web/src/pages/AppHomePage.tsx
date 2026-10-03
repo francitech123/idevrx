@@ -29,8 +29,6 @@ export function AppHomePage() {
             desc="Create and manage your engineering projects."
             to="/studio"
             cta="Open Studio"
-            disabled
-            disabledNote="Coming in Phase 2"
           />
         )}
 
@@ -68,36 +66,21 @@ function QuickCard({
   desc,
   to,
   cta,
-  disabled,
-  disabledNote,
 }: {
   title: string;
   desc: string;
   to: string;
   cta: string;
-  disabled?: boolean;
-  disabledNote?: string;
 }) {
   return (
     <div className="rounded-card border border-border bg-surface p-5 flex flex-col">
       <h3 className="font-semibold text-text-primary mb-1">{title}</h3>
       <p className="text-sm text-text-secondary mb-4 flex-1">{desc}</p>
-      {disabled ? (
-        <div>
-          <Button variant="secondary" size="md" disabled>
-            {cta}
-          </Button>
-          {disabledNote && (
-            <p className="text-xs text-text-muted mt-2">{disabledNote}</p>
-          )}
-        </div>
-      ) : (
-        <Link to={to}>
-          <Button variant="secondary" size="md">
-            {cta}
-          </Button>
-        </Link>
-      )}
+      <Link to={to}>
+        <Button variant="secondary" size="md">
+          {cta}
+        </Button>
+      </Link>
     </div>
   );
 }
