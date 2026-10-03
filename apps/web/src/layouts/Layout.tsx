@@ -22,7 +22,6 @@ export function Layout() {
           </Link>
 
           <nav className="hidden md:flex items-center gap-6 text-sm">
-            {/* Public links — for both guests and logged-in users */}
             <NavLink
               to="/explore"
               className={({ isActive }) =>
@@ -34,7 +33,19 @@ export function Layout() {
               Explore
             </NavLink>
 
-            {/* Logged-in extras */}
+            {user && isCreator(user) && (
+              <NavLink
+                to="/studio"
+                className={({ isActive }) =>
+                  isActive
+                    ? 'text-brand-primary font-medium'
+                    : 'text-text-secondary hover:text-text-primary'
+                }
+              >
+                Creator Studio
+              </NavLink>
+            )}
+
             {user && !isCreator(user) && (
               <NavLink
                 to="/creator/apply"
