@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import * as ctrl from '../controllers/projectController.js';
 import { requireAuth } from '../middleware/auth.js';
+import fileRoutes from './files.js';
 import { requireRole } from '../middleware/authorize.js';
 import { validateBody, validateQuery } from '../middleware/validate.js';
 import {
