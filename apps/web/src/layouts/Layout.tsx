@@ -1,7 +1,5 @@
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { useCurrentUser, useLogout, isCreator, isModerator, isAdmin } from '@/features/auth/useAuth';import { Button } from '@/components/ui/Button';
-import { Wordmark } from '@/components/brand/Wordmark';
-
+import { useCurrentUser, useLogout, isCreator, isModerator } from '@/features/auth/useAuth';
 export function Layout() {
   const { user } = useCurrentUser();
   const logout = useLogout();
