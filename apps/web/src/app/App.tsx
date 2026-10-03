@@ -1,8 +1,13 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
+import type { ReactNode } from 'react';
 import { Layout } from '@/layouts/Layout';
 import { LandingPage } from '@/pages/LandingPage';
 import { AppHomePage } from '@/pages/AppHomePage';
 import { ExplorePage } from '@/pages/ExplorePage';
+import { ProjectDetailPage } from '@/pages/ProjectDetailPage';
+import { StudioProjectsPage } from '@/pages/StudioProjectsPage';
+import { NewProjectPage } from '@/pages/NewProjectPage';
+import { EditProjectPage } from '@/pages/EditProjectPage';
 import { LoginPage } from '@/pages/LoginPage';
 import { RegisterPage } from '@/pages/RegisterPage';
 import { SettingsPage } from '@/pages/SettingsPage';
@@ -12,15 +17,13 @@ import { AdminCreatorApplicationsPage } from '@/pages/AdminCreatorApplicationsPa
 import { RequireAuth } from '@/app/guards/RequireAuth';
 import { useCurrentUser } from '@/features/auth/useAuth';
 
-// Route guard: for pages that should NOT be accessible when logged in (login, register)
-function RedirectIfAuthed({ children }: { children: React.ReactNode }) {
+function RedirectIfAuthed({ children }: { children: ReactNode }) {
   const { user, isLoading } = useCurrentUser();
   if (isLoading) return null;
   if (user) return <Navigate to="/" replace />;
   return <>{children}</>;
 }
 
-// Root route: landing for guests, app home for logged-in users
 function RootPage() {
   const { user, isLoading } = useCurrentUser();
   if (isLoading) {
@@ -39,6 +42,7 @@ export default function App() {
       <Route element={<Layout />}>
         <Route path="/" element={<RootPage />} />
         <Route path="/explore" element={<ExplorePage />} />
+        <Route path="/ide/:projectNumber/:slug" element={<ProjectDetailPage />} />
 
         <Route
           path="/login"
@@ -70,6 +74,30 @@ export default function App() {
           element={
             <RequireAuth>
               <CreatorApplyPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/studio"
+          element={
+            <RequireAuth>
+              <StudioProjectsPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/studio/new"
+          element={
+            <RequireAuth>
+              <NewProjectPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/studio/project/:id"
+          element={
+            <RequireAuth>
+              <EditProjectPage />
             </RequireAuth>
           }
         />
