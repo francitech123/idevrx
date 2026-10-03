@@ -6,6 +6,8 @@ import { z } from 'zod';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { FormField } from '@/components/ui/FormField';
+import { FileUploader } from '@/components/file/FileUploader';
+import { FileCard } from '@/components/file/FileCard';
 import { ApiRequestError } from '@/api/client';
 import { useCurrentUser, isCreator } from '@/features/auth/useAuth';
 import {
@@ -16,6 +18,7 @@ import {
   useUnpublishProject,
   useDeleteProject,
 } from '@/features/projects/useProjects';
+import { useProjectFiles, useDeleteFile, useDownloadFile } from '@/features/files/useFiles';
 
 const schema = z.object({
   title: z.string().min(3).max(200),
@@ -50,6 +53,11 @@ export function EditProjectPage() {
   const navigate = useNavigate();
   const [serverError, setServerError] = useState<string | null>(null);
   const [actionMessage, setActionMessage] = useState<string | null>(null);
+
+  const { data: filesData } = useProjectFiles(project?.id);
+  const deleteFile = useDeleteFile(project?.id ?? '');
+  const downloadFile = useDownloadFile(project?.id ?? '');
+  const files = filesData ?? [];
 
   const {
     register,
@@ -109,7 +117,6 @@ export function EditProjectPage() {
     );
   }
 
-  // Ownership: server enforces, but hide edit form if not owner to avoid confusion
   if (project.authorId !== user.id) {
     return (
       <div className="max-w-reading mx-auto px-6 py-16 text-center">
@@ -304,6 +311,35 @@ export function EditProjectPage() {
           </Link>
         </div>
       </form>
+
+      <div className="mt-12 pt-6 border-t border-border">
+        <h2 className="text-xl font-bold mb-4">Files</h2>
+
+        <FileUploader projectRef={project.id} />
+
+        <div className="mt-4 space-y-2">
+          {files.length === 0 ? (
+            <p className="text-sm text-text-muted py-4">
+              No files uploaded yet. Add images, CAD files, code, or documents.
+            </p>
+          ) : (
+            files.map((f) => (
+              <FileCard
+                key={f.id}
+                file={f}
+                onDownload={(file) => downloadFile.mutate(file)}
+                onDelete={(file) => {
+                  if (confirm(`Delete "${file.originalFilename}"? This cannot be undone.`)) {
+                    deleteFile.mutate(file.id);
+                  }
+                }}
+                downloading={downloadFile.isPending}
+                deleting={deleteFile.isPending}
+              />
+            ))
+          )}
+        </div>
+      </div>
 
       <div className="mt-12 pt-6 border-t border-border">
         <p className="text-xs text-text-muted mb-3">
