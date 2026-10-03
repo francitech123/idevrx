@@ -35,6 +35,7 @@ router.post(
   validateBody(CreateProjectSchema),
   ctrl.create
 );
+router.use('/:id/files', fileRoutes);
 
 // --- Creator + ownership: update, publish, unpublish, delete ---
 router.patch(
