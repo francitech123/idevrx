@@ -1,0 +1,395 @@
+import { Project, type ProjectStatus, type ProjectVisibility } from '../models/Project.js';
+import { User } from '../models/User.js';
+import { Category } from '../models/Category.js';
+import { nextSequence } from '../models/Counter.js';
+import { slugify, uniqueSlug } from '../utils/slug.js';
+import { AuditService } from './AuditService.js';
+import { NotFoundError, ForbiddenError, ConflictError } from '../utils/errors.js';
+
+interface CreateProjectInput {
+  authorId: string;
+  title: string;
+  shortDescription?: string;
+  description?: string;
+  categoryId?: string | null;
+  difficulty?: string | null;
+  estimatedCost?: number | null;
+  currency?: string;
+  estimatedBuildTime?: string;
+  youtubeUrl?: string;
+}
+
+interface UpdateProjectInput {
+  title?: string;
+  shortDescription?: string;
+  description?: string;
+  categoryId?: string | null;
+  difficulty?: string | null;
+  estimatedCost?: number | null;
+  currency?: string;
+  estimatedBuildTime?: string;
+  youtubeUrl?: string;
+  version?: string;
+}
+
+interface ListFilter {
+  status?: ProjectStatus;
+  visibility?: ProjectVisibility;
+  categoryId?: string;
+  authorId?: string;
+  page?: number;
+  limit?: number;
+}
+
+const MAX_LIMIT = 50;
+const DEFAULT_LIMIT = 20;
+
+function toPublicList(p: any) {
+  return {
+    id: p._id.toString(),
+    projectNumber: p.projectNumber,
+    slug: p.slug,
+    title: p.title,
+    shortDescription: p.shortDescription,
+    coverFileId: p.coverFileId?.toString() ?? null,
+    youtubeUrl: p.youtubeUrl || null,
+    difficulty: p.difficulty ?? null,
+    estimatedCost: p.estimatedCost ?? null,
+    currency: p.currency,
+    estimatedBuildTime: p.estimatedBuildTime || null,
+    version: p.version,
+    status: p.status,
+    visibility: p.visibility,
+    counts: p.counts,
+    publishedAt: p.publishedAt?.toISOString() ?? null,
+    createdAt: p.createdAt.toISOString(),
+    updatedAt: p.updatedAt.toISOString(),
+    authorId: p.authorId?.toString(),
+  };
+}
+
+function toPublicDetail(p: any) {
+  return {
+    ...toPublicList(p),
+    description: p.description,
+    categoryId: p.categoryId?.toString() ?? null,
+    tagIds: (p.tagIds ?? []).map((t: any) => t.toString()),
+    featured: p.featured,
+  };
+}
+
+/** Returns a project OR null. Does NOT enforce authorization. */
+async function findByIdOrNumber(idOrNumber: string) {
+  // Try project number (numeric string)
+  if (/^\d+$/.test(idOrNumber)) {
+    const byNumber = await Project.findOne({ projectNumber: Number(idOrNumber) });
+    if (byNumber) return byNumber;
+  }
+  // Try Mongo ObjectId
+  if (/^[0-9a-fA-F]{24}$/.test(idOrNumber)) {
+    const byId = await Project.findById(idOrNumber);
+    if (byId) return byId;
+  }
+  // Try slug
+  const bySlug = await Project.findOne({ slug: idOrNumber });
+  return bySlug;
+}
+
+export const ProjectService = {
+  /**
+   * Public listing. Only published + public projects.
+   * Never leaks drafts, private, archived, or removed projects.
+   */
+  async listPublic(filter: ListFilter = {}) {
+    const page = Math.max(1, filter.page ?? 1);
+    const limit = Math.min(filter.limit ?? DEFAULT_LIMIT, MAX_LIMIT);
+
+    const query: Record<string, unknown> = {
+      status: { $in: ['published', 'updated'] },
+      visibility: 'public',
+    };
+    if (filter.categoryId) query.categoryId = filter.categoryId;
+    if (filter.authorId) query.authorId = filter.authorId;
+
+    const [items, total] = await Promise.all([
+      Project.find(query)
+        .sort({ featured: -1, publishedAt: -1 })
+        .skip((page - 1) * limit)
+        .limit(limit),
+      Project.countDocuments(query),
+    ]);
+
+    return {
+      items: items.map(toPublicList),
+      page,
+      limit,
+      total,
+      hasNextPage: page * limit < total,
+    };
+  },
+
+  /**
+   * List a Creator's own projects (any status).
+   */
+  async listOwnedBy(authorId: string, filter: ListFilter = {}) {
+    const page = Math.max(1, filter.page ?? 1);
+    const limit = Math.min(filter.limit ?? DEFAULT_LIMIT, MAX_LIMIT);
+
+    const query: Record<string, unknown> = { authorId };
+    if (filter.status) query.status = filter.status;
+
+    const [items, total] = await Promise.all([
+      Project.find(query)
+        .sort({ updatedAt: -1 })
+        .skip((page - 1) * limit)
+        .limit(limit),
+      Project.countDocuments(query),
+    ]);
+
+    return {
+      items: items.map(toPublicList),
+      page,
+      limit,
+      total,
+      hasNextPage: page * limit < total,
+    };
+  },
+
+  /**
+   * Get a project by id, number, or slug. Respects visibility per role.
+   * - Public published project → anyone
+   * - Own project (any status) → owner
+   * - Mod/admin → can view any project
+   */
+  async getVisible(idOrNumber: string, requester: { id: string; roles: string[] } | null) {
+    const project = await findByIdOrNumber(idOrNumber);
+    if (!project) throw new NotFoundError();
+
+    const isOwner = requester && project.authorId.toString() === requester.id;
+    const isPrivileged =
+      requester &&
+      (requester.roles.includes('moderator') ||
+        requester.roles.includes('admin') ||
+        requester.roles.includes('ceo'));
+
+    const isPubliclyVisible =
+      project.status === 'published' &&
+      project.visibility === 'public';
+
+    if (isPubliclyVisible) return toPublicDetail(project);
+    if (isOwner) return toPublicDetail(project);
+    if (isPrivileged) return toPublicDetail(project);
+
+    // Not visible to this requester — return 404, not 403, to prevent enumeration
+    throw new NotFoundError();
+  },
+
+  async create(input: CreateProjectInput, req?: any) {
+    const user = await User.findById(input.authorId);
+    if (!user) throw new NotFoundError();
+
+    // File 02 §10 + File 05 §45: only Creator can create projects
+    if (!user.roles.includes('creator')) {
+      throw new ForbiddenError();
+    }
+
+    // Validate category if provided
+    if (input.categoryId) {
+      const cat = await Category.findById(input.categoryId);
+      if (!cat) throw new NotFoundError();
+    }
+
+    // Generate stable project number (atomic)
+    const projectNumber = await nextSequence('projectNumber');
+
+    // Generate unique slug
+    const baseSlug = slugify(input.title);
+    const slug = await uniqueSlug(baseSlug);
+
+    const project = await Project.create({
+      projectNumber,
+      slug,
+      title: input.title,
+      shortDescription: input.shortDescription ?? '',
+      description: input.description ?? '',
+      authorId: input.authorId,
+      categoryId: input.categoryId ?? null,
+      difficulty: input.difficulty ?? null,
+      estimatedCost: input.estimatedCost ?? null,
+      currency: input.currency ?? 'USD',
+      estimatedBuildTime: input.estimatedBuildTime ?? '',
+      youtubeUrl: input.youtubeUrl ?? '',
+      status: 'draft',
+      visibility: 'private',
+      searchText: `${input.title} ${input.shortDescription ?? ''}`.toLowerCase(),
+    });
+
+    await AuditService.record({
+      actorId: input.authorId,
+      actorRoles: user.roles,
+      action: 'project.created',
+      resourceType: 'Project',
+      resourceId: project._id.toString(),
+      outcome: 'success',
+      metadata: { projectNumber, title: input.title },
+      req,
+    });
+
+    return toPublicDetail(project);
+  },
+
+  /**
+   * Update a project. Only the owner (or admin in a governance flow) can update.
+   * Client-supplied authorId is IGNORED — ownership is server-authoritative.
+   */
+  async update(id: string, patch: UpdateProjectInput, requester: { id: string; roles: string[] }, req?: any) {
+    const project = await Project.findById(id);
+    if (!project) throw new NotFoundError();
+
+    // Ownership check (File 05 §15)
+    if (project.authorId.toString() !== requester.id) {
+      throw new ForbiddenError();
+    }
+
+    // Cannot update archived/removed projects
+    if (project.status === 'archived' || project.status === 'removed') {
+      throw new ConflictError('This project is no longer editable.');
+    }
+
+    // Validate category if provided
+    if (patch.categoryId !== undefined && patch.categoryId !== null) {
+      const cat = await Category.findById(patch.categoryId);
+      if (!cat) throw new NotFoundError();
+    }
+
+    // Apply allowed fields (never authorId, projectNumber, slug, status, visibility, counts, publishedAt)
+    if (patch.title !== undefined) project.title = patch.title;
+    if (patch.shortDescription !== undefined) project.shortDescription = patch.shortDescription;
+    if (patch.description !== undefined) project.description = patch.description;
+    if (patch.categoryId !== undefined) project.categoryId = patch.categoryId as any;
+    if (patch.difficulty !== undefined) project.difficulty = patch.difficulty as any;
+    if (patch.estimatedCost !== undefined) project.estimatedCost = patch.estimatedCost as any;
+    if (patch.currency !== undefined) project.currency = patch.currency;
+    if (patch.estimatedBuildTime !== undefined) project.estimatedBuildTime = patch.estimatedBuildTime;
+    if (patch.youtubeUrl !== undefined) project.youtubeUrl = patch.youtubeUrl;
+    if (patch.version !== undefined) project.version = patch.version;
+
+    // Refresh searchText
+    project.searchText = `${project.title} ${project.shortDescription}`.toLowerCase();
+
+    // If project was published, mark as updated
+    if (project.status === 'published') {
+      project.status = 'updated';
+    }
+
+    await project.save();
+
+    return toPublicDetail(project);
+  },
+
+  /**
+   * Publish a project. Requires:
+   * - owner
+   * - valid state (draft or updated)
+   * - minimum required fields present
+   */
+  async publish(id: string, requester: { id: string; roles: string[] }, req?: any) {
+    const project = await Project.findById(id);
+    if (!project) throw new NotFoundError();
+
+    if (project.authorId.toString() !== requester.id) {
+      throw new ForbiddenError();
+    }
+
+    if (project.status === 'published' || project.status === 'updated') {
+      // Idempotent — republishing an already-published project is fine
+    } else if (project.status === 'archived' || project.status === 'removed') {
+      throw new ConflictError('This project cannot be published.');
+    }
+
+    // Minimum requirements to publish
+    if (!project.title || project.title.trim().length < 3) {
+      throw new ConflictError('Project must have a title before publishing.');
+    }
+    if (!project.description || project.description.trim().length < 50) {
+      throw new ConflictError('Project description must be at least 50 characters.');
+    }
+
+    project.status = 'published';
+    project.visibility = 'public';
+    project.publishedAt = project.publishedAt ?? new Date();
+
+    await project.save();
+
+    await AuditService.record({
+      actorId: requester.id,
+      actorRoles: requester.roles,
+      action: 'project.published',
+      resourceType: 'Project',
+      resourceId: project._id.toString(),
+      outcome: 'success',
+      metadata: { projectNumber: project.projectNumber, title: project.title },
+      req,
+    });
+
+    return toPublicDetail(project);
+  },
+
+  /**
+   * Unpublish a project (return to draft). Owner only.
+   */
+  async unpublish(id: string, requester: { id: string; roles: string[] }, req?: any) {
+    const project = await Project.findById(id);
+    if (!project) throw new NotFoundError();
+
+    if (project.authorId.toString() !== requester.id) {
+      throw new ForbiddenError();
+    }
+
+    project.status = 'draft';
+    project.visibility = 'private';
+    await project.save();
+
+    await AuditService.record({
+      actorId: requester.id,
+      actorRoles: requester.roles,
+      action: 'project.unpublished',
+      resourceType: 'Project',
+      resourceId: project._id.toString(),
+      outcome: 'success',
+      req,
+    });
+
+    return toPublicDetail(project);
+  },
+
+  /**
+   * Soft-delete a project (set status = removed). Owner only.
+   */
+  async softDelete(id: string, requester: { id: string; roles: string[] }, req?: any) {
+    const project = await Project.findById(id);
+    if (!project) throw new NotFoundError();
+
+    if (project.authorId.toString() !== requester.id) {
+      throw new ForbiddenError();
+    }
+
+    project.status = 'removed';
+    await project.save();
+
+    await AuditService.record({
+      actorId: requester.id,
+      actorRoles: requester.roles,
+      action: 'project.removed',
+      resourceType: 'Project',
+      resourceId: project._id.toString(),
+      outcome: 'success',
+      req,
+    });
+
+    return { removed: true };
+  },
+
+  toPublicList,
+  toPublicDetail,
+};
