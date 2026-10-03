@@ -1,5 +1,5 @@
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { useCurrentUser, useLogout } from '@/features/auth/useAuth';
+import { useCurrentUser, useLogout, isCreator, isAdmin, isModerator } from '@/features/auth/useAuth';
 import { Button } from '@/components/ui/Button';
 import { Wordmark } from '@/components/brand/Wordmark';
 
@@ -32,6 +32,32 @@ export function Layout() {
             >
               Home
             </NavLink>
+
+            {!isCreator(user) && user && (
+              <NavLink
+                to="/creator/apply"
+                className={({ isActive }) =>
+                  isActive
+                    ? 'text-brand-primary font-medium'
+                    : 'text-text-secondary hover:text-text-primary'
+                }
+              >
+                Become a Creator
+              </NavLink>
+            )}
+
+            {isModerator(user) && (
+              <NavLink
+                to="/admin/creator-applications"
+                className={({ isActive }) =>
+                  isActive
+                    ? 'text-brand-primary font-medium'
+                    : 'text-text-secondary hover:text-text-primary'
+                }
+              >
+                Applications
+              </NavLink>
+            )}
           </nav>
 
           <div className="flex items-center gap-3">
