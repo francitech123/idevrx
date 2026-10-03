@@ -2,9 +2,7 @@ import type { RequestHandler } from 'express';
 import { AuthService } from '../services/authService.js';
 import { AuthRequiredError } from '../utils/errors.js';
 import { isProd } from '../config/env.js';
-
-export const SESSION_COOKIE = isProd ? '__Host-idevrx_session' : 'idevrx_session';
-
+export const SESSION_COOKIE = 'idevrx_session';
 export const authenticate: RequestHandler = async (req, _res, next) => {
   try {
     const token = (req as any).cookies?.[SESSION_COOKIE];
