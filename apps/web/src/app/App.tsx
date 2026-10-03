@@ -6,6 +6,8 @@ import { RegisterPage } from '@/pages/RegisterPage';
 import { SettingsPage } from '@/pages/SettingsPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
 import { RequireAuth } from '@/app/guards/RequireAuth';
+import { CreatorApplyPage } from '@/pages/CreatorApplyPage';
+import { AdminCreatorApplicationsPage } from '@/pages/AdminCreatorApplicationsPage';
 
 export default function App() {
   return (
@@ -19,6 +21,22 @@ export default function App() {
           element={
             <RequireAuth>
               <SettingsPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/creator/apply"
+          element={
+            <RequireAuth>
+              <CreatorApplyPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/admin/creator-applications"
+          element={
+            <RequireAuth>
+              <AdminCreatorApplicationsPage />
             </RequireAuth>
           }
         />
