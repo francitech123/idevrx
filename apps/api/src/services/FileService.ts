@@ -38,12 +38,6 @@ function toPublicFile(f: any) {
   };
 }
 
-/**
- * Resolve a project reference that may be:
- *  - a Mongo ObjectId (24 hex chars)
- *  - a project number (numeric string, e.g. "1")
- *  - a slug (e.g. "esp32-environmental-sensor")
- */
 async function resolveProject(idOrNumber: string) {
   if (/^\d+$/.test(idOrNumber)) {
     const byNumber = await Project.findOne({ projectNumber: Number(idOrNumber) });
@@ -81,7 +75,6 @@ async function requireProjectVisibility(
     project.status === 'published' && project.visibility === 'public';
 
   if (!isPubliclyVisible && !isOwner && !isPrivileged) {
-    // 404, not 403 — prevents enumeration (File 05 §40)
     throw new NotFoundError();
   }
   return project;
@@ -158,7 +151,6 @@ export const FileService = {
       expiresIn: intent.expiresIn,
       fileId: file._id.toString(),
       storageKey,
-      // Upstash pins these headers into the signed URL — the client MUST send them verbatim.
       headers: intent.headers ?? {},
     };
   },
@@ -252,7 +244,7 @@ export const FileService = {
     try {
       await storage.deleteObject(file.storageKey);
     } catch {
-      // Best effort — metadata removal still matters even if the object delete fails.
+      // Best effort
     }
 
     await ProjectFile.deleteOne({ _id: file._id });
