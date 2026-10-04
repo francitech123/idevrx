@@ -1,8 +1,3 @@
-import { env } from '../config/env.js';
-import type { StorageService } from './StorageService.js';
-import { B2StorageService } from './B2StorageService.js';
-import { UpstashStorageService } from './UpstashStorageService.js';
-
 function pick(): StorageService {
   switch (env.STORAGE_PROVIDER) {
     case 'upstash':
@@ -15,5 +10,3 @@ function pick(): StorageService {
       throw new Error(`Unsupported storage provider: ${env.STORAGE_PROVIDER}`);
   }
 }
-
-export const storage: StorageService = pick();
