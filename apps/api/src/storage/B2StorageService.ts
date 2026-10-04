@@ -3,6 +3,19 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { env } from '../config/env.js';
 import type { StorageService, UploadIntent } from './StorageService.js';
 
+// B2/R2/S3 require these; env.ts validates them conditionally,
+// but TS needs a local guard.
+if (
+  !env.STORAGE_REGION ||
+  !env.STORAGE_ENDPOINT ||
+  !env.STORAGE_ACCESS_KEY ||
+  !env.STORAGE_SECRET_KEY
+) {
+  throw new Error(
+    'B2StorageService requires STORAGE_REGION, STORAGE_ENDPOINT, STORAGE_ACCESS_KEY, STORAGE_SECRET_KEY'
+  );
+}
+
 const client = new S3Client({
   region: env.STORAGE_REGION,
   endpoint: env.STORAGE_ENDPOINT,
@@ -10,7 +23,7 @@ const client = new S3Client({
     accessKeyId: env.STORAGE_ACCESS_KEY,
     secretAccessKey: env.STORAGE_SECRET_KEY,
   },
-  forcePathStyle: true, // REQUIRED for Backblaze B2
+  forcePathStyle: true,
 });
 
 export const B2StorageService: StorageService = {
