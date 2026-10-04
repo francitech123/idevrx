@@ -43,26 +43,19 @@ function toPublicFile(f: any) {
  *  - a Mongo ObjectId (24 hex chars)
  *  - a project number (numeric string, e.g. "1")
  *  - a slug (e.g. "esp32-environmental-sensor")
- * Returns the Project document or null.
  */
 async function resolveProject(idOrNumber: string) {
-  // Numeric string → try projectNumber first
   if (/^\d+$/.test(idOrNumber)) {
     const byNumber = await Project.findOne({ projectNumber: Number(idOrNumber) });
     if (byNumber) return byNumber;
   }
-  // 24-hex string → try ObjectId
   if (/^[0-9a-fA-F]{24}$/.test(idOrNumber)) {
     const byId = await Project.findById(idOrNumber);
     if (byId) return byId;
   }
-  // Fallback → try slug
   return Project.findOne({ slug: idOrNumber });
 }
 
-/**
- * Load the project and verify the requester owns it. Throws if not found or not owner.
- */
 async function requireProjectOwnership(projectRef: string, userId: string) {
   const project = await resolveProject(projectRef);
   if (!project) throw new NotFoundError();
@@ -70,10 +63,6 @@ async function requireProjectOwnership(projectRef: string, userId: string) {
   return project;
 }
 
-/**
- * Load the project and check the requester can see its files.
- * Returns the Project document if visible; throws NotFoundError otherwise.
- */
 async function requireProjectVisibility(
   projectRef: string,
   requester: { id: string; roles: string[] } | null
@@ -88,10 +77,11 @@ async function requireProjectVisibility(
       requester.roles.includes('admin') ||
       requester.roles.includes('ceo'));
 
-  const isPubliclyVisible = project.status === 'published' && project.visibility === 'public';
+  const isPubliclyVisible =
+    project.status === 'published' && project.visibility === 'public';
 
   if (!isPubliclyVisible && !isOwner && !isPrivileged) {
-    // Return 404, not 403 — prevents enumeration (File 05 §40)
+    // 404, not 403 — prevents enumeration (File 05 §40)
     throw new NotFoundError();
   }
   return project;
@@ -168,6 +158,8 @@ export const FileService = {
       expiresIn: intent.expiresIn,
       fileId: file._id.toString(),
       storageKey,
+      // Upstash pins these headers into the signed URL — the client MUST send them verbatim.
+      headers: intent.headers ?? {},
     };
   },
 
@@ -183,7 +175,11 @@ export const FileService = {
     if (!head) {
       file.processingStatus = 'failed';
       await file.save();
-      throw new AppError(400, 'VALIDATION_ERROR', 'Upload was not found in storage. Please retry.');
+      throw new AppError(
+        400,
+        'VALIDATION_ERROR',
+        'Upload was not found in storage. Please retry.'
+      );
     }
 
     file.sizeBytes = head.size;
@@ -194,7 +190,10 @@ export const FileService = {
     return toPublicFile(file);
   },
 
-  async listForProject(projectRef: string, requester: { id: string; roles: string[] } | null) {
+  async listForProject(
+    projectRef: string,
+    requester: { id: string; roles: string[] } | null
+  ) {
     const project = await requireProjectVisibility(projectRef, requester);
 
     const files = await ProjectFile.find({
@@ -212,7 +211,6 @@ export const FileService = {
   ) {
     const project = await requireProjectVisibility(projectRef, requester);
 
-    // Reject bad fileId early with a clear error rather than a CastError
     if (!/^[0-9a-fA-F]{24}$/.test(fileId)) throw new NotFoundError();
 
     const file = await ProjectFile.findById(fileId);
@@ -254,7 +252,7 @@ export const FileService = {
     try {
       await storage.deleteObject(file.storageKey);
     } catch {
-      // Best-effort: log but continue; metadata removal still matters
+      // Best effort — metadata removal still matters even if the object delete fails.
     }
 
     await ProjectFile.deleteOne({ _id: file._id });
