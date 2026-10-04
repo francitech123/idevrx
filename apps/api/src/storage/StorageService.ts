@@ -2,6 +2,7 @@ export interface UploadIntent {
   url: string;
   storageKey: string;
   expiresIn: number;
+  headers?: Record<string, string>;
 }
 
 export interface StorageService {
