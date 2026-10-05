@@ -1,22 +1,20 @@
 import { Link, useParams } from 'react-router-dom';
 import { useProject, useCategories } from '@/features/projects/useProjects';
+import { useProjectFiles } from '@/features/files/useFiles';
+import { useCurrentUser } from '@/features/auth/useAuth';
 import { Button } from '@/components/ui/Button';
 import { FileCard } from '@/components/file/FileCard';
-import { useProjectFiles, useDownloadFile } from '@/features/files/useFiles';
 
 export function ProjectDetailPage() {
   const { projectNumber, slug } = useParams<{ projectNumber: string; slug: string }>();
+  const { user } = useCurrentUser();
 
-  // Prefer projectNumber for lookup (stable identity), fall back to slug
   const numeric = projectNumber?.replace(/^project-/, '') ?? '';
   const idOrNumber = /^\d+$/.test(numeric) ? numeric : slug ?? '';
 
   const { data: project, isLoading, isError, error } = useProject(idOrNumber || undefined);
   const { data: categoriesData } = useCategories();
-
-  const { data: filesData } = useProjectFiles(idOrNumber || undefined);
-  const downloadFile = useDownloadFile(idOrNumber);
-  const files = filesData ?? [];
+  const { data: files } = useProjectFiles(project?.id);
 
   if (isLoading) {
     return (
@@ -44,6 +42,16 @@ export function ProjectDetailPage() {
 
   const category = categoriesData?.find((c) => c.id === project.categoryId);
   const formattedNumber = `PROJECT ${String(project.projectNumber).padStart(3, '0')}`;
+  const isOwner = user && user.id === project.authorId;
+
+  // Files are already visibility-filtered by the backend.
+  // Show only 'ready' files with public visibility on the public page.
+  const publicFiles = (files ?? []).filter(
+    (f) => f.processingStatus === 'ready' && f.visibility === 'public'
+  );
+
+  // For owner, show all files even private ones (helps them see their uploads)
+  const displayFiles = isOwner ? (files ?? []) : publicFiles;
 
   return (
     <div className="max-w-container mx-auto px-6 py-10">
@@ -61,7 +69,7 @@ export function ProjectDetailPage() {
         <div className="lg:col-span-2 space-y-6">
           <div className="rounded-card border border-border bg-surface p-6">
             <div className="aspect-[16/10] bg-muted rounded-button flex items-center justify-center text-text-muted text-sm">
-              {project.coverFileId ? 'Cover image (Phase 4)' : 'No cover image'}
+              {project.coverFileId ? 'Cover image' : 'No cover image'}
             </div>
           </div>
 
@@ -76,9 +84,6 @@ export function ProjectDetailPage() {
               >
                 {project.youtubeUrl}
               </a>
-              <p className="text-xs text-text-muted mt-2">
-                YouTube embeds will render here in Phase 4.
-              </p>
             </div>
           )}
 
@@ -95,17 +100,18 @@ export function ProjectDetailPage() {
             </div>
           )}
 
-          {files.length > 0 && (
+          {displayFiles.length > 0 && (
             <div className="rounded-card border border-border bg-surface p-6">
-              <h2 className="font-semibold mb-4">Files</h2>
-              <div className="space-y-2">
-                {files.map((f) => (
-                  <FileCard
-                    key={f.id}
-                    file={f}
-                    onDownload={(file) => downloadFile.mutate(file)}
-                    downloading={downloadFile.isPending}
-                  />
+              <h2 className="font-semibold mb-4">
+                Files {isOwner && files && files.length !== publicFiles.length && (
+                  <span className="text-xs text-text-muted font-normal">
+                    (showing {displayFiles.length}, including your private files)
+                  </span>
+                )}
+              </h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {displayFiles.map((f) => (
+                  <FileCard key={f.id} file={f} projectId={project.id} />
                 ))}
               </div>
             </div>
@@ -142,28 +148,4 @@ export function ProjectDetailPage() {
               {project.publishedAt && (
                 <Row
                   label="Published"
-                  value={new Date(project.publishedAt).toLocaleDateString()}
-                />
-              )}
-            </dl>
-          </div>
-
-          <div className="rounded-card border border-dashed border-border bg-surface p-5 text-center">
-            <p className="text-xs text-text-muted">
-              Author info appears here in Phase 4.
-            </p>
-          </div>
-        </aside>
-      </div>
-    </div>
-  );
-}
-
-function Row({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex justify-between gap-3">
-      <dt className="text-text-secondary">{label}</dt>
-      <dd className="text-text-primary font-mono text-xs">{value}</dd>
-    </div>
-  );
-}
+                  value={new Date(project.publishedAt).
