@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import * as ctrl from '../controllers/projectController.js';
+import fileRoutes from './files.js';
 import { requireAuth } from '../middleware/auth.js';
 import { requireRole } from '../middleware/authorize.js';
 import { validateBody, validateQuery } from '../middleware/validate.js';
@@ -8,7 +9,6 @@ import {
   UpdateProjectSchema,
   ListProjectsQuerySchema,
 } from '../validators/projectSchemas.js';
-import fileRoutes from './files.js';
 
 const router = Router();
 
@@ -26,9 +26,6 @@ router.get(
 
 // --- Public: get by id, number, or slug ---
 router.get('/:idOrNumber', ctrl.getOne);
-
-// --- Nested: file routes for a specific project ---
-router.use('/:id/files', fileRoutes);
 
 // --- Creator-only: create ---
 router.post(
@@ -68,5 +65,8 @@ router.delete(
   requireRole('creator'),
   ctrl.softDelete
 );
+
+// --- Nested: files under a project ---
+router.use('/:id/files', fileRoutes);
 
 export default router;
