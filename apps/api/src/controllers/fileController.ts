@@ -3,6 +3,7 @@ import { FileService } from '../services/FileService.js';
 import { ok } from '../utils/apiResponse.js';
 import { AuthRequiredError } from '../utils/errors.js';
 
+/** Express 5 types req.params values as string | string[]. */
 function param(value: string | string[] | undefined): string {
   if (Array.isArray(value)) return value[0] ?? '';
   return value ?? '';
@@ -18,10 +19,9 @@ export const createUploadIntent: RequestHandler = async (req, res, next) => {
         projectId: param(req.params.id),
         userId: user._id.toString(),
         userRoles: user.roles,
-        filename: req.body.filename,
+        originalFilename: req.body.originalFilename,
         mimeType: req.body.mimeType,
         sizeBytes: req.body.sizeBytes,
-        category: req.body.category,
       },
       req
     );
@@ -36,11 +36,15 @@ export const finalizeUpload: RequestHandler = async (req, res, next) => {
     const user = (req as any).user;
     if (!user) throw new AuthRequiredError();
 
-    const file = await FileService.finalizeUpload({
-      projectId: param(req.params.id),
-      userId: user._id.toString(),
-      fileId: param(req.params.fileId),
-    });
+    const file = await FileService.finalizeUpload(
+      {
+        projectId: param(req.params.id),
+        fileId: param(req.params.fileId),
+        userId: user._id.toString(),
+        userRoles: user.roles,
+      },
+      req
+    );
     return ok(res, { file });
   } catch (err) {
     next(err);
@@ -61,27 +65,27 @@ export const listFiles: RequestHandler = async (req, res, next) => {
 export const download: RequestHandler = async (req, res, next) => {
   try {
     const user = (req as any).user;
-    const requester = user ? { id: user._id.toString(), roles: user.roles } : null;
-    const result = await FileService.getDownloadUrl(
-      param(req.params.id),
-      param(req.params.fileId),
-      requester
-    );
+    const result = await FileService.createDownloadUrl({
+      projectId: param(req.params.id),
+      fileId: param(req.params.fileId),
+      requesterId: user ? user._id.toString() : null,
+      requesterRoles: user ? user.roles : [],
+    });
     return ok(res, result);
   } catch (err) {
     next(err);
   }
 };
 
-export const deleteFile: RequestHandler = async (req, res, next) => {
+export const remove: RequestHandler = async (req, res, next) => {
   try {
     const user = (req as any).user;
     if (!user) throw new AuthRequiredError();
-    const result = await FileService.deleteFile(
+
+    const result = await FileService.removeFile(
       param(req.params.id),
       param(req.params.fileId),
-      user._id.toString(),
-      user.roles,
+      { id: user._id.toString(), roles: user.roles },
       req
     );
     return ok(res, result);
