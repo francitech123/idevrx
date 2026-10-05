@@ -12,6 +12,7 @@ import { LoginPage } from '@/pages/LoginPage';
 import { RegisterPage } from '@/pages/RegisterPage';
 import { SettingsPage } from '@/pages/SettingsPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
+import { DesignSystemPage } from '@/pages/DesignSystemPage';
 import { CreatorApplyPage } from '@/pages/CreatorApplyPage';
 import { AdminCreatorApplicationsPage } from '@/pages/AdminCreatorApplicationsPage';
 import { RequireAuth } from '@/app/guards/RequireAuth';
@@ -40,6 +41,7 @@ export default function App() {
   return (
     <Routes>
       <Route element={<Layout />}>
+        <Route path="/design-system" element={<DesignSystemPage />} />
         <Route path="/" element={<RootPage />} />
         <Route path="/explore" element={<ExplorePage />} />
         <Route path="/ide/:projectNumber/:slug" element={<ProjectDetailPage />} />
