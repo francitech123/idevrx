@@ -1,28 +1,45 @@
-export interface UploadIntent {
-  url: string;
+/**
+ * Provider-agnostic storage interface.
+ * File 04 §38: "Keep storage operations behind a storage service interface."
+ */
+export interface PresignedUpload {
+  uploadUrl: string;
   storageKey: string;
   expiresIn: number;
-  /**
-   * Optional headers that MUST be sent verbatim by the client when uploading
-   * to the presigned URL. Used by Upstash Blob, which pins these into the
-   * signature — dropping, changing, or adding a header returns 403.
-   */
-  headers?: Record<string, string>;
+}
+
+export interface PresignedDownload {
+  downloadUrl: string;
+  expiresIn: number;
 }
 
 export interface StorageService {
-  generateUploadUrl(params: {
-    storageKey: string;
-    contentType: string;
-    maxBytes: number;
-  }): Promise<UploadIntent>;
+  /**
+   * Generate a presigned PUT URL for the client to upload directly.
+   * Expiry: short — 5 minutes by default.
+   */
+  createUploadUrl(
+    storageKey: string,
+    contentType: string,
+    maxBytes: number
+  ): Promise<PresignedUpload>;
 
-  generateDownloadUrl(params: {
-    storageKey: string;
-    expiresInSeconds: number;
-  }): Promise<string>;
+  /**
+   * Generate a presigned GET URL for controlled download.
+   * Expiry: short — 60 seconds by default.
+   */
+  createDownloadUrl(storageKey: string, expiresIn?: number): Promise<PresignedDownload>;
 
-  headObject(storageKey: string): Promise<{ size: number; contentType: string } | null>;
+  /**
+   * Verify an object exists in storage and return its real metadata.
+   * Used to finalize uploads — never trust client-declared size/content-type.
+   */
+  headObject(
+    storageKey: string
+  ): Promise<{ sizeBytes: number; contentType: string } | null>;
 
+  /**
+   * Delete an object from storage.
+   */
   deleteObject(storageKey: string): Promise<void>;
 }
