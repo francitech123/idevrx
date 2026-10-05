@@ -9,6 +9,8 @@ import { StudioProjectsPage } from '@/pages/StudioProjectsPage';
 import { NewProjectPage } from '@/pages/NewProjectPage';
 import { EditProjectPage } from '@/pages/EditProjectPage';
 import { LoginPage } from '@/pages/LoginPage';
+import { CreatorGuidelinesPage } from '@/pages/CreatorGuidelinesPage';
+import { CommunityGuidelinesPage } from '@/pages/CommunityGuidelinesPage';
 import { RegisterPage } from '@/pages/RegisterPage';
 import { SettingsPage } from '@/pages/SettingsPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
@@ -41,6 +43,8 @@ export default function App() {
   return (
     <Routes>
       <Route element={<Layout />}>
+        <Route path="/creator-guidelines" element={<CreatorGuidelinesPage />} />
+        <Route path="/community-guidelines" element={<CommunityGuidelinesPage />} />
         <Route path="/design-system" element={<DesignSystemPage />} />
         <Route path="/" element={<RootPage />} />
         <Route path="/explore" element={<ExplorePage />} />
