@@ -148,4 +148,22 @@ export function ProjectDetailPage() {
               {project.publishedAt && (
                 <Row
                   label="Published"
-                  value={new Date(project.publishedAt).
+                  value={new Date(project.publishedAt).toLocaleDateString()}
+                />
+              )}
+            </dl>
+          </div>
+        </aside>
+      </div>
+    </div>
+  );
+}
+
+function Row({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex justify-between gap-3">
+      <dt className="text-text-secondary">{label}</dt>
+      <dd className="text-text-primary font-mono text-xs">{value}</dd>
+    </div>
+  );
+}
