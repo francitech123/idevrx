@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { usePublicProjects } from '@/features/projects/useProjects';
 import { useCurrentUser } from '@/features/auth/useAuth';
@@ -10,7 +10,6 @@ export function ExplorePage() {
   const { user, isLoading: authLoading } = useCurrentUser();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const q = searchParams.get('q') ?? '';
   const category = searchParams.get('category') ?? '';
 
   const [page, setPage] = useState(1);
@@ -24,14 +23,6 @@ export function ExplorePage() {
   });
 
   const projects = data?.items ?? [];
-
-  function handleProjectClick(projectId: string) {
-    if (isGuest) {
-      navigate('/login', { state: { from: `/explore` } });
-      return;
-    }
-    // Navigate handled by Link in ProjectCard
-  }
 
   return (
     <div className="idx-block">
@@ -71,10 +62,16 @@ export function ExplorePage() {
 
         {!isLoading && !isError && projects.length === 0 && (
           <div className="idx-empty-projects">
-            <p style={{
-              fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '0.18em',
-              textTransform: 'uppercase', color: 'var(--color-text-muted)', marginBottom: 12,
-            }}>
+            <p
+              style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: 11,
+                letterSpacing: '0.18em',
+                textTransform: 'uppercase',
+                color: 'var(--color-text-muted)',
+                marginBottom: 12,
+              }}
+            >
               No projects yet
             </p>
             <p style={{ marginBottom: 24 }}>
@@ -107,7 +104,14 @@ export function ExplorePage() {
         )}
 
         {!isLoading && projects.length > 0 && (
-          <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginTop: 40 }}>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'center',
+              gap: 8,
+              marginTop: 40,
+            }}
+          >
             <button
               className="idx-btn idx-btn-outline"
               disabled={page <= 1}
@@ -115,7 +119,13 @@ export function ExplorePage() {
             >
               Previous
             </button>
-            <span style={{ alignSelf: 'center', fontSize: 14, color: 'var(--color-text-muted)' }}>
+            <span
+              style={{
+                alignSelf: 'center',
+                fontSize: 14,
+                color: 'var(--color-text-muted)',
+              }}
+            >
               Page {page}
             </span>
             <button
