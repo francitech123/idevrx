@@ -37,6 +37,8 @@ import { FirstRoverPage } from '@/pages/blog/FirstRoverPage';
 import { CreatorGuidelinesBlogPage } from '@/pages/blog/CreatorGuidelinesBlogPage';
 import { RequireAuth } from '@/app/guards/RequireAuth';
 import { useCurrentUser } from '@/features/auth/useAuth';
+import { CookieConsentBanner } from '@/features/cookies/CookieConsentBanner';
+import { GoogleAnalytics } from '@/features/cookies/GoogleAnalytics';
 
 function RedirectIfAuthed({ children }: { children: ReactNode }) {
   const { user, isLoading } = useCurrentUser();
@@ -59,68 +61,72 @@ function RootPage() {
 
 export default function App() {
   return (
-    <Routes>
-      <Route element={<PublicLayout />}>
-        {/* Root — landing for guests, app home for signed-in users */}
-        <Route path="/" element={<RootPage />} />
+    <>
+      <GoogleAnalytics />
+      <CookieConsentBanner />
+      <Routes>
+        <Route element={<PublicLayout />}>
+          {/* Root — landing for guests, app home for signed-in users */}
+          <Route path="/" element={<RootPage />} />
 
-        {/* Public discovery */}
-        <Route path="/explore" element={<ExplorePage />} />
-        <Route path="/ide/:projectNumber/:slug" element={<ProjectDetailPage />} />
+          {/* Public discovery */}
+          <Route path="/explore" element={<ExplorePage />} />
+          <Route path="/ide/:projectNumber/:slug" element={<ProjectDetailPage />} />
 
-        {/* Public informational */}
-        <Route path="/about" element={<AboutPage />} />
-        <Route path="/contact" element={<ContactPage />} />
-        <Route path="/help" element={<HelpPage />} />
-        <Route path="/learning" element={<LearningPage />} />
-        <Route path="/community" element={<CommunityPage />} />
-        <Route path="/challenges" element={<ChallengesPage />} />
-        <Route path="/components" element={<ComponentsPage />} />
-        <Route path="/tutorials" element={<TutorialsPage />} />
-        <Route path="/creator-guidelines" element={<CreatorGuidelinesPage />} />
-        <Route path="/community-guidelines" element={<CommunityGuidelinesPage />} />
+          {/* Public informational */}
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/contact" element={<ContactPage />} />
+          <Route path="/help" element={<HelpPage />} />
+          <Route path="/learning" element={<LearningPage />} />
+          <Route path="/community" element={<CommunityPage />} />
+          <Route path="/challenges" element={<ChallengesPage />} />
+          <Route path="/components" element={<ComponentsPage />} />
+          <Route path="/tutorials" element={<TutorialsPage />} />
+          <Route path="/creator-guidelines" element={<CreatorGuidelinesPage />} />
+          <Route path="/community-guidelines" element={<CommunityGuidelinesPage />} />
 
-        <Route path="/policies" element={<PoliciesIndexPage />} />
-        <Route path="/policies/privacy" element={<PrivacyPage />} />
-        <Route path="/policies/terms" element={<TermsPage />} />
-        <Route path="/policies/cookies" element={<CookiesPage />} />
-        <Route path="/policies/copyright" element={<CopyrightPage />} />
-        <Route path="/policies/safety" element={<SafetyPage />} />
-        <Route path="/policies/ai" element={<AiPolicyPage />} />
-        <Route path="/policies/accessibility" element={<AccessibilityPage />} />
+          <Route path="/policies" element={<PoliciesIndexPage />} />
+          <Route path="/policies/privacy" element={<PrivacyPage />} />
+          <Route path="/policies/terms" element={<TermsPage />} />
+          <Route path="/policies/cookies" element={<CookiesPage />} />
+          <Route path="/policies/copyright" element={<CopyrightPage />} />
+          <Route path="/policies/safety" element={<SafetyPage />} />
+          <Route path="/policies/ai" element={<AiPolicyPage />} />
+          <Route path="/policies/accessibility" element={<AccessibilityPage />} />
 
-        <Route path="/blog" element={<BlogIndexPage />} />
-        <Route path="/blog/first-rover" element={<FirstRoverPage />} />
-        <Route path="/blog/creator-guidelines" element={<CreatorGuidelinesBlogPage />} />
+          <Route path="/blog" element={<BlogIndexPage />} />
+          <Route path="/blog/first-rover" element={<FirstRoverPage />} />
+          <Route path="/blog/creator-guidelines" element={<CreatorGuidelinesBlogPage />} />
 
-        {/* Auth */}
-        <Route
-          path="/login"
-          element={
-            <RedirectIfAuthed>
-              <LoginPage />
-            </RedirectIfAuthed>
-          }
-        />
-        <Route
-          path="/register"
-          element={
-            <RedirectIfAuthed>
-              <RegisterPage />
-            </RedirectIfAuthed>
-          }
-        />
+          {/* Auth */}
+          <Route
+            path="/login"
+            element={
+              <RedirectIfAuthed>
+                <LoginPage />
+              </RedirectIfAuthed>
+            }
+          />
+          <Route
+            path="/register"
+            element={
+              <RedirectIfAuthed>
+                <RegisterPage />
+              </RedirectIfAuthed>
+            }
+          />
 
-        {/* Authenticated app pages — same shell, footer auto-hides via PublicLayout logic */}
-        <Route path="/settings" element={<RequireAuth><SettingsPage /></RequireAuth>} />
-        <Route path="/creator/apply" element={<RequireAuth><CreatorApplyPage /></RequireAuth>} />
-        <Route path="/studio" element={<RequireAuth><StudioProjectsPage /></RequireAuth>} />
-        <Route path="/studio/new" element={<RequireAuth><NewProjectPage /></RequireAuth>} />
-        <Route path="/studio/project/:id" element={<RequireAuth><EditProjectPage /></RequireAuth>} />
-        <Route path="/admin/creator-applications" element={<RequireAuth><AdminCreatorApplicationsPage /></RequireAuth>} />
+          {/* Authenticated app pages */}
+          <Route path="/settings" element={<RequireAuth><SettingsPage /></RequireAuth>} />
+          <Route path="/creator/apply" element={<RequireAuth><CreatorApplyPage /></RequireAuth>} />
+          <Route path="/studio" element={<RequireAuth><StudioProjectsPage /></RequireAuth>} />
+          <Route path="/studio/new" element={<RequireAuth><NewProjectPage /></RequireAuth>} />
+          <Route path="/studio/project/:id" element={<RequireAuth><EditProjectPage /></RequireAuth>} />
+          <Route path="/admin/creator-applications" element={<RequireAuth><AdminCreatorApplicationsPage /></RequireAuth>} />
 
-        <Route path="*" element={<NotFoundPage />} />
-      </Route>
-    </Routes>
+          <Route path="*" element={<NotFoundPage />} />
+        </Route>
+      </Routes>
+    </>
   );
 }
