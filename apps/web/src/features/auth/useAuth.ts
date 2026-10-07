@@ -8,16 +8,28 @@ const AUTH_KEY = ['auth', 'me'] as const;
 export function useCurrentUser() {
   const q = useQuery({
     queryKey: AUTH_KEY,
-    queryFn: authApi.me,
+    queryFn: async () => {
+      try {
+        return await authApi.me();
+      } catch (err) {
+        // A 401 means "guest" — not a fatal error.
+        if (err instanceof ApiRequestError && err.status === 401) {
+          return null;
+        }
+        // Any other error (network, 500) — treat as guest too, so the
+        // public site never blocks on auth failures.
+        return null;
+      }
+    },
     retry: false,
     staleTime: 60_000,
+    // Never throw — always resolve to either a user or null
+    throwOnError: false,
   });
 
-  const isGuest = q.error instanceof ApiRequestError && q.error.status === 401;
   return {
     user: q.data?.user ?? null,
     isLoading: q.isLoading,
-    isGuest,
     refetch: q.refetch,
   };
 }
