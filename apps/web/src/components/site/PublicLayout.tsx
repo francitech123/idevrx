@@ -4,7 +4,8 @@ import { SiteFooter } from './SiteFooter';
 import { ErrorBoundary } from './ErrorBoundary';
 import { useCurrentUser } from '@/features/auth/useAuth';
 
-const PUBLIC_INFORMATIONAL = [
+/** Public informational pages — footer always shows here, for guests and users. */
+const INFORMATIONAL_PREFIXES = [
   '/about',
   '/contact',
   '/help',
@@ -19,33 +20,46 @@ const PUBLIC_INFORMATIONAL = [
   '/blog',
 ];
 
+/** Pages that must never show a footer. */
+const NO_FOOTER_EXACT = ['/login', '/register'];
+const NO_FOOTER_PREFIXES = ['/settings', '/studio', '/admin', '/creator/apply'];
+
 export function PublicLayout() {
   const location = useLocation();
   const { user } = useCurrentUser();
   const path = location.pathname;
 
-  // Footer shows ONLY on:
-  // 1. Public informational pages (guest or signed in — always)
-  // 2. Root landing when guest
-  // 3. /explore when guest
-  // 4. /ide/... when guest
-  // Never on: app pages, or when signed in on non-informational pages
-  const isInformational = PUBLIC_INFORMATIONAL.some(
+  // Hard "no footer" rules take priority
+  const isHardNoFooter =
+    NO_FOOTER_EXACT.includes(path) ||
+    NO_FOOTER_PREFIXES.some((p) => path === p || path.startsWith(p + '/'));
+
+  if (isHardNoFooter) {
+    return (
+      <div className="min-h-screen flex flex-col bg-white">
+        <SiteNav />
+        <main className="flex-1">
+          <ErrorBoundary>
+            <Outlet />
+          </ErrorBoundary>
+        </main>
+      </div>
+    );
+  }
+
+  // Informational pages — always show footer
+  const isInformational = INFORMATIONAL_PREFIXES.some(
     (p) => path === p || path.startsWith(p + '/')
   );
 
+  // Root / explore / project pages — footer only for guests
+  const isRoot = path === '/';
   const isExplore = path.startsWith('/explore');
   const isProject = path.startsWith('/ide/');
-  const isLanding = path === '/';
 
-  const isAuthPage = path === '/login' || path === '/register';
-
-  const showFooter =
-    isInformational ||
-    (!user && isLanding) ||
-    (!user && isExplore) ||
-    (!user && isProject) ||
-    isAuthPage;
+  const showFooter = isInformational || !user
+    ? isInformational || isRoot || isExplore || isProject
+    : false;
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
