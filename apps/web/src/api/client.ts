@@ -2,6 +2,9 @@ import type { ApiResponse } from '@idevrx/types';
 
 const API_URL = import.meta.env.VITE_API_URL ?? '';
 
+/** Default timeout for API requests (ms). Long enough for Render cold starts. */
+const DEFAULT_TIMEOUT_MS = 15_000;
+
 export class ApiRequestError extends Error {
   constructor(
     public status: number,
@@ -13,27 +16,38 @@ export class ApiRequestError extends Error {
   }
 }
 
-export async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
-  const res = await fetch(`${API_URL}${path}`, {
-    credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json',
-      ...(options.headers ?? {}),
-    },
-    ...options,
-  });
+export async function apiFetch<T>(
+  path: string,
+  options: RequestInit = {}
+): Promise<T> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT_MS);
 
-  const body = (await res.json()) as ApiResponse<T>;
+  try {
+    const res = await fetch(`${API_URL}${path}`, {
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(options.headers ?? {}),
+      },
+      signal: controller.signal,
+      ...options,
+    });
 
-  if (!body.success) {
-    throw new ApiRequestError(
-      res.status,
-      body.error.code,
-      body.error.message,
-      body.error.fields
-    );
+    const body = (await res.json()) as ApiResponse<T>;
+
+    if (!body.success) {
+      throw new ApiRequestError(
+        res.status,
+        body.error.code,
+        body.error.message,
+        body.error.fields
+      );
+    }
+    return body.data;
+  } finally {
+    clearTimeout(timeout);
   }
-  return body.data;
 }
 
 export const api = {
