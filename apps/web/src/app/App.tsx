@@ -48,6 +48,7 @@ function RedirectIfAuthed({ children }: { children: ReactNode }) {
 
 function RootPage() {
   const { user, isLoading } = useCurrentUser();
+
   if (isLoading) {
     return (
       <div style={{ padding: 64, maxWidth: 1280, margin: '0 auto' }}>
@@ -55,6 +56,8 @@ function RootPage() {
       </div>
     );
   }
+
+  // Never block. If we have a user, show app home. Otherwise show landing.
   return user ? <AppHomePage /> : <LandingPage />;
 }
 
