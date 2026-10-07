@@ -8,8 +8,8 @@ export function RequireAuth({ children }: { children: ReactNode }) {
 
   if (isLoading) {
     return (
-      <div className="max-w-container mx-auto p-8">
-        <div className="h-8 w-48 bg-muted rounded animate-pulse" />
+      <div className="idx-container" style={{ padding: 64 }}>
+        <div style={{ height: 32, width: 200, background: '#E2E8F0', borderRadius: 6 }} />
       </div>
     );
   }
