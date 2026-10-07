@@ -1,141 +1,133 @@
-import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useSearchParams, useNavigate } from 'react-router-dom';
+import { usePublicProjects } from '@/features/projects/useProjects';
+import { useCurrentUser } from '@/features/auth/useAuth';
 import { ProjectCard } from '@/components/project/ProjectCard';
-import { usePublicProjects, useCategories } from '@/features/projects/useProjects';
-import { useCurrentUser, isCreator } from '@/features/auth/useAuth';
-import { Button } from '@/components/ui/Button';
-import { useState } from 'react';
+
+const GUEST_LIMIT = 30;
 
 export function ExplorePage() {
-  const { user } = useCurrentUser();
-  const [categoryId, setCategoryId] = useState<string>('');
-  const [page, setPage] = useState(1);
+  const { user, isLoading: authLoading } = useCurrentUser();
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const q = searchParams.get('q') ?? '';
+  const category = searchParams.get('category') ?? '';
 
-  const { data: categoriesData } = useCategories();
-  const { data, isLoading, isError, error } = usePublicProjects({
+  const [page, setPage] = useState(1);
+  const isGuest = !authLoading && !user;
+  const limit = isGuest ? GUEST_LIMIT : 20;
+
+  const { data, isLoading, isError } = usePublicProjects({
     page,
-    limit: 12,
-    categoryId: categoryId || undefined,
+    limit,
+    categoryId: category || undefined,
   });
 
-  const categories = categoriesData ?? [];
   const projects = data?.items ?? [];
 
+  function handleProjectClick(projectId: string) {
+    if (isGuest) {
+      navigate('/login', { state: { from: `/explore` } });
+      return;
+    }
+    // Navigate handled by Link in ProjectCard
+  }
+
   return (
-    <div className="max-w-container mx-auto px-6 py-12">
-      <div className="flex items-start justify-between gap-4 mb-8">
-        <div>
-          <h1 className="text-3xl font-bold mb-2">Explore</h1>
-          <p className="text-text-secondary">
-            Discover engineering projects from builders across the platform.
-          </p>
+    <div className="idx-block">
+      <div className="idx-container">
+        <div className="idx-section-head">
+          <div className="idx-section-head-left">
+            <div className="idx-eyebrow">Explore</div>
+            <h1 className="idx-section-title">
+              {category ? `Domain: ${category}` : 'Explore engineering projects'}
+            </h1>
+            <p className="idx-section-sub">
+              {isGuest
+                ? 'Sign in to see the full catalog and open any project in depth.'
+                : 'Discover documented, reproducible engineering work.'}
+            </p>
+          </div>
         </div>
 
-        {isCreator(user) && (
-          <Link to="/studio/new">
-            <Button size="lg">New project</Button>
-          </Link>
-        )}
-      </div>
-
-      <div className="mb-6">
-        <label htmlFor="category-filter" className="text-sm text-text-secondary mr-2">
-          Filter by category:
-        </label>
-        <select
-          id="category-filter"
-          value={categoryId}
-          onChange={(e) => {
-            setCategoryId(e.target.value);
-            setPage(1);
-          }}
-          className="rounded-input border border-border bg-surface px-3 py-1.5 text-sm"
-        >
-          <option value="">All categories</option>
-          {categories.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.name}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      {isLoading && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[1, 2, 3, 4, 5, 6].map((i) => (
-            <div
-              key={i}
-              className="rounded-card border border-border bg-surface h-64 animate-pulse"
-            />
-          ))}
-        </div>
-      )}
-
-      {isError && (
-        <div className="rounded-card border border-error bg-error/5 p-6 text-center">
-          <p className="text-error mb-2">Could not load projects.</p>
-          <p className="text-xs text-text-muted">
-            {error instanceof Error ? error.message : 'Unknown error'}
-          </p>
-        </div>
-      )}
-
-      {!isLoading && !isError && projects.length === 0 && (
-        <div className="rounded-card border border-border bg-surface p-10 text-center">
-          <p className="text-text-primary font-medium mb-1">No projects yet</p>
-          <p className="text-sm text-text-secondary mb-6">
-            {categoryId
-              ? 'No published projects in this category.'
-              : 'Be the first to publish an engineering project on IDEVRX.'}
-          </p>
-          {isCreator(user) ? (
-            <Link to="/studio/new">
-              <Button>Create a project</Button>
-            </Link>
-          ) : user ? (
-            <Link to="/creator/apply">
-              <Button variant="secondary">Apply to become a Creator</Button>
-            </Link>
-          ) : (
-            <Link to="/register">
-              <Button>Create an account</Button>
-            </Link>
-          )}
-        </div>
-      )}
-
-      {!isLoading && !isError && projects.length > 0 && (
-        <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {projects.map((p) => (
-              <ProjectCard key={p.id} project={p} />
+        {isLoading && (
+          <div className="idx-projects-grid">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <div key={i} className="idx-project-card">
+                <div className="idx-project-image" />
+                <div className="idx-project-body">
+                  <div style={{ height: 60 }} />
+                </div>
+              </div>
             ))}
           </div>
+        )}
 
-          {data && (data.page > 1 || data.hasNextPage) && (
-            <div className="flex justify-center gap-2 mt-8">
-              <Button
-                variant="secondary"
-                size="md"
-                disabled={data.page <= 1}
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-              >
-                Previous
-              </Button>
-              <span className="self-center text-sm text-text-secondary">
-                Page {data.page}
-              </span>
-              <Button
-                variant="secondary"
-                size="md"
-                disabled={!data.hasNextPage}
-                onClick={() => setPage((p) => p + 1)}
-              >
-                Next
-              </Button>
-            </div>
-          )}
-        </>
-      )}
+        {isError && (
+          <div className="idx-empty-projects">
+            <p>Could not load projects. Please try again.</p>
+          </div>
+        )}
+
+        {!isLoading && !isError && projects.length === 0 && (
+          <div className="idx-empty-projects">
+            <p style={{
+              fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '0.18em',
+              textTransform: 'uppercase', color: 'var(--color-text-muted)', marginBottom: 12,
+            }}>
+              No projects yet
+            </p>
+            <p style={{ marginBottom: 24 }}>
+              Be the first to publish an engineering record.
+            </p>
+            <Link to="/register?intent=creator" className="idx-btn idx-btn-primary">
+              Become a Creator →
+            </Link>
+          </div>
+        )}
+
+        {!isLoading && !isError && projects.length > 0 && (
+          <div className="idx-projects-grid">
+            {projects.map((p) => {
+              const cardUrl = `/ide/project-${String(p.projectNumber).padStart(3, '0')}/${p.slug}`;
+              if (isGuest) {
+                return (
+                  <div
+                    key={p.id}
+                    onClick={() => navigate('/login', { state: { from: cardUrl } })}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    <ProjectCard project={p} />
+                  </div>
+                );
+              }
+              return <ProjectCard key={p.id} project={p} />;
+            })}
+          </div>
+        )}
+
+        {!isLoading && projects.length > 0 && (
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginTop: 40 }}>
+            <button
+              className="idx-btn idx-btn-outline"
+              disabled={page <= 1}
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+            >
+              Previous
+            </button>
+            <span style={{ alignSelf: 'center', fontSize: 14, color: 'var(--color-text-muted)' }}>
+              Page {page}
+            </span>
+            <button
+              className="idx-btn idx-btn-outline"
+              disabled={!data?.hasNextPage}
+              onClick={() => setPage((p) => p + 1)}
+            >
+              Next
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
