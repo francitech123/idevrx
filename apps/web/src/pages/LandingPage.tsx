@@ -14,9 +14,10 @@ import {
   Terminal,
 } from 'lucide-react';
 
-/* ---------- Constants ---------- */
-
-const JOURNEY_STEPS: { label: string; fail?: boolean }[] = [
+/* --------------------------------------------- */
+/* Journey band steps                            */
+/* --------------------------------------------- */
+const JOURNEY: { label: string; fail?: boolean }[] = [
   { label: 'Idea' },
   { label: 'Design' },
   { label: 'Plan' },
@@ -31,6 +32,9 @@ const JOURNEY_STEPS: { label: string; fail?: boolean }[] = [
   { label: 'Version' },
 ];
 
+/* --------------------------------------------- */
+/* Platform grid                                 */
+/* --------------------------------------------- */
 const PLATFORM_ITEMS = [
   {
     n: '01',
@@ -59,98 +63,74 @@ const PLATFORM_ITEMS = [
   },
 ];
 
+/* --------------------------------------------- */
+/* Domain chips                                  */
+/* --------------------------------------------- */
 const DOMAINS = [
-  { label: 'Robotics', slug: 'robotics', Icon: Bot },
-  { label: 'Electronics', slug: 'electronics', Icon: Cpu },
-  { label: 'Embedded systems', slug: 'embedded-systems', Icon: Code2 },
-  { label: 'IoT', slug: 'iot-automation', Icon: Wifi },
-  { label: '3D fabrication', slug: '3d-design-fabrication', Icon: Box },
-  { label: 'Computer vision', slug: 'computer-vision', Icon: Eye },
-  { label: 'Automation', slug: 'iot-automation', Icon: Zap },
-  { label: 'Programming', slug: 'programming', Icon: Terminal },
+  { label: 'Robotics', slug: 'robotics', icon: Bot },
+  { label: 'Electronics', slug: 'electronics', icon: Cpu },
+  { label: 'Embedded systems', slug: 'embedded-systems', icon: Code2 },
+  { label: 'IoT', slug: 'iot-automation', icon: Wifi },
+  { label: '3D fabrication', slug: '3d-design-fabrication', icon: Box },
+  { label: 'Computer vision', slug: 'computer-vision', icon: Eye },
+  { label: 'Automation', slug: 'iot-automation', icon: Zap },
+  { label: 'Programming', slug: 'programming', icon: Terminal },
 ];
 
-const CREATOR_FLOW = ['Draft', 'Document', 'Upload', 'Preview'];
-const BUILDER_FLOW = ['Discover', 'Read', 'Watch', 'Download'];
-const LEARNING_STEPS = [
-  'Fundamentals',
-  'Electronics',
-  'Micro-controllers',
-  'Sensors',
-  'Motors',
-  'Embedded programming',
-  'Robotics',
-  'Computer vision',
-];
-
-/* ---------- Stats hook (defensive) ---------- */
-
+/* --------------------------------------------- */
+/* Stats — real data from backend                */
+/* --------------------------------------------- */
 interface Stats {
   projects: number;
   creators: number;
   files: number;
 }
 
-function useStats(): Stats {
-  const [stats, setStats] = useState<Stats>({ projects: 0, creators: 0, files: 0 });
+function useStats() {
+  const [stats, setStats] = useState<Stats | null>(null);
 
   useEffect(() => {
+    let cancelled = false;
     const apiUrl = import.meta.env.VITE_API_URL ?? '';
-    const controller = new AbortController();
 
-    fetch(`${apiUrl}/api/v1/stats`, {
-      credentials: 'include',
-      signal: controller.signal,
-    })
-      .then(async (r) => {
-        if (!r.ok) return null;
-        const text = await r.text();
-        try {
-          return JSON.parse(text);
-        } catch {
-          return null;
-        }
-      })
+    fetch(`${apiUrl}/api/v1/stats`, { credentials: 'include' })
+      .then((r) => (r.ok ? r.json() : null))
       .then((body) => {
-        if (body && body.success && body.data) {
-          setStats({
-            projects: body.data.projects ?? 0,
-            creators: body.data.creators ?? 0,
-            files: body.data.files ?? 0,
-          });
+        if (!cancelled && body && body.success && body.data) {
+          setStats(body.data);
         }
       })
       .catch(() => {
-        // Silently keep zeros — never crash the page over stats
+        // Stats are non-critical; fail silently
       });
 
-    return () => controller.abort();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   return stats;
 }
 
-/* ---------- Page ---------- */
-
+/* --------------------------------------------- */
+/* Page                                          */
+/* --------------------------------------------- */
 export function LandingPage() {
-  const { user, isLoading: authLoading } = useCurrentUser();
+  const { user } = useCurrentUser();
   const stats = useStats();
-  const { data: projectsData, isLoading: projectsLoading } = usePublicProjects({
-    limit: 3,
-  });
-
+  const { data: projectsData } = usePublicProjects({ limit: 3 });
   const featured = projectsData?.items ?? [];
 
-  const becomeCreatorHref =
-    !authLoading && user
-      ? user.roles.includes('creator')
-        ? '/studio/new'
-        : '/creator/apply'
-      : '/register?intent=creator';
+  // Where should "Become a Creator" go?
+  const becomeCreatorHref = user
+    ? user.roles.includes('creator')
+      ? '/studio/new'
+      : '/creator/apply'
+    : '/register?intent=creator';
 
   return (
     <>
-      {/* ============================ HERO ============================ */}
+      {/* ================= HERO ================= */}
       <header className="idx-hero">
         <div className="idx-hero-photo" />
         <div className="idx-hero-overlay" />
@@ -183,14 +163,14 @@ export function LandingPage() {
             <div className="idx-hero-stats">
               <div>
                 <div className="idx-stat-num">
-                  {stats.projects}
+                  {stats ? stats.projects : 0}{' '}
                   <span className="idx-stat-tag">Live</span>
                 </div>
                 <div className="idx-stat-label">Engineering records</div>
               </div>
               <div>
                 <div className="idx-stat-num">
-                  {stats.files}
+                  {stats ? stats.files : 0}{' '}
                   <span className="idx-stat-tag">Live</span>
                 </div>
                 <div className="idx-stat-label">
@@ -201,7 +181,7 @@ export function LandingPage() {
               </div>
               <div>
                 <div className="idx-stat-num">
-                  {stats.creators}
+                  {stats ? stats.creators : 0}{' '}
                   <span className="idx-stat-tag">Live</span>
                 </div>
                 <div className="idx-stat-label">Active creators</div>
@@ -211,16 +191,18 @@ export function LandingPage() {
         </div>
       </header>
 
-      {/* ============================ JOURNEY BAND ============================ */}
+      {/* ================= JOURNEY BAND ================= */}
       <section className="idx-journey">
         <div className="idx-container">
           <div className="idx-journey-track">
-            {JOURNEY_STEPS.map((step, i) => (
+            {JOURNEY.map((step, i) => (
               <span key={step.label} style={{ display: 'contents' }}>
-                <span className={`idx-journey-step${step.fail ? ' fail' : ''}`}>
+                <span
+                  className={`idx-journey-step${step.fail ? ' fail' : ''}`}
+                >
                   {step.label}
                 </span>
-                {i < JOURNEY_STEPS.length - 1 && (
+                {i < JOURNEY.length - 1 && (
                   <span className="idx-journey-arrow">→</span>
                 )}
               </span>
@@ -233,11 +215,13 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* ============================ PLATFORM ============================ */}
+      {/* ================= PLATFORM ================= */}
       <section className="idx-block">
         <div className="idx-container">
           <div className="idx-eyebrow">The platform</div>
-          <h2 className="idx-section-title">One platform for the whole build</h2>
+          <h2 className="idx-section-title">
+            One platform for the whole build
+          </h2>
           <p className="idx-section-sub">
             Project documentation, engineering knowledge, maker community, and
             software-style versioning — connected around real-world projects.
@@ -255,16 +239,18 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* ============================ FEATURED PROJECTS ============================ */}
+      {/* ================= FEATURED PROJECTS ================= */}
       <section className="idx-block">
         <div className="idx-container">
           <div className="idx-section-head">
             <div className="idx-section-head-left">
               <div className="idx-eyebrow">Engineering records</div>
-              <h2 className="idx-section-title">Featured engineering records</h2>
+              <h2 className="idx-section-title">
+                Featured engineering records
+              </h2>
               <p className="idx-section-sub">
-                Live content — every card below is served from the IDEVRX backend
-                database.
+                Live content — every card below is served from the IDEVRX
+                backend database.
               </p>
             </div>
             <div className="idx-section-head-right">
@@ -274,18 +260,7 @@ export function LandingPage() {
             </div>
           </div>
 
-          {projectsLoading ? (
-            <div className="idx-projects-grid">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="idx-project-card">
-                  <div className="idx-project-image" />
-                  <div className="idx-project-body">
-                    <div style={{ height: 80 }} />
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : featured.length === 0 ? (
+          {featured.length === 0 ? (
             <div className="idx-empty-projects">
               <p
                 style={{
@@ -316,7 +291,7 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* ============================ DOMAINS ============================ */}
+      {/* ================= DOMAINS ================= */}
       <section className="idx-block">
         <div className="idx-container">
           <div className="idx-eyebrow">Domains</div>
@@ -327,7 +302,7 @@ export function LandingPage() {
 
           <div className="idx-domains">
             {DOMAINS.map((d) => {
-              const Icon = d.Icon;
+              const Icon = d.icon;
               return (
                 <Link
                   key={d.label}
@@ -343,20 +318,22 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* ============================ COMMUNITY ============================ */}
+      {/* ================= COMMUNITY ================= */}
       <section className="idx-block">
         <div className="idx-container">
           <div className="idx-eyebrow">Community</div>
           <h2 className="idx-section-title">Two journeys, one platform</h2>
 
           <div className="idx-journeys-grid">
+            {/* Creator journey */}
             <div className="idx-journey-card">
               <h3>Creator journey</h3>
               <p>
-                For authorized Creators — the only role that can author projects.
+                For authorized Creators — the only role that can author
+                projects.
               </p>
               <div className="idx-flow">
-                {CREATOR_FLOW.map((s) => (
+                {['Draft', 'Document', 'Upload', 'Preview'].map((s) => (
                   <span key={s} style={{ display: 'contents' }}>
                     <span className="idx-flow-step">{s}</span>
                     <span className="idx-flow-arrow">→</span>
@@ -369,11 +346,12 @@ export function LandingPage() {
               </Link>
             </div>
 
+            {/* Builder journey */}
             <div className="idx-journey-card">
               <h3>Builder journey</h3>
               <p>For Registered Users — learn, reproduce, and discuss.</p>
               <div className="idx-flow">
-                {BUILDER_FLOW.map((s) => (
+                {['Discover', 'Read', 'Watch', 'Download'].map((s) => (
                   <span key={s} style={{ display: 'contents' }}>
                     <span className="idx-flow-step">{s}</span>
                     <span className="idx-flow-arrow">→</span>
@@ -389,7 +367,7 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* ============================ LEARNING ============================ */}
+      {/* ================= LEARNING ================= */}
       <section className="idx-block">
         <div className="idx-container">
           <div className="idx-section-head">
@@ -412,14 +390,24 @@ export function LandingPage() {
 
           <div className="idx-path-card">
             <div className="idx-path-header">
-              <div className="idx-path-title">Path: Robotics fundamentals</div>
+              <div className="idx-path-title">
+                Path: Robotics fundamentals
+              </div>
               <div className="idx-path-progress">
                 Coming soon — learning paths are part of a future release
               </div>
             </div>
-
             <div className="idx-path-timeline">
-              {LEARNING_STEPS.map((label) => (
+              {[
+                'Fundamentals',
+                'Electronics',
+                'Micro-controllers',
+                'Sensors',
+                'Motors',
+                'Embedded programming',
+                'Robotics',
+                'Computer vision',
+              ].map((label) => (
                 <div key={label} className="idx-path-step">
                   <div className="idx-path-dot" />
                   <div className="idx-path-label">{label}</div>
@@ -430,7 +418,7 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* ============================ FINAL CTA ============================ */}
+      {/* ================= FINAL CTA ================= */}
       <div className="idx-final-cta-wrap">
         <div className="idx-container">
           <div className="idx-final-cta">
@@ -443,7 +431,10 @@ export function LandingPage() {
                 improve it, and take it further.
               </p>
               <div className="idx-final-cta-actions">
-                <Link to={becomeCreatorHref} className="idx-btn idx-btn-primary">
+                <Link
+                  to={becomeCreatorHref}
+                  className="idx-btn idx-btn-primary"
+                >
                   Become a Creator →
                 </Link>
                 <Link
