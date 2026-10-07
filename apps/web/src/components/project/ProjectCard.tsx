@@ -3,45 +3,43 @@ import type { ProjectListItem } from '@/features/projects/projectApi';
 
 export function ProjectCard({ project }: { project: ProjectListItem }) {
   const url = `/ide/project-${String(project.projectNumber).padStart(3, '0')}/${project.slug}`;
+  const meta = [
+    `PROJECT ${String(project.projectNumber).padStart(3, '0')}`,
+    project.difficulty ? project.difficulty.toUpperCase() : null,
+    project.estimatedBuildTime ? `EST. ${project.estimatedBuildTime.toUpperCase()}` : null,
+  ].filter(Boolean) as string[];
 
   return (
-    <Link
-      to={url}
-      className="block rounded-card border border-border bg-surface overflow-hidden hover:border-brand-primary transition-colors"
-    >
-      <div className="aspect-[16/10] bg-muted flex items-center justify-center">
-        {project.coverFileId ? (
-          // Phase 3 will render the actual cover image via signed URL.
-          // For now, show a placeholder.
-          <span className="text-xs text-text-muted">Cover</span>
-        ) : (
-          <span className="text-xs text-text-muted">No cover</span>
-        )}
+    <Link to={url} className="idx-project-card">
+      <div className="idx-project-image">
+        <span className="idx-project-version">{project.version}</span>
       </div>
-
-      <div className="p-4">
-        <p className="text-xs font-mono text-brand-primary mb-1">
-          PROJECT {String(project.projectNumber).padStart(3, '0')}
-        </p>
-        <h3 className="font-semibold text-text-primary mb-1 line-clamp-2">
-          {project.title}
-        </h3>
-        {project.shortDescription && (
-          <p className="text-sm text-text-secondary line-clamp-2 mb-3">
-            {project.shortDescription}
-          </p>
-        )}
-
-        <div className="flex items-center gap-3 text-xs text-text-muted">
-          {project.difficulty && (
-            <span className="capitalize">{project.difficulty}</span>
-          )}
-          {project.estimatedBuildTime && <span>{project.estimatedBuildTime}</span>}
-          {project.estimatedCost != null && (
-            <span>
-              {project.currency} {project.estimatedCost}
+      <div className="idx-project-body">
+        <div className="idx-project-meta">
+          {meta.map((m, i) => (
+            <span key={i} style={{ display: 'contents' }}>
+              {i > 0 && <span>·</span>}
+              <span className={i === 0 ? 'num' : undefined}>{m}</span>
             </span>
-          )}
+          ))}
+        </div>
+        <h3 className="idx-project-title">{project.title}</h3>
+        {project.shortDescription && (
+          <p className="idx-project-desc">{project.shortDescription}</p>
+        )}
+        <div className="idx-project-author">
+          <span className="idx-project-author-avatar" />
+          <span>Creator</span>
+        </div>
+        <div className="idx-project-tags">
+          <span className="idx-project-tag">PROJECT</span>
+        </div>
+        <div className="idx-project-footer">
+          <div className="idx-project-stats">
+            <span>♥ {project.counts.likes}</span>
+            <span>💬 {project.counts.comments}</span>
+            <span>📁 {project.counts.bookmarks}</span>
+          </div>
         </div>
       </div>
     </Link>
