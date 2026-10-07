@@ -77,10 +77,6 @@ export function LandingPage() {
   const { data } = usePublicProjects({ limit: 3 });
   const featured = data?.items ?? [];
 
-  const becomeCreatorHref = user
-    ? user.roles.includes('creator') ? '/studio/new' : '/creator/apply'
-    : '/register?intent=creator';
-
   return (
     <>
       {/* HERO */}
@@ -102,26 +98,26 @@ export function LandingPage() {
               <Link to="/explore" className="idx-btn idx-btn-hero-solid">
                 Explore Projects →
               </Link>
-              <Link to={becomeCreatorHref} className="idx-btn idx-btn-hero-brand">
-                Become a Creator
+              <Link to="/login" className="idx-btn idx-btn-hero-brand">
+                Get Started
               </Link>
             </div>
             <div className="idx-hero-stats">
-              <div>
+              <div className="idx-stat">
                 <div className="idx-stat-num">
                   {stats ? stats.projects : 0}{' '}
                   <span className="idx-stat-tag">Live</span>
                 </div>
                 <div className="idx-stat-label">Engineering records</div>
               </div>
-              <div>
+              <div className="idx-stat">
                 <div className="idx-stat-num">
                   {stats ? stats.files : 0}{' '}
                   <span className="idx-stat-tag">Live</span>
                 </div>
                 <div className="idx-stat-label">Documented files</div>
               </div>
-              <div>
+              <div className="idx-stat">
                 <div className="idx-stat-num">
                   {stats ? stats.creators : 0}{' '}
                   <span className="idx-stat-tag">Live</span>
@@ -212,7 +208,7 @@ export function LandingPage() {
               <p style={{ marginBottom: 24 }}>
                 Be the first to document an engineering project on IDEVRX.
               </p>
-              <Link to={becomeCreatorHref} className="idx-btn idx-btn-primary">
+              <Link to="/register?intent=creator" className="idx-btn idx-btn-primary">
                 Become a Creator →
               </Link>
             </div>
@@ -341,6 +337,43 @@ export function LandingPage() {
         </div>
       </section>
 
+      {/* FOUNDER */}
+      <section className="idx-block">
+        <div className="idx-container">
+          <div className="idx-founder">
+            <div className="idx-founder-photo">
+              <img
+                src="/founder-photo.webp"
+                alt="Founder of IDEVRX"
+                loading="lazy"
+              />
+            </div>
+            <div className="idx-founder-content">
+              <div className="idx-eyebrow">Founder</div>
+              <h2 className="idx-founder-title">
+                Built by an engineer, for engineers.
+              </h2>
+              <p className="idx-founder-text">
+                IDEVRX was created to fix something that shouldn't still be
+                broken in 2026: engineering knowledge scattered across videos,
+                forum threads, drive folders, and chat groups — with no
+                structured record of what was actually built and why.
+              </p>
+              <p className="idx-founder-text">
+                I'm a builder and engineer. I've spent years documenting my own
+                projects across tools that were never designed for engineering
+                work — and losing the reasoning behind every decision along the
+                way. IDEVRX is the platform I wanted to exist: a place where a
+                project is an engineering record, not a post.
+              </p>
+              <p className="idx-founder-signature">
+                — Founder, IDEVRX
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* FINAL CTA */}
       <div className="idx-final-cta-wrap">
         <div className="idx-container">
@@ -354,7 +387,7 @@ export function LandingPage() {
                 improve it, and take it further.
               </p>
               <div className="idx-final-cta-actions">
-                <Link to={becomeCreatorHref} className="idx-btn idx-btn-primary">
+                <Link to="/register?intent=creator" className="idx-btn idx-btn-primary">
                   Become a Creator →
                 </Link>
                 <Link to="/creator-guidelines" className="idx-btn idx-btn-outline">
