@@ -1,24 +1,45 @@
 import { Link } from 'react-router-dom';
-import { useEffect, useState } from 'react';
 import { usePublicProjects } from '@/features/projects/useProjects';
 import { useCurrentUser } from '@/features/auth/useAuth';
-import { LogoMark } from '@/components/brand/LogoMark';
+import { useEffect, useState } from 'react';
 import { ProjectCard } from '@/components/project/ProjectCard';
 import {
-  MapPin,
-  Cpu,
-  Code2,
-  Wifi,
-  Box,
-  Eye,
-  Zap,
-  Terminal,
-  ArrowRight,
+  Bot, Cpu, Code2, Wifi, Box, Eye, Zap, Terminal,
 } from 'lucide-react';
 
-/* ---------------------------------- */
-/* Backend stats hook — real data only */
-/* ---------------------------------- */
+const JOURNEY = [
+  { label: 'Idea', fail: false },
+  { label: 'Design', fail: false },
+  { label: 'Plan', fail: false },
+  { label: 'Build', fail: false },
+  { label: 'Fail', fail: true },
+  { label: 'Diagnose', fail: false },
+  { label: 'Improve', fail: false },
+  { label: 'Test', fail: false },
+  { label: 'Document', fail: false },
+  { label: 'Share', fail: false },
+  { label: 'Remix', fail: false },
+  { label: 'Version', fail: false },
+];
+
+const PLATFORM_ITEMS = [
+  { n: '01', t: 'Discover', d: 'Find projects by engineering relevance — category, components, difficulty, cost, and creator.' },
+  { n: '02', t: 'Learn', d: 'Tutorials and learning paths that connect theory to practical, documented builds.' },
+  { n: '03', t: 'Build', d: 'Structured drafts: BOM, steps, code, schematics, files, and tests — progressively documented.' },
+  { n: '04', t: 'Share', d: 'Publish with permanent project numbers, galleries, YouTube embeds, and downloadable files.' },
+  { n: '05', t: 'Improve', d: 'Version history, remix lineage, technical discussion, and documented lessons.' },
+];
+
+const DOMAINS = [
+  { label: 'Robotics', slug: 'robotics', icon: Bot },
+  { label: 'Electronics', slug: 'electronics', icon: Cpu },
+  { label: 'Embedded systems', slug: 'embedded-systems', icon: Code2 },
+  { label: 'IoT', slug: 'iot-automation', icon: Wifi },
+  { label: '3D fabrication', slug: '3d-design-fabrication', icon: Box },
+  { label: 'Computer vision', slug: 'computer-vision', icon: Eye },
+  { label: 'Automation', slug: 'iot-automation', icon: Zap },
+  { label: 'Programming', slug: 'programming', icon: Terminal },
+];
 
 interface Stats {
   projects: number;
@@ -28,253 +49,152 @@ interface Stats {
 
 function useStats() {
   const [stats, setStats] = useState<Stats | null>(null);
-  const [loading, setLoading] = useState(true);
-
   useEffect(() => {
     const apiUrl = import.meta.env.VITE_API_URL ?? '';
     fetch(`${apiUrl}/api/v1/stats`, { credentials: 'include' })
       .then((r) => r.json())
-      .then((body) => {
-        if (body.success) setStats(body.data);
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false));
+      .then((body) => { if (body.success) setStats(body.data); })
+      .catch(() => {});
   }, []);
-
-  return { stats, loading };
+  return stats;
 }
-
-/* ---------------------------------- */
-/* Small design primitives (inline)   */
-/* ---------------------------------- */
-
-function MonoButton({
-  to,
-  children,
-  variant = 'outline',
-}: {
-  to: string;
-  children: React.ReactNode;
-  variant?: 'outline' | 'solid';
-}) {
-  const base =
-    'inline-flex items-center gap-2 px-6 h-12 rounded-button font-mono text-xs uppercase tracking-[0.15em] transition-colors';
-  const styles =
-    variant === 'solid'
-      ? 'bg-brand-primary text-white hover:bg-brand-primary-hover'
-      : 'border border-border-strong text-text-primary hover:border-brand-primary hover:text-brand-primary';
-  return (
-    <Link to={to} className={`${base} ${styles}`}>
-      {children}
-      <ArrowRight size={14} />
-    </Link>
-  );
-}
-
-function Eyebrow({ children }: { children: React.ReactNode }) {
-  return (
-    <p className="font-mono text-xs uppercase tracking-[0.2em] text-brand-primary mb-4">
-      {children}
-    </p>
-  );
-}
-
-function FlowStep({ children }: { children: React.ReactNode }) {
-  return (
-    <span className="inline-flex items-center justify-center px-4 py-3 border border-border-strong rounded-button font-mono text-xs uppercase tracking-[0.15em] text-text-primary bg-surface">
-      {children}
-    </span>
-  );
-}
-
-function FlowArrow() {
-  return <ArrowRight size={16} className="text-text-muted shrink-0" />;
-}
-
-function DomainChip({
-  icon,
-  label,
-  slug,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  slug: string;
-}) {
-  return (
-    <Link
-      to={`/explore?category=${slug}`}
-      className="inline-flex items-center gap-3 px-5 py-3 rounded-button border border-border bg-surface text-text-primary hover:border-brand-primary hover:text-brand-primary transition-colors"
-    >
-      <span className="text-brand-primary">{icon}</span>
-      <span className="font-mono text-xs uppercase tracking-[0.1em]">{label}</span>
-    </Link>
-  );
-}
-
-/* ---------------------------------- */
-/* Page                                */
-/* ---------------------------------- */
 
 export function LandingPage() {
   const { user } = useCurrentUser();
-  const { stats, loading: statsLoading } = useStats();
-  const { data: projectsData } = usePublicProjects({ limit: 3 });
-  const featured = projectsData?.items ?? [];
+  const stats = useStats();
+  const { data } = usePublicProjects({ limit: 3 });
+  const featured = data?.items ?? [];
+
+  const becomeCreatorHref = user
+    ? user.roles.includes('creator') ? '/studio/new' : '/creator/apply'
+    : '/register?intent=creator';
 
   return (
-    <div>
-      {/* ---------------------------------- HERO ---------------------------------- */}
-      <section className="border-b border-border">
-        <div className="max-w-container mx-auto px-6 pt-16 pb-20 md:pt-24 md:pb-28">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-            <div className="lg:col-span-7">
-              <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.02] mb-6">
-                Ideas engineered <br className="hidden md:block" />
-                into reality.
-              </h1>
-              <p className="text-lg md:text-xl text-text-secondary max-w-2xl mb-10">
-                Documented, reproducible, improvable real-world projects — from
-                robotics and embedded systems to fabrication and computer vision.
-              </p>
-              <div className="flex flex-wrap gap-3">
-                <Link
-                  to="/explore"
-                  className="inline-flex items-center gap-2 px-6 h-12 rounded-button font-mono text-xs uppercase tracking-[0.15em] bg-brand-primary text-white hover:bg-brand-primary-hover transition-colors"
-                >
-                  Explore Projects
-                  <ArrowRight size={14} />
-                </Link>
-                {user ? (
-                  <Link
-                    to={user.roles.includes('creator') ? '/studio/new' : '/creator/apply'}
-                    className="inline-flex items-center gap-2 px-6 h-12 rounded-button font-mono text-xs uppercase tracking-[0.15em] border border-border-strong text-text-primary hover:border-brand-primary hover:text-brand-primary transition-colors"
-                  >
-                    {user.roles.includes('creator') ? 'Open Studio' : 'Become a Creator'}
-                    <ArrowRight size={14} />
-                  </Link>
-                ) : (
-                  <Link
-                    to="/register?intent=creator"
-                    className="inline-flex items-center gap-2 px-6 h-12 rounded-button font-mono text-xs uppercase tracking-[0.15em] border border-border-strong text-text-primary hover:border-brand-primary hover:text-brand-primary transition-colors"
-                  >
-                    Become a Creator
-                    <ArrowRight size={14} />
-                  </Link>
-                )}
-              </div>
+    <>
+      {/* HERO */}
+      <header className="idx-hero">
+        <div className="idx-hero-photo" />
+        <div className="idx-hero-overlay" />
+        <div className="idx-container idx-hero-inner">
+          <div className="idx-hero-content">
+            <div className="idx-hero-label">Real builds. Real data.</div>
+            <h1 className="idx-hero-title">
+              Ideas<br />
+              engineered<br />
+              into <span className="grad">reality.</span>
+            </h1>
+            <p className="idx-hero-sub">
+              Documented, reproducible, improvable real-world projects — from
+              robotics and embedded systems to fabrication and computer vision.
+            </p>
+            <div className="idx-hero-actions">
+              <Link to="/explore" className="idx-btn idx-btn-hero-solid">
+                Explore Projects →
+              </Link>
+              <Link to={becomeCreatorHref} className="idx-btn idx-btn-hero-brand">
+                Become a Creator
+              </Link>
             </div>
-
-            {/* Right side: isometric logo mark placeholder for hero illustration */}
-            <div className="lg:col-span-5 hidden lg:flex items-center justify-center">
-              <div className="relative w-full max-w-sm aspect-square flex items-center justify-center">
-                <div
-                  aria-hidden="true"
-                  className="absolute inset-0 rounded-full opacity-20 blur-3xl"
-                  style={{ background: 'var(--brand-gradient)' }}
-                />
-                <LogoMark size={220} />
+            <div className="idx-hero-stats">
+              <div>
+                <div className="idx-stat-num">
+                  {stats ? stats.projects : 0} <span className="idx-stat-tag">Live</span>
+                </div>
+                <div className="idx-stat-label">Engineering records</div>
+              </div>
+              <div>
+                <div className="idx-stat-num">
+                  {stats ? stats.files : 0} <span className="idx-stat-tag">Live</span>
+                </div>
+                <div className="idx-stat-label">
+                  Documented files,<br />uploaded & versioned
+                </div>
+              </div>
+              <div>
+                <div className="idx-stat-num">
+                  {stats ? stats.creators : 0} <span className="idx-stat-tag">Live</span>
+                </div>
+                <div className="idx-stat-label">Active creators</div>
               </div>
             </div>
           </div>
+        </div>
+      </header>
 
-          {/* Stats — real data only */}
-          {!statsLoading && stats && (
-            <div className="mt-16 md:mt-20 grid grid-cols-1 sm:grid-cols-3 gap-6 border-t border-border pt-8">
-              <Stat label="Engineering records" value={stats.projects} />
-              <Stat label="Active creators" value={stats.creators} />
-              <Stat label="Files documented" value={stats.files} />
-            </div>
-          )}
+      {/* JOURNEY BAND */}
+      <section className="idx-journey">
+        <div className="idx-container">
+          <div className="idx-journey-track">
+            {JOURNEY.map((step, i) => (
+              <span key={step.label} style={{ display: 'contents' }}>
+                <span className={`idx-journey-step${step.fail ? ' fail' : ''}`}>
+                  {step.label}
+                </span>
+                {i < JOURNEY.length - 1 && <span className="idx-journey-arrow">→</span>}
+              </span>
+            ))}
+          </div>
+          <p className="idx-journey-caption">
+            <strong>Failure is engineering data.</strong> Every stage of the journey is documentable — not just the finished result.
+          </p>
         </div>
       </section>
 
-      {/* ---------------------------------- 01 — ONE PLATFORM ---------------------------------- */}
-      <section className="border-b border-border">
-        <div className="max-w-container mx-auto px-6 py-20 md:py-28">
-          <Eyebrow>01 — Platform</Eyebrow>
-          <h2 className="text-4xl md:text-5xl font-bold tracking-tight leading-tight max-w-3xl mb-5">
-            One platform for the whole build.
-          </h2>
-          <p className="text-lg text-text-secondary max-w-3xl mb-16">
-            Project documentation, engineering knowledge, maker community, and
-            software-style versioning — connected around real-world projects.
+      {/* PLATFORM */}
+      <section className="idx-block">
+        <div className="idx-container">
+          <div className="idx-eyebrow">The platform</div>
+          <h2 className="idx-section-title">One platform for the whole build</h2>
+          <p className="idx-section-sub">
+            Project documentation, engineering knowledge, maker community, and software-style versioning — connected around real-world projects.
           </p>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-10 gap-y-12">
-            {[
-              {
-                n: '01',
-                t: 'Discover',
-                d: 'Find projects by engineering relevance — category, components, difficulty, cost, and creator.',
-              },
-              {
-                n: '02',
-                t: 'Learn',
-                d: 'Tutorials and learning paths that connect theory to practical, documented builds.',
-              },
-              {
-                n: '03',
-                t: 'Build',
-                d: 'Structured drafts: BOM, steps, code, schematics, files, and tests — progressively documented.',
-              },
-              {
-                n: '04',
-                t: 'Share',
-                d: 'Publish with permanent project numbers, galleries, YouTube embeds, and downloadable files.',
-              },
-              {
-                n: '05',
-                t: 'Improve',
-                d: 'Version history, remix lineage, technical discussion, and documented lessons.',
-              },
-            ].map((item) => (
-              <div key={item.n}>
-                <p className="font-mono text-xs text-brand-primary mb-3">{item.n}</p>
-                <h3 className="text-xl font-semibold mb-2">{item.t}</h3>
-                <p className="text-sm text-text-secondary leading-relaxed">{item.d}</p>
+          <div className="idx-platform-grid">
+            {PLATFORM_ITEMS.map((item) => (
+              <div key={item.n} className="idx-platform-card">
+                <div className="idx-platform-num">{item.n}</div>
+                <h3 className="idx-platform-title">{item.t}</h3>
+                <p className="idx-platform-desc">{item.d}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ---------------------------------- FEATURED PROJECTS ---------------------------------- */}
-      <section className="border-b border-border">
-        <div className="max-w-container mx-auto px-6 py-20 md:py-28">
-          <div className="flex items-end justify-between gap-6 mb-10">
-            <div>
-              <Eyebrow>Projects</Eyebrow>
-              <h2 className="text-4xl md:text-5xl font-bold tracking-tight leading-tight">
-                Recent engineering records.
-              </h2>
+      {/* FEATURED PROJECTS */}
+      <section className="idx-block">
+        <div className="idx-container">
+          <div className="idx-section-head">
+            <div className="idx-section-head-left">
+              <div className="idx-eyebrow">Engineering records</div>
+              <h2 className="idx-section-title">Featured engineering records</h2>
+              <p className="idx-section-sub">
+                Live content — every card below is served from the IDEVRX backend database.
+              </p>
             </div>
-            <Link
-              to="/explore"
-              className="hidden md:inline-flex items-center gap-2 font-mono text-xs uppercase tracking-[0.15em] text-brand-primary hover:underline"
-            >
-              All projects
-              <ArrowRight size={14} />
-            </Link>
+            <div className="idx-section-head-right">
+              <Link to="/explore" className="idx-btn idx-btn-outline">
+                Browse All Projects →
+              </Link>
+            </div>
           </div>
 
           {featured.length === 0 ? (
-            <div className="rounded-card border border-dashed border-border bg-surface p-12 text-center">
-              <p className="font-mono text-xs uppercase tracking-[0.15em] text-text-muted mb-3">
+            <div className="idx-empty-projects">
+              <p style={{
+                fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '0.18em',
+                textTransform: 'uppercase', color: 'var(--color-text-muted)', marginBottom: 12,
+              }}>
                 No published projects yet
               </p>
-              <p className="text-text-secondary mb-6 max-w-md mx-auto">
+              <p style={{ marginBottom: 24 }}>
                 Be the first to document an engineering project on IDEVRX.
               </p>
-              <Link
-                to={user ? '/creator/apply' : '/register?intent=creator'}
-                className="inline-flex items-center gap-2 px-6 h-12 rounded-button font-mono text-xs uppercase tracking-[0.15em] bg-brand-primary text-white hover:bg-brand-primary-hover transition-colors"
-              >
-                Become a Creator
-                <ArrowRight size={14} />
+              <Link to={becomeCreatorHref} className="idx-btn idx-btn-primary">
+                Become a Creator →
               </Link>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            <div className="idx-projects-grid">
               {featured.map((p) => (
                 <ProjectCard key={p.id} project={p} />
               ))}
@@ -283,133 +203,137 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* ---------------------------------- DOMAINS ---------------------------------- */}
-      <section className="border-b border-border">
-        <div className="max-w-container mx-auto px-6 py-20 md:py-28">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
-            <div className="lg:col-span-4">
-              <Eyebrow>Domains</Eyebrow>
-              <h2 className="text-4xl md:text-5xl font-bold tracking-tight leading-tight mb-5">
-                Explore by domain.
+      {/* DOMAINS */}
+      <section className="idx-block">
+        <div className="idx-container">
+          <div className="idx-eyebrow">Domains</div>
+          <h2 className="idx-section-title">Explore by domain</h2>
+          <p className="idx-section-sub">Robotics is where IDEVRX starts — not where it ends.</p>
+          <div className="idx-domains">
+            {DOMAINS.map((d) => {
+              const Icon = d.icon;
+              return (
+                <Link
+                  key={d.label}
+                  to={`/explore?category=${d.slug}`}
+                  className="idx-domain-chip"
+                >
+                  <Icon className="idx-domain-icon" size={16} />
+                  {d.label}
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* COMMUNITY */}
+      <section className="idx-block">
+        <div className="idx-container">
+          <div className="idx-eyebrow">Community</div>
+          <h2 className="idx-section-title">Two journeys, one platform</h2>
+          <div className="idx-journeys-grid">
+            <div className="idx-journey-card">
+              <h3>Creator journey</h3>
+              <p>For authorized Creators — the only role that can author projects.</p>
+              <div className="idx-flow">
+                {['Draft', 'Document', 'Upload', 'Preview'].map((s) => (
+                  <span key={s} style={{ display: 'contents' }}>
+                    <span className="idx-flow-step">{s}</span>
+                    <span className="idx-flow-arrow">→</span>
+                  </span>
+                ))}
+                <span className="idx-flow-step highlight">Publish</span>
+              </div>
+              <Link to="/creator-guidelines" className="idx-journey-cta">
+                Read Creator Guidelines →
+              </Link>
+            </div>
+            <div className="idx-journey-card">
+              <h3>Builder journey</h3>
+              <p>For Registered Users — learn, reproduce, and discuss.</p>
+              <div className="idx-flow">
+                {['Discover', 'Read', 'Watch', 'Download'].map((s) => (
+                  <span key={s} style={{ display: 'contents' }}>
+                    <span className="idx-flow-step">{s}</span>
+                    <span className="idx-flow-arrow">→</span>
+                  </span>
+                ))}
+                <span className="idx-flow-step highlight">Learn</span>
+              </div>
+              <Link to="/community-guidelines" className="idx-journey-cta">
+                Community Guidelines →
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* LEARNING */}
+      <section className="idx-block">
+        <div className="idx-container">
+          <div className="idx-section-head">
+            <div className="idx-section-head-left">
+              <div className="idx-eyebrow">Learning</div>
+              <h2 className="idx-section-title">
+                Learning paths connect projects into progress
               </h2>
-              <p className="text-text-secondary">
-                Robotics is where IDEVRX starts — not where it ends.
+              <p className="idx-section-sub">
+                Paths reference real projects — they never duplicate project content.
               </p>
             </div>
-            <div className="lg:col-span-8 flex flex-wrap gap-3">
-              <DomainChip icon={<MapPin size={16} />} label="Robotics" slug="robotics" />
-              <DomainChip icon={<Cpu size={16} />} label="Electronics" slug="electronics" />
-              <DomainChip icon={<Code2 size={16} />} label="Embedded systems" slug="embedded-systems" />
-              <DomainChip icon={<Wifi size={16} />} label="IoT" slug="iot-automation" />
-              <DomainChip icon={<Box size={16} />} label="3D fabrication" slug="3d-design-fabrication" />
-              <DomainChip icon={<Eye size={16} />} label="Computer vision" slug="computer-vision" />
-              <DomainChip icon={<Zap size={16} />} label="Automation" slug="iot-automation" />
-              <DomainChip icon={<Terminal size={16} />} label="Programming" slug="programming" />
+            <div className="idx-section-head-right">
+              <Link to="/learning" className="idx-btn idx-btn-outline">
+                All Learning Paths →
+              </Link>
             </div>
           </div>
-        </div>
-      </section>
-
-      {/* ---------------------------------- TWO JOURNEYS ---------------------------------- */}
-      <section className="border-b border-border">
-        <div className="max-w-container mx-auto px-6 py-20 md:py-28">
-          <Eyebrow>Community</Eyebrow>
-          <h2 className="text-4xl md:text-5xl font-bold tracking-tight leading-tight mb-16 max-w-3xl">
-            Two journeys, one platform.
-          </h2>
-
-          <div className="space-y-14">
-            {/* Creator journey */}
-            <div>
-              <h3 className="text-2xl font-semibold mb-2">Creator journey</h3>
-              <p className="text-text-secondary mb-6">
-                For authorized Creators — the only role that can author projects.
-              </p>
-              <div className="flex flex-wrap items-center gap-3 mb-6">
-                <FlowStep>Draft</FlowStep>
-                <FlowArrow />
-                <FlowStep>Document</FlowStep>
-                <FlowArrow />
-                <FlowStep>Upload</FlowStep>
-                <FlowArrow />
-                <FlowStep>Preview</FlowStep>
-                <FlowArrow />
-                <FlowStep>Publish</FlowStep>
+          <div className="idx-path-card">
+            <div className="idx-path-header">
+              <div className="idx-path-title">Path: Robotics fundamentals</div>
+              <div className="idx-path-progress">
+                Coming soon — learning paths are part of a future release
               </div>
-              <MonoButton to="/creator-guidelines">Read Creator Guidelines</MonoButton>
             </div>
+            <div className="idx-path-timeline">
+              {[
+                'Fundamentals', 'Electronics', 'Micro-controllers', 'Sensors',
+                'Motors', 'Embedded programming', 'Robotics', 'Computer vision',
+              ].map((label) => (
+                <div key={label} className="idx-path-step">
+                  <div className="idx-path-dot" />
+                  <div className="idx-path-label">{label}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
 
-            {/* Builder journey */}
-            <div>
-              <h3 className="text-2xl font-semibold mb-2">Builder journey</h3>
-              <p className="text-text-secondary mb-6">
-                For Registered Users — learn, reproduce, and discuss.
+      {/* FINAL CTA */}
+      <div className="idx-final-cta-wrap">
+        <div className="idx-container">
+          <div className="idx-final-cta">
+            <div className="idx-final-cta-inner">
+              <div className="idx-eyebrow center">Join IDEVRX</div>
+              <h2>Document how you engineered it.</h2>
+              <p>
+                IDEVRX isn't where you just show what you built. It's where you give
+                others everything they need to build it, learn from it, improve it,
+                and take it further.
               </p>
-              <div className="flex flex-wrap items-center gap-3 mb-6">
-                <FlowStep>Discover</FlowStep>
-                <FlowArrow />
-                <FlowStep>Read</FlowStep>
-                <FlowArrow />
-                <FlowStep>Watch</FlowStep>
-                <FlowArrow />
-                <FlowStep>Download</FlowStep>
-                <FlowArrow />
-                <FlowStep>Learn</FlowStep>
+              <div className="idx-final-cta-actions">
+                <Link to={becomeCreatorHref} className="idx-btn idx-btn-primary">
+                  Become a Creator →
+                </Link>
+                <Link to="/creator-guidelines" className="idx-btn idx-btn-outline">
+                  Creator Guidelines
+                </Link>
               </div>
-              <MonoButton to="/community-guidelines">Community Guidelines</MonoButton>
             </div>
           </div>
         </div>
-      </section>
-
-      {/* ---------------------------------- FINAL CTA ---------------------------------- */}
-      <section>
-        <div className="max-w-container mx-auto px-6 py-20 md:py-28 text-center">
-          <h2 className="text-4xl md:text-6xl font-bold tracking-tight leading-tight mb-6 max-w-3xl mx-auto">
-            Document what you built.
-            <br />
-            Let others build it further.
-          </h2>
-          <p className="text-lg text-text-secondary max-w-xl mx-auto mb-10">
-            IDEVRX is where ideas become structured engineering records — and where
-            those records become the foundation for the next build.
-          </p>
-          <div className="flex flex-wrap gap-3 justify-center">
-            {user ? (
-              <MonoButton to="/explore" variant="solid">Explore Projects</MonoButton>
-            ) : (
-              <>
-                <Link
-                  to="/register"
-                  className="inline-flex items-center gap-2 px-6 h-12 rounded-button font-mono text-xs uppercase tracking-[0.15em] bg-brand-primary text-white hover:bg-brand-primary-hover transition-colors"
-                >
-                  Get Started
-                  <ArrowRight size={14} />
-                </Link>
-                <Link
-                  to="/login"
-                  className="inline-flex items-center gap-2 px-6 h-12 rounded-button font-mono text-xs uppercase tracking-[0.15em] border border-border-strong text-text-primary hover:border-brand-primary hover:text-brand-primary transition-colors"
-                >
-                  Sign In
-                </Link>
-              </>
-            )}
-          </div>
-        </div>
-      </section>
-    </div>
-  );
-}
-
-function Stat({ label, value }: { label: string; value: number }) {
-  return (
-    <div>
-      <p className="text-3xl md:text-4xl font-bold tracking-tight mb-1">
-        {value.toLocaleString()}
-      </p>
-      <p className="font-mono text-xs uppercase tracking-[0.15em] text-text-muted">
-        {label}
-      </p>
-    </div>
+      </div>
+    </>
   );
 }
