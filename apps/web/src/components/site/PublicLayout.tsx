@@ -39,20 +39,12 @@ export function PublicLayout() {
     (p) => path === p || path.startsWith(p + '/')
   );
 
-  const isRoot = path === '/';
-  const isExplore = path.startsWith('/explore');
-  const isProject = path.startsWith('/ide/');
-
   /**
-   * Decide footer visibility.
-   *
-   * IMPORTANT: while auth is loading, we must NOT decide.
-   * Otherwise the footer will flash on reload for signed-in users.
-   *
-   * Rules:
+   * Footer visibility:
    *   - hard no-footer pages → never
-   *   - informational pages  → always (auth not required)
-   *   - everything else      → show only for guests, hide for signed-in users
+   *   - informational pages  → always
+   *   - while auth is loading → hide (prevents flicker on reload)
+   *   - otherwise            → show for guests only
    */
   let showFooter: boolean;
 
@@ -61,10 +53,8 @@ export function PublicLayout() {
   } else if (isInformational) {
     showFooter = true;
   } else if (authLoading) {
-    // Don't decide yet — avoid flicker
     showFooter = false;
   } else {
-    // Root / explore / project / anything else
     showFooter = !user;
   }
 
@@ -76,12 +66,6 @@ export function PublicLayout() {
           <Outlet />
         </ErrorBoundary>
       </main>
-
-      {/*
-        Only mount footer when we are certain.
-        If loading on a page that might show a footer, render an invisible
-        placeholder that reserves no space — the footer mounts in when ready.
-      */}
       {showFooter && <SiteFooter />}
     </div>
   );
