@@ -1,45 +1,89 @@
 import { Link } from 'react-router-dom';
+import { useEffect, useState } from 'react';
 import { usePublicProjects } from '@/features/projects/useProjects';
 import { useCurrentUser } from '@/features/auth/useAuth';
-import { useEffect, useState } from 'react';
 import { ProjectCard } from '@/components/project/ProjectCard';
 import {
-  Bot, Cpu, Code2, Wifi, Box, Eye, Zap, Terminal,
+  Bot,
+  Cpu,
+  Code2,
+  Wifi,
+  Box,
+  Eye,
+  Zap,
+  Terminal,
 } from 'lucide-react';
 
-const JOURNEY = [
-  { label: 'Idea', fail: false },
-  { label: 'Design', fail: false },
-  { label: 'Plan', fail: false },
-  { label: 'Build', fail: false },
+/* ---------- Constants ---------- */
+
+const JOURNEY_STEPS: { label: string; fail?: boolean }[] = [
+  { label: 'Idea' },
+  { label: 'Design' },
+  { label: 'Plan' },
+  { label: 'Build' },
   { label: 'Fail', fail: true },
-  { label: 'Diagnose', fail: false },
-  { label: 'Improve', fail: false },
-  { label: 'Test', fail: false },
-  { label: 'Document', fail: false },
-  { label: 'Share', fail: false },
-  { label: 'Remix', fail: false },
-  { label: 'Version', fail: false },
+  { label: 'Diagnose' },
+  { label: 'Improve' },
+  { label: 'Test' },
+  { label: 'Document' },
+  { label: 'Share' },
+  { label: 'Remix' },
+  { label: 'Version' },
 ];
 
 const PLATFORM_ITEMS = [
-  { n: '01', t: 'Discover', d: 'Find projects by engineering relevance — category, components, difficulty, cost, and creator.' },
-  { n: '02', t: 'Learn', d: 'Tutorials and learning paths that connect theory to practical, documented builds.' },
-  { n: '03', t: 'Build', d: 'Structured drafts: BOM, steps, code, schematics, files, and tests — progressively documented.' },
-  { n: '04', t: 'Share', d: 'Publish with permanent project numbers, galleries, YouTube embeds, and downloadable files.' },
-  { n: '05', t: 'Improve', d: 'Version history, remix lineage, technical discussion, and documented lessons.' },
+  {
+    n: '01',
+    t: 'Discover',
+    d: 'Find projects by engineering relevance — category, components, difficulty, cost, and creator.',
+  },
+  {
+    n: '02',
+    t: 'Learn',
+    d: 'Tutorials and learning paths that connect theory to practical, documented builds.',
+  },
+  {
+    n: '03',
+    t: 'Build',
+    d: 'Structured drafts: BOM, steps, code, schematics, files, and tests — progressively documented.',
+  },
+  {
+    n: '04',
+    t: 'Share',
+    d: 'Publish with permanent project numbers, galleries, YouTube embeds, and downloadable files.',
+  },
+  {
+    n: '05',
+    t: 'Improve',
+    d: 'Version history, remix lineage, technical discussion, and documented lessons.',
+  },
 ];
 
 const DOMAINS = [
-  { label: 'Robotics', slug: 'robotics', icon: Bot },
-  { label: 'Electronics', slug: 'electronics', icon: Cpu },
-  { label: 'Embedded systems', slug: 'embedded-systems', icon: Code2 },
-  { label: 'IoT', slug: 'iot-automation', icon: Wifi },
-  { label: '3D fabrication', slug: '3d-design-fabrication', icon: Box },
-  { label: 'Computer vision', slug: 'computer-vision', icon: Eye },
-  { label: 'Automation', slug: 'iot-automation', icon: Zap },
-  { label: 'Programming', slug: 'programming', icon: Terminal },
+  { label: 'Robotics', slug: 'robotics', Icon: Bot },
+  { label: 'Electronics', slug: 'electronics', Icon: Cpu },
+  { label: 'Embedded systems', slug: 'embedded-systems', Icon: Code2 },
+  { label: 'IoT', slug: 'iot-automation', Icon: Wifi },
+  { label: '3D fabrication', slug: '3d-design-fabrication', Icon: Box },
+  { label: 'Computer vision', slug: 'computer-vision', Icon: Eye },
+  { label: 'Automation', slug: 'iot-automation', Icon: Zap },
+  { label: 'Programming', slug: 'programming', Icon: Terminal },
 ];
+
+const CREATOR_FLOW = ['Draft', 'Document', 'Upload', 'Preview'];
+const BUILDER_FLOW = ['Discover', 'Read', 'Watch', 'Download'];
+const LEARNING_STEPS = [
+  'Fundamentals',
+  'Electronics',
+  'Micro-controllers',
+  'Sensors',
+  'Motors',
+  'Embedded programming',
+  'Robotics',
+  'Computer vision',
+];
+
+/* ---------- Stats hook (defensive) ---------- */
 
 interface Stats {
   projects: number;
@@ -47,46 +91,86 @@ interface Stats {
   files: number;
 }
 
-function useStats() {
-  const [stats, setStats] = useState<Stats | null>(null);
+function useStats(): Stats {
+  const [stats, setStats] = useState<Stats>({ projects: 0, creators: 0, files: 0 });
+
   useEffect(() => {
     const apiUrl = import.meta.env.VITE_API_URL ?? '';
-    fetch(`${apiUrl}/api/v1/stats`, { credentials: 'include' })
-      .then((r) => r.json())
-      .then((body) => { if (body.success) setStats(body.data); })
-      .catch(() => {});
+    const controller = new AbortController();
+
+    fetch(`${apiUrl}/api/v1/stats`, {
+      credentials: 'include',
+      signal: controller.signal,
+    })
+      .then(async (r) => {
+        if (!r.ok) return null;
+        const text = await r.text();
+        try {
+          return JSON.parse(text);
+        } catch {
+          return null;
+        }
+      })
+      .then((body) => {
+        if (body && body.success && body.data) {
+          setStats({
+            projects: body.data.projects ?? 0,
+            creators: body.data.creators ?? 0,
+            files: body.data.files ?? 0,
+          });
+        }
+      })
+      .catch(() => {
+        // Silently keep zeros — never crash the page over stats
+      });
+
+    return () => controller.abort();
   }, []);
+
   return stats;
 }
 
-export function LandingPage() {
-  const { user } = useCurrentUser();
-  const stats = useStats();
-  const { data } = usePublicProjects({ limit: 3 });
-  const featured = data?.items ?? [];
+/* ---------- Page ---------- */
 
-  const becomeCreatorHref = user
-    ? user.roles.includes('creator') ? '/studio/new' : '/creator/apply'
-    : '/register?intent=creator';
+export function LandingPage() {
+  const { user, isLoading: authLoading } = useCurrentUser();
+  const stats = useStats();
+  const { data: projectsData, isLoading: projectsLoading } = usePublicProjects({
+    limit: 3,
+  });
+
+  const featured = projectsData?.items ?? [];
+
+  const becomeCreatorHref =
+    !authLoading && user
+      ? user.roles.includes('creator')
+        ? '/studio/new'
+        : '/creator/apply'
+      : '/register?intent=creator';
 
   return (
     <>
-      {/* HERO */}
+      {/* ============================ HERO ============================ */}
       <header className="idx-hero">
         <div className="idx-hero-photo" />
         <div className="idx-hero-overlay" />
         <div className="idx-container idx-hero-inner">
           <div className="idx-hero-content">
             <div className="idx-hero-label">Real builds. Real data.</div>
+
             <h1 className="idx-hero-title">
-              Ideas<br />
-              engineered<br />
+              Ideas
+              <br />
+              engineered
+              <br />
               into <span className="grad">reality.</span>
             </h1>
+
             <p className="idx-hero-sub">
               Documented, reproducible, improvable real-world projects — from
               robotics and embedded systems to fabrication and computer vision.
             </p>
+
             <div className="idx-hero-actions">
               <Link to="/explore" className="idx-btn idx-btn-hero-solid">
                 Explore Projects →
@@ -95,24 +179,30 @@ export function LandingPage() {
                 Become a Creator
               </Link>
             </div>
+
             <div className="idx-hero-stats">
               <div>
                 <div className="idx-stat-num">
-                  {stats ? stats.projects : 0} <span className="idx-stat-tag">Live</span>
+                  {stats.projects}
+                  <span className="idx-stat-tag">Live</span>
                 </div>
                 <div className="idx-stat-label">Engineering records</div>
               </div>
               <div>
                 <div className="idx-stat-num">
-                  {stats ? stats.files : 0} <span className="idx-stat-tag">Live</span>
+                  {stats.files}
+                  <span className="idx-stat-tag">Live</span>
                 </div>
                 <div className="idx-stat-label">
-                  Documented files,<br />uploaded & versioned
+                  Documented files,
+                  <br />
+                  uploaded &amp; versioned
                 </div>
               </div>
               <div>
                 <div className="idx-stat-num">
-                  {stats ? stats.creators : 0} <span className="idx-stat-tag">Live</span>
+                  {stats.creators}
+                  <span className="idx-stat-tag">Live</span>
                 </div>
                 <div className="idx-stat-label">Active creators</div>
               </div>
@@ -121,33 +211,38 @@ export function LandingPage() {
         </div>
       </header>
 
-      {/* JOURNEY BAND */}
+      {/* ============================ JOURNEY BAND ============================ */}
       <section className="idx-journey">
         <div className="idx-container">
           <div className="idx-journey-track">
-            {JOURNEY.map((step, i) => (
+            {JOURNEY_STEPS.map((step, i) => (
               <span key={step.label} style={{ display: 'contents' }}>
                 <span className={`idx-journey-step${step.fail ? ' fail' : ''}`}>
                   {step.label}
                 </span>
-                {i < JOURNEY.length - 1 && <span className="idx-journey-arrow">→</span>}
+                {i < JOURNEY_STEPS.length - 1 && (
+                  <span className="idx-journey-arrow">→</span>
+                )}
               </span>
             ))}
           </div>
           <p className="idx-journey-caption">
-            <strong>Failure is engineering data.</strong> Every stage of the journey is documentable — not just the finished result.
+            <strong>Failure is engineering data.</strong> Every stage of the
+            journey is documentable — not just the finished result.
           </p>
         </div>
       </section>
 
-      {/* PLATFORM */}
+      {/* ============================ PLATFORM ============================ */}
       <section className="idx-block">
         <div className="idx-container">
           <div className="idx-eyebrow">The platform</div>
           <h2 className="idx-section-title">One platform for the whole build</h2>
           <p className="idx-section-sub">
-            Project documentation, engineering knowledge, maker community, and software-style versioning — connected around real-world projects.
+            Project documentation, engineering knowledge, maker community, and
+            software-style versioning — connected around real-world projects.
           </p>
+
           <div className="idx-platform-grid">
             {PLATFORM_ITEMS.map((item) => (
               <div key={item.n} className="idx-platform-card">
@@ -160,7 +255,7 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* FEATURED PROJECTS */}
+      {/* ============================ FEATURED PROJECTS ============================ */}
       <section className="idx-block">
         <div className="idx-container">
           <div className="idx-section-head">
@@ -168,7 +263,8 @@ export function LandingPage() {
               <div className="idx-eyebrow">Engineering records</div>
               <h2 className="idx-section-title">Featured engineering records</h2>
               <p className="idx-section-sub">
-                Live content — every card below is served from the IDEVRX backend database.
+                Live content — every card below is served from the IDEVRX backend
+                database.
               </p>
             </div>
             <div className="idx-section-head-right">
@@ -178,12 +274,29 @@ export function LandingPage() {
             </div>
           </div>
 
-          {featured.length === 0 ? (
+          {projectsLoading ? (
+            <div className="idx-projects-grid">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="idx-project-card">
+                  <div className="idx-project-image" />
+                  <div className="idx-project-body">
+                    <div style={{ height: 80 }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : featured.length === 0 ? (
             <div className="idx-empty-projects">
-              <p style={{
-                fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '0.18em',
-                textTransform: 'uppercase', color: 'var(--color-text-muted)', marginBottom: 12,
-              }}>
+              <p
+                style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: 11,
+                  letterSpacing: '0.18em',
+                  textTransform: 'uppercase',
+                  color: 'var(--color-text-muted)',
+                  marginBottom: 12,
+                }}
+              >
                 No published projects yet
               </p>
               <p style={{ marginBottom: 24 }}>
@@ -203,15 +316,18 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* DOMAINS */}
+      {/* ============================ DOMAINS ============================ */}
       <section className="idx-block">
         <div className="idx-container">
           <div className="idx-eyebrow">Domains</div>
           <h2 className="idx-section-title">Explore by domain</h2>
-          <p className="idx-section-sub">Robotics is where IDEVRX starts — not where it ends.</p>
+          <p className="idx-section-sub">
+            Robotics is where IDEVRX starts — not where it ends.
+          </p>
+
           <div className="idx-domains">
             {DOMAINS.map((d) => {
-              const Icon = d.icon;
+              const Icon = d.Icon;
               return (
                 <Link
                   key={d.label}
@@ -227,17 +343,20 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* COMMUNITY */}
+      {/* ============================ COMMUNITY ============================ */}
       <section className="idx-block">
         <div className="idx-container">
           <div className="idx-eyebrow">Community</div>
           <h2 className="idx-section-title">Two journeys, one platform</h2>
+
           <div className="idx-journeys-grid">
             <div className="idx-journey-card">
               <h3>Creator journey</h3>
-              <p>For authorized Creators — the only role that can author projects.</p>
+              <p>
+                For authorized Creators — the only role that can author projects.
+              </p>
               <div className="idx-flow">
-                {['Draft', 'Document', 'Upload', 'Preview'].map((s) => (
+                {CREATOR_FLOW.map((s) => (
                   <span key={s} style={{ display: 'contents' }}>
                     <span className="idx-flow-step">{s}</span>
                     <span className="idx-flow-arrow">→</span>
@@ -249,11 +368,12 @@ export function LandingPage() {
                 Read Creator Guidelines →
               </Link>
             </div>
+
             <div className="idx-journey-card">
               <h3>Builder journey</h3>
               <p>For Registered Users — learn, reproduce, and discuss.</p>
               <div className="idx-flow">
-                {['Discover', 'Read', 'Watch', 'Download'].map((s) => (
+                {BUILDER_FLOW.map((s) => (
                   <span key={s} style={{ display: 'contents' }}>
                     <span className="idx-flow-step">{s}</span>
                     <span className="idx-flow-arrow">→</span>
@@ -269,7 +389,7 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* LEARNING */}
+      {/* ============================ LEARNING ============================ */}
       <section className="idx-block">
         <div className="idx-container">
           <div className="idx-section-head">
@@ -279,7 +399,8 @@ export function LandingPage() {
                 Learning paths connect projects into progress
               </h2>
               <p className="idx-section-sub">
-                Paths reference real projects — they never duplicate project content.
+                Paths reference real projects — they never duplicate project
+                content.
               </p>
             </div>
             <div className="idx-section-head-right">
@@ -288,6 +409,7 @@ export function LandingPage() {
               </Link>
             </div>
           </div>
+
           <div className="idx-path-card">
             <div className="idx-path-header">
               <div className="idx-path-title">Path: Robotics fundamentals</div>
@@ -295,11 +417,9 @@ export function LandingPage() {
                 Coming soon — learning paths are part of a future release
               </div>
             </div>
+
             <div className="idx-path-timeline">
-              {[
-                'Fundamentals', 'Electronics', 'Micro-controllers', 'Sensors',
-                'Motors', 'Embedded programming', 'Robotics', 'Computer vision',
-              ].map((label) => (
+              {LEARNING_STEPS.map((label) => (
                 <div key={label} className="idx-path-step">
                   <div className="idx-path-dot" />
                   <div className="idx-path-label">{label}</div>
@@ -310,7 +430,7 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* FINAL CTA */}
+      {/* ============================ FINAL CTA ============================ */}
       <div className="idx-final-cta-wrap">
         <div className="idx-container">
           <div className="idx-final-cta">
@@ -318,15 +438,18 @@ export function LandingPage() {
               <div className="idx-eyebrow center">Join IDEVRX</div>
               <h2>Document how you engineered it.</h2>
               <p>
-                IDEVRX isn't where you just show what you built. It's where you give
-                others everything they need to build it, learn from it, improve it,
-                and take it further.
+                IDEVRX isn't where you just show what you built. It's where you
+                give others everything they need to build it, learn from it,
+                improve it, and take it further.
               </p>
               <div className="idx-final-cta-actions">
                 <Link to={becomeCreatorHref} className="idx-btn idx-btn-primary">
                   Become a Creator →
                 </Link>
-                <Link to="/creator-guidelines" className="idx-btn idx-btn-outline">
+                <Link
+                  to="/creator-guidelines"
+                  className="idx-btn idx-btn-outline"
+                >
                   Creator Guidelines
                 </Link>
               </div>
