@@ -1,8 +1,7 @@
-import { Link, NavLink } from 'react-router-dom';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 import { useCurrentUser, useLogout } from '@/features/auth/useAuth';
 import { Wordmark } from '@/components/brand/Wordmark';
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 
 export function SiteNav() {
   const { user } = useCurrentUser();
@@ -21,6 +20,8 @@ export function SiteNav() {
     navigate('/');
   }
 
+  const isGuest = !user;
+
   return (
     <nav className="idx-nav">
       <div className="idx-container idx-nav-inner">
@@ -28,13 +29,17 @@ export function SiteNav() {
           <Wordmark />
         </Link>
 
-        <div className="idx-nav-links">
-          <NavLink to="/explore">Explore</NavLink>
-          <NavLink to="/learning">Learning</NavLink>
-          <NavLink to="/community">Community</NavLink>
-          <NavLink to="/challenges">Challenges</NavLink>
-        </div>
+        {/* Public marketing links — only for guests */}
+        {isGuest && (
+          <div className="idx-nav-links">
+            <NavLink to="/explore">Explore</NavLink>
+            <NavLink to="/learning">Learning</NavLink>
+            <NavLink to="/community">Community</NavLink>
+            <NavLink to="/challenges">Challenges</NavLink>
+          </div>
+        )}
 
+        {/* Search is useful for both guests and users */}
         <form className="idx-nav-search" onSubmit={handleSearch}>
           <input
             type="text"
