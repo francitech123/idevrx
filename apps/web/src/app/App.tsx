@@ -1,7 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import type { ReactNode } from 'react';
 import { PublicLayout } from '@/components/site/PublicLayout';
-import { Layout } from '@/layouts/Layout';
 import { LandingPage } from '@/pages/LandingPage';
 import { ExplorePage } from '@/pages/ExplorePage';
 import { ProjectDetailPage } from '@/pages/ProjectDetailPage';
@@ -48,7 +47,6 @@ function RedirectIfAuthed({ children }: { children: ReactNode }) {
 
 function RootPage() {
   const { user, isLoading } = useCurrentUser();
-
   if (isLoading) {
     return (
       <div style={{ padding: 64, maxWidth: 1280, margin: '0 auto' }}>
@@ -56,21 +54,21 @@ function RootPage() {
       </div>
     );
   }
-
-  // Never block. If we have a user, show app home. Otherwise show landing.
   return user ? <AppHomePage /> : <LandingPage />;
 }
 
 export default function App() {
   return (
     <Routes>
-      {/* Public shell */}
       <Route element={<PublicLayout />}>
+        {/* Root — landing for guests, app home for signed-in users */}
         <Route path="/" element={<RootPage />} />
 
+        {/* Public discovery */}
         <Route path="/explore" element={<ExplorePage />} />
         <Route path="/ide/:projectNumber/:slug" element={<ProjectDetailPage />} />
 
+        {/* Public informational */}
         <Route path="/about" element={<AboutPage />} />
         <Route path="/contact" element={<ContactPage />} />
         <Route path="/help" element={<HelpPage />} />
@@ -95,6 +93,7 @@ export default function App() {
         <Route path="/blog/first-rover" element={<FirstRoverPage />} />
         <Route path="/blog/creator-guidelines" element={<CreatorGuidelinesBlogPage />} />
 
+        {/* Auth */}
         <Route
           path="/login"
           element={
@@ -111,19 +110,17 @@ export default function App() {
             </RedirectIfAuthed>
           }
         />
-      </Route>
 
-      {/* App shell (same nav/footer, but real pages) */}
-      <Route element={<Layout />}>
+        {/* Authenticated app pages — same shell, footer auto-hides via PublicLayout logic */}
         <Route path="/settings" element={<RequireAuth><SettingsPage /></RequireAuth>} />
         <Route path="/creator/apply" element={<RequireAuth><CreatorApplyPage /></RequireAuth>} />
         <Route path="/studio" element={<RequireAuth><StudioProjectsPage /></RequireAuth>} />
         <Route path="/studio/new" element={<RequireAuth><NewProjectPage /></RequireAuth>} />
         <Route path="/studio/project/:id" element={<RequireAuth><EditProjectPage /></RequireAuth>} />
         <Route path="/admin/creator-applications" element={<RequireAuth><AdminCreatorApplicationsPage /></RequireAuth>} />
-      </Route>
 
-      <Route path="*" element={<NotFoundPage />} />
+        <Route path="*" element={<NotFoundPage />} />
+      </Route>
     </Routes>
   );
 }
