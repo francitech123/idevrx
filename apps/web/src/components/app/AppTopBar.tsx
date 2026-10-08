@@ -1,8 +1,7 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Menu, Search, Bell } from 'lucide-react';
 import { useCurrentUser } from '@/features/auth/useAuth';
-import { NotificationPanel } from './NotificationPanel';
 import { LogoMark } from '@/components/brand/LogoMark';
 
 interface Props {
@@ -23,18 +22,6 @@ export function AppTopBar({ onOpenSidebar }: Props) {
   const { user } = useCurrentUser();
   const navigate = useNavigate();
   const [query, setQuery] = useState('');
-  const [notifOpen, setNotifOpen] = useState(false);
-  const notifRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (notifRef.current && !notifRef.current.contains(e.target as Node)) {
-        setNotifOpen(false);
-      }
-    }
-    if (notifOpen) document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [notifOpen]);
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
@@ -74,18 +61,15 @@ export function AppTopBar({ onOpenSidebar }: Props) {
       </form>
 
       <div className="app-actions">
-        <div ref={notifRef} style={{ position: 'relative' }}>
-          <button
-            type="button"
-            className="app-iconbtn"
-            aria-label="Notifications"
-            onClick={() => setNotifOpen((v) => !v)}
-          >
-            <Bell size={18} />
-            <NotificationBadge />
-          </button>
-          {notifOpen && <NotificationPanel onClose={() => setNotifOpen(false)} />}
-        </div>
+        <button
+          type="button"
+          className="app-iconbtn"
+          aria-label="Notifications"
+          onClick={() => navigate('/notifications')}
+        >
+          <Bell size={18} />
+          <NotificationBadge />
+        </button>
 
         <button
           type="button"
