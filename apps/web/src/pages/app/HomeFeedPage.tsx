@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Heart, Bookmark, MessageCircle, Folder, Play, RefreshCw } from 'lucide-react';
-import { useCurrentUser } from '@/features/auth/useAuth';
 
 interface FeedProject {
   id: string;
@@ -23,8 +22,6 @@ interface FeedProject {
 const CHIPS = ['All', 'Robotics', 'Electronics', 'Embedded', 'Fabrication'];
 
 export function HomeFeedPage() {
-  const { user } = useCurrentUser();
-  const navigate = useNavigate();
   const [projects, setProjects] = useState<FeedProject[]>([]);
   const [page, setPage] = useState(1);
   const [hasNext, setHasNext] = useState(false);
