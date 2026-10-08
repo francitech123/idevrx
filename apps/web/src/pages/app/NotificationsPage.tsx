@@ -9,7 +9,6 @@ import {
   UserPlus,
   Bookmark,
   Award,
-  RefreshCw,
 } from 'lucide-react';
 
 interface Notification {
