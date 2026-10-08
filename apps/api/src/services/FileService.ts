@@ -56,16 +56,10 @@ function toPublicFile(f: any) {
 }
 
 export const FileService = {
-  /**
-   * Step 1 of the upload flow. Verifies the user is Creator + owner,
-   * validates MIME and size, generates a storage key, and returns
-   * a presigned PUT URL. Does NOT create a ProjectFile record yet.
-   */
   async createUploadIntent(input: UploadIntentInput, req?: any) {
     const project = await Project.findById(input.projectId);
     if (!project) throw new NotFoundError();
 
-    // File 05 §22: only authorized Creators can upload project-owned assets
     if (project.authorId.toString() !== input.userId) {
       throw new ForbiddenError();
     }
@@ -73,7 +67,6 @@ export const FileService = {
       throw new ForbiddenError();
     }
 
-    // Validate size
     if (!Number.isFinite(input.sizeBytes) || input.sizeBytes <= 0) {
       throw new ValidationError({ sizeBytes: 'Invalid file size' });
     }
@@ -83,7 +76,6 @@ export const FileService = {
       });
     }
 
-    // Determine category from MIME — the server decides, not the client
     const category: FileCategory = detectCategory(input.mimeType);
     const allowed = MIME_ALLOWLIST[category] ?? [];
     if (!allowed.includes(input.mimeType.toLowerCase())) {
@@ -92,7 +84,6 @@ export const FileService = {
       });
     }
 
-    // Enforce per-project file quota
     const existing = await ProjectFile.countDocuments({
       projectId: project._id,
       deletedAt: null,
@@ -103,16 +94,14 @@ export const FileService = {
       );
     }
 
-    // Sanitize filename for display; generate storage key separately
     const safeFilename = sanitizeFilename(input.originalFilename);
     const storageKey = buildStorageKey(project.projectNumber, safeFilename);
 
-    // Create the pending metadata record (so we can track and clean up orphans)
     const file = await ProjectFile.create({
       projectId: project._id,
       uploadedBy: input.userId,
       storageProvider: 'supabase',
-      bucket: 'idevrx-pod',   // Should match SUPABASE_STORAGE_BUCKET; kept for auditability
+      bucket: 'idevrx-pod',
       storageKey,
       originalFilename: safeFilename,
       mimeType: input.mimeType,
@@ -149,10 +138,6 @@ export const FileService = {
     };
   },
 
-  /**
-   * Step 2 of the upload flow. Called by the client after the direct upload finishes.
-   * Verifies the object actually exists in storage and matches declared size.
-   */
   async finalizeUpload(input: FinalizeInput, req?: any) {
     const project = await Project.findById(input.projectId);
     if (!project) throw new NotFoundError();
@@ -169,11 +154,9 @@ export const FileService = {
     if (!file) throw new NotFoundError();
 
     if (file.processingStatus === 'ready') {
-      // Idempotent — already finalized
       return toPublicFile(file);
     }
 
-    // Verify the object actually exists (File 04 §15: "verify uploaded object before finalizing")
     const head = await storage.headObject(file.storageKey);
     if (!head) {
       file.processingStatus = 'failed';
@@ -181,9 +164,7 @@ export const FileService = {
       throw new ConflictError('Upload was not found in storage. It may have failed.');
     }
 
-    // Reject if the real file size exceeds our limit (server-authoritative)
     if (head.sizeBytes > MAX_FILE_SIZE_BYTES) {
-      // Clean up immediately
       await storage.deleteObject(file.storageKey).catch(() => {});
       await ProjectFile.deleteOne({ _id: file._id });
       throw new ValidationError({
@@ -214,12 +195,6 @@ export const FileService = {
     return toPublicFile(file);
   },
 
-  /**
-   * List files for a project, respecting visibility.
-   * Public: only 'ready' + project is public
-   * Owner: all files
-   * Mod/admin: all files
-   */
   async listForProject(
     projectId: string,
     requester: { id: string; roles: string[] } | null
@@ -235,7 +210,8 @@ export const FileService = {
         requester.roles.includes('ceo'));
 
     const isPubliclyVisible =
-      project.status === 'published' && project.visibility === 'public';
+      (project.status === 'published' || project.status === 'updated') &&
+      project.visibility === 'public';
 
     if (!isPubliclyVisible && !isOwner && !isPrivileged) {
       throw new NotFoundError();
@@ -247,10 +223,6 @@ export const FileService = {
     return files.map(toPublicFile);
   },
 
-  /**
-   * Generate a short-lived download URL, but ONLY after authorization.
-   * File 05 §23: "Check resource visibility and user permissions before issuing access."
-   */
   async createDownloadUrl(input: DownloadRequestInput) {
     const project = await Project.findById(input.projectId);
     if (!project) throw new NotFoundError();
@@ -274,13 +246,11 @@ export const FileService = {
         input.requesterRoles.includes('ceo'));
 
     const isPubliclyDownloadable =
-      project.status === 'published' &&
+      (project.status === 'published' || project.status === 'updated') &&
       project.visibility === 'public' &&
       file.downloadEnabled === true;
 
-    // Allow: owner, privileged, or public download enabled
     if (!isPubliclyDownloadable && !isOwner && !isPrivileged) {
-      // Return 404, not 403, to prevent enumeration (File 05 §40)
       throw new NotFoundError();
     }
 
@@ -306,9 +276,6 @@ export const FileService = {
     };
   },
 
-  /**
-   * Soft-delete a file. Owner only.
-   */
   async removeFile(
     projectId: string,
     fileId: string,
@@ -329,13 +296,10 @@ export const FileService = {
     });
     if (!file) throw new NotFoundError();
 
-    // Mark as deleted in DB first (so it disappears from listings immediately)
     file.deletedAt = new Date();
     await file.save();
 
-    // Then delete from storage. If this fails, the file is orphaned but not reachable.
     storage.deleteObject(file.storageKey).catch((err) => {
-      // Log but don't fail the request
       console.error('Failed to delete object from storage', { storageKey: file.storageKey, err });
     });
 
