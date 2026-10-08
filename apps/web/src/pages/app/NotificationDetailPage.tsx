@@ -10,7 +10,6 @@ import {
   Award,
   Trash2,
   ExternalLink,
-  RefreshCw,
 } from 'lucide-react';
 
 interface Notification {
