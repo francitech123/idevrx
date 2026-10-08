@@ -357,10 +357,18 @@
 }
 
 @media (max-width: 520px) {
-  .app-search {
-    display: none;
-  }
   .app-top {
-    padding: 10px 16px;
+    padding: 10px 12px;
+    gap: 8px;
+  }
+  .app-search {
+    padding: 0 10px;
+  }
+  .app-search input {
+    font-size: 12px;
+  }
+  .app-burger,
+  .app-top-logo {
+    padding: 6px;
   }
 }
