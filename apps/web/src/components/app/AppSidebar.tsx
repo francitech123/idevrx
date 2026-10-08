@@ -69,7 +69,7 @@ export function AppSidebar({ open, onNavigate }: Props) {
     <aside className={`app-side${open ? ' open' : ''}`}>
       <Link to="/home" className="app-side-logo" onClick={onNavigate}>
         <span className="app-side-logo-mark">
-          <LogoMark size={22} />
+          <LogoMark size={30} />
         </span>
         <span className="app-side-logo-name">IDEVRX</span>
       </Link>
