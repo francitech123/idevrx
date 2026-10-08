@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import type { ReactNode } from 'react';
 import { PublicLayout } from '@/components/site/PublicLayout';
+import { AppShell } from '@/components/app/AppShell';
 import { LandingPage } from '@/pages/LandingPage';
 import { ExplorePage } from '@/pages/ExplorePage';
 import { ProjectDetailPage } from '@/pages/ProjectDetailPage';
@@ -13,7 +14,6 @@ import { AdminCreatorApplicationsPage } from '@/pages/AdminCreatorApplicationsPa
 import { StudioProjectsPage } from '@/pages/StudioProjectsPage';
 import { NewProjectPage } from '@/pages/NewProjectPage';
 import { EditProjectPage } from '@/pages/EditProjectPage';
-import { AppHomePage } from '@/pages/AppHomePage';
 import { AboutPage } from '@/pages/AboutPage';
 import { ContactPage } from '@/pages/ContactPage';
 import { HelpPage } from '@/pages/HelpPage';
@@ -35,15 +35,18 @@ import { AccessibilityPage } from '@/pages/policies/AccessibilityPage';
 import { BlogIndexPage } from '@/pages/BlogIndexPage';
 import { FirstRoverPage } from '@/pages/blog/FirstRoverPage';
 import { CreatorGuidelinesBlogPage } from '@/pages/blog/CreatorGuidelinesBlogPage';
+import { HomeFeedPage } from '@/pages/app/HomeFeedPage';
+import { FollowingPage } from '@/pages/app/FollowingPage';
+import { LibraryPage } from '@/pages/app/LibraryPage';
+import { LearningHubPage } from '@/pages/app/LearningHubPage';
+import { CourseDetailPage } from '@/pages/app/CourseDetailPage';
 import { RequireAuth } from '@/app/guards/RequireAuth';
 import { useCurrentUser } from '@/features/auth/useAuth';
-import { CookieConsentBanner } from '@/features/cookies/CookieConsentBanner';
-import { GoogleAnalytics } from '@/features/cookies/GoogleAnalytics';
 
 function RedirectIfAuthed({ children }: { children: ReactNode }) {
   const { user, isLoading } = useCurrentUser();
   if (isLoading) return null;
-  if (user) return <Navigate to="/" replace />;
+  if (user) return <Navigate to="/home" replace />;
   return <>{children}</>;
 }
 
@@ -56,77 +59,77 @@ function RootPage() {
       </div>
     );
   }
-  return user ? <AppHomePage /> : <LandingPage />;
+  if (user) return <Navigate to="/home" replace />;
+  return <LandingPage />;
 }
 
 export default function App() {
   return (
-    <>
-      <GoogleAnalytics />
-      <CookieConsentBanner />
-      <Routes>
-        <Route element={<PublicLayout />}>
-          {/* Root — landing for guests, app home for signed-in users */}
-          <Route path="/" element={<RootPage />} />
+    <Routes>
+      <Route element={<PublicLayout />}>
+        <Route path="/" element={<RootPage />} />
+        <Route path="/explore" element={<ExplorePage />} />
+        <Route path="/ide/:projectNumber/:slug" element={<ProjectDetailPage />} />
 
-          {/* Public discovery */}
-          <Route path="/explore" element={<ExplorePage />} />
-          <Route path="/ide/:projectNumber/:slug" element={<ProjectDetailPage />} />
+        <Route path="/about" element={<AboutPage />} />
+        <Route path="/contact" element={<ContactPage />} />
+        <Route path="/help" element={<HelpPage />} />
+        <Route path="/learning" element={<LearningPage />} />
+        <Route path="/community" element={<CommunityPage />} />
+        <Route path="/challenges" element={<ChallengesPage />} />
+        <Route path="/components" element={<ComponentsPage />} />
+        <Route path="/tutorials" element={<TutorialsPage />} />
+        <Route path="/creator-guidelines" element={<CreatorGuidelinesPage />} />
+        <Route path="/community-guidelines" element={<CommunityGuidelinesPage />} />
 
-          {/* Public informational */}
-          <Route path="/about" element={<AboutPage />} />
-          <Route path="/contact" element={<ContactPage />} />
-          <Route path="/help" element={<HelpPage />} />
-          <Route path="/learning" element={<LearningPage />} />
-          <Route path="/community" element={<CommunityPage />} />
-          <Route path="/challenges" element={<ChallengesPage />} />
-          <Route path="/components" element={<ComponentsPage />} />
-          <Route path="/tutorials" element={<TutorialsPage />} />
-          <Route path="/creator-guidelines" element={<CreatorGuidelinesPage />} />
-          <Route path="/community-guidelines" element={<CommunityGuidelinesPage />} />
+        <Route path="/policies" element={<PoliciesIndexPage />} />
+        <Route path="/policies/privacy" element={<PrivacyPage />} />
+        <Route path="/policies/terms" element={<TermsPage />} />
+        <Route path="/policies/cookies" element={<CookiesPage />} />
+        <Route path="/policies/copyright" element={<CopyrightPage />} />
+        <Route path="/policies/safety" element={<SafetyPage />} />
+        <Route path="/policies/ai" element={<AiPolicyPage />} />
+        <Route path="/policies/accessibility" element={<AccessibilityPage />} />
 
-          <Route path="/policies" element={<PoliciesIndexPage />} />
-          <Route path="/policies/privacy" element={<PrivacyPage />} />
-          <Route path="/policies/terms" element={<TermsPage />} />
-          <Route path="/policies/cookies" element={<CookiesPage />} />
-          <Route path="/policies/copyright" element={<CopyrightPage />} />
-          <Route path="/policies/safety" element={<SafetyPage />} />
-          <Route path="/policies/ai" element={<AiPolicyPage />} />
-          <Route path="/policies/accessibility" element={<AccessibilityPage />} />
+        <Route path="/blog" element={<BlogIndexPage />} />
+        <Route path="/blog/first-rover" element={<FirstRoverPage />} />
+        <Route path="/blog/creator-guidelines" element={<CreatorGuidelinesBlogPage />} />
 
-          <Route path="/blog" element={<BlogIndexPage />} />
-          <Route path="/blog/first-rover" element={<FirstRoverPage />} />
-          <Route path="/blog/creator-guidelines" element={<CreatorGuidelinesBlogPage />} />
+        <Route
+          path="/login"
+          element={
+            <RedirectIfAuthed>
+              <LoginPage />
+            </RedirectIfAuthed>
+          }
+        />
+        <Route
+          path="/register"
+          element={
+            <RedirectIfAuthed>
+              <RegisterPage />
+            </RedirectIfAuthed>
+          }
+        />
 
-          {/* Auth */}
-          <Route
-            path="/login"
-            element={
-              <RedirectIfAuthed>
-                <LoginPage />
-              </RedirectIfAuthed>
-            }
-          />
-          <Route
-            path="/register"
-            element={
-              <RedirectIfAuthed>
-                <RegisterPage />
-              </RedirectIfAuthed>
-            }
-          />
+        <Route path="/creator/apply" element={<RequireAuth><CreatorApplyPage /></RequireAuth>} />
+        <Route path="/studio" element={<RequireAuth><StudioProjectsPage /></RequireAuth>} />
+        <Route path="/studio/new" element={<RequireAuth><NewProjectPage /></RequireAuth>} />
+        <Route path="/studio/project/:id" element={<RequireAuth><EditProjectPage /></RequireAuth>} />
+        <Route path="/admin/creator-applications" element={<RequireAuth><AdminCreatorApplicationsPage /></RequireAuth>} />
+      </Route>
 
-          {/* Authenticated app pages */}
-          <Route path="/settings" element={<RequireAuth><SettingsPage /></RequireAuth>} />
-          <Route path="/creator/apply" element={<RequireAuth><CreatorApplyPage /></RequireAuth>} />
-          <Route path="/studio" element={<RequireAuth><StudioProjectsPage /></RequireAuth>} />
-          <Route path="/studio/new" element={<RequireAuth><NewProjectPage /></RequireAuth>} />
-          <Route path="/studio/project/:id" element={<RequireAuth><EditProjectPage /></RequireAuth>} />
-          <Route path="/admin/creator-applications" element={<RequireAuth><AdminCreatorApplicationsPage /></RequireAuth>} />
+      <Route element={<RequireAuth><AppShell /></RequireAuth>}>
+        <Route path="/home" element={<HomeFeedPage />} />
+        <Route path="/following" element={<FollowingPage />} />
+        <Route path="/library" element={<LibraryPage />} />
+        <Route path="/settings" element={<SettingsPage />} />
+        <Route path="/settings/:tab" element={<SettingsPage />} />
+        <Route path="/learning-hub" element={<LearningHubPage />} />
+        <Route path="/learning-hub/:slug" element={<CourseDetailPage />} />
+      </Route>
 
-          <Route path="*" element={<NotFoundPage />} />
-        </Route>
-      </Routes>
-    </>
+      <Route path="*" element={<NotFoundPage />} />
+    </Routes>
   );
 }
