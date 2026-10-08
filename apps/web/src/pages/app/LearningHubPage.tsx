@@ -250,3 +250,290 @@ export function LearningHubPage() {
               <button
                 onClick={() => setTab('courses')}
                 style={{
+                  padding: '10px 20px',
+                  background:
+                    'linear-gradient(135deg, #06B6D4 0%, #2563EB 55%, #7C3AED 100%)',
+                  color: '#fff',
+                  border: 0,
+                  borderRadius: 10,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  fontFamily: 'inherit',
+                }}
+              >
+                Browse courses
+              </button>
+            </div>
+          )}
+
+          {enrolledCourses.map((e) => (
+            <div
+              key={e.course.id}
+              style={{
+                background: '#fff',
+                border: '1px solid #E2E8F0',
+                borderRadius: 16,
+                padding: 20,
+              }}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'flex-start',
+                  gap: 16,
+                  marginBottom: 12,
+                }}
+              >
+                <div>
+                  <div
+                    style={{
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: 10,
+                      letterSpacing: '0.12em',
+                      textTransform: 'uppercase',
+                      color: '#2563EB',
+                      fontWeight: 600,
+                      marginBottom: 6,
+                    }}
+                  >
+                    COURSE
+                  </div>
+                  <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 4 }}>
+                    {e.course.title}
+                  </h3>
+                </div>
+                {e.certificateIssuedAt && (
+                  <div
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      padding: '5px 10px',
+                      background: '#F0FDF4',
+                      color: '#16A34A',
+                      borderRadius: 99,
+                      fontSize: 12,
+                      fontWeight: 600,
+                    }}
+                  >
+                    <Award size={14} />
+                    Certified
+                  </div>
+                )}
+              </div>
+              <div
+                style={{
+                  height: 6,
+                  background: '#E2E8F0',
+                  borderRadius: 99,
+                  overflow: 'hidden',
+                  marginBottom: 8,
+                }}
+              >
+                <div
+                  style={{
+                    height: '100%',
+                    width: `${e.percentComplete}%`,
+                    background: '#2563EB',
+                  }}
+                />
+              </div>
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  fontSize: 13,
+                  color: '#64748B',
+                  marginBottom: 12,
+                }}
+              >
+                <span>
+                  {e.completedCount} of {e.totalLessons} lessons
+                </span>
+                <span>{e.percentComplete}%</span>
+              </div>
+              <button
+                onClick={() => navigate(`/learning-hub/course/${e.course.slug}`)}
+                style={{
+                  padding: '9px 18px',
+                  background: '#2563EB',
+                  color: '#fff',
+                  border: 0,
+                  borderRadius: 10,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  fontFamily: 'inherit',
+                  fontSize: 13,
+                }}
+              >
+                {e.percentComplete > 0 ? 'Continue' : 'Start'}
+              </button>
+            </div>
+          ))}
+
+          {enrolledPaths.map((e) => (
+            <div
+              key={e.path.id}
+              style={{
+                background: '#fff',
+                border: '1px solid #E2E8F0',
+                borderRadius: 16,
+                padding: 20,
+              }}
+            >
+              <div
+                style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: 10,
+                  letterSpacing: '0.12em',
+                  textTransform: 'uppercase',
+                  color: '#2563EB',
+                  fontWeight: 600,
+                  marginBottom: 6,
+                }}
+              >
+                LEARNING PATH
+              </div>
+              <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 12 }}>
+                {e.path.title}
+              </h3>
+              <div
+                style={{
+                  height: 6,
+                  background: '#E2E8F0',
+                  borderRadius: 99,
+                  overflow: 'hidden',
+                  marginBottom: 8,
+                }}
+              >
+                <div
+                  style={{
+                    height: '100%',
+                    width: `${
+                      e.totalLessons > 0
+                        ? Math.round((e.completedCount / e.totalLessons) * 100)
+                        : 0
+                    }%`,
+                    background: '#2563EB',
+                  }}
+                />
+              </div>
+              <div style={{ fontSize: 13, color: '#64748B' }}>
+                {e.completedCount} of {e.totalLessons} lessons
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function CourseCard({ course }: { course: Course }) {
+  const navigate = useNavigate();
+  return (
+    <article
+      style={{
+        background: '#fff',
+        border: '1px solid #E2E8F0',
+        borderRadius: 16,
+        overflow: 'hidden',
+        display: 'flex',
+        flexDirection: 'column',
+      }}
+    >
+      <div
+        style={{
+          aspectRatio: '16/10',
+          background: 'linear-gradient(135deg, #2457F5 0%, #6A3DF0 100%)',
+          position: 'relative',
+          display: 'grid',
+          placeItems: 'center',
+          color: '#fff',
+        }}
+      >
+        <BookOpen size={48} opacity={0.4} />
+        <span
+          style={{
+            position: 'absolute',
+            bottom: 12,
+            left: 12,
+            fontSize: 12,
+            fontWeight: 600,
+          }}
+        >
+          {course.lessonCount} lessons
+        </span>
+      </div>
+      <div style={{ padding: 16, display: 'flex', flexDirection: 'column', flex: 1 }}>
+        <h3 style={{ fontSize: 17, fontWeight: 700, marginBottom: 6 }}>
+          {course.title}
+        </h3>
+        <p style={{ fontSize: 13, color: '#475569', marginBottom: 14, flex: 1 }}>
+          {course.description}
+        </p>
+        <button
+          onClick={() => navigate(`/learning-hub/course/${course.slug}`)}
+          style={{
+            padding: '9px 18px',
+            background: '#2563EB',
+            color: '#fff',
+            border: 0,
+            borderRadius: 10,
+            fontWeight: 600,
+            cursor: 'pointer',
+            fontFamily: 'inherit',
+            fontSize: 13,
+          }}
+        >
+          Open course
+        </button>
+      </div>
+    </article>
+  );
+}
+
+function PathCard({ path }: { path: LearningPath }) {
+  return (
+    <article
+      style={{
+        background: '#fff',
+        border: '1px solid #E2E8F0',
+        borderRadius: 16,
+        padding: 18,
+      }}
+    >
+      <div
+        style={{
+          fontFamily: 'var(--font-mono)',
+          fontSize: 10,
+          letterSpacing: '0.12em',
+          textTransform: 'uppercase',
+          color: '#2563EB',
+          fontWeight: 600,
+          marginBottom: 8,
+        }}
+      >
+        {path.category || 'LEARNING PATH'}
+      </div>
+      <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 8 }}>
+        {path.title}
+      </h3>
+      <p style={{ fontSize: 13, color: '#475569', marginBottom: 12 }}>
+        {path.description}
+      </p>
+      <div
+        style={{
+          fontSize: 12,
+          color: '#64748B',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 6,
+        }}
+      >
+        <CheckCircle2 size={14} /> {path.lessonCount} lessons
+      </div>
+    </article>
+  );
+}
