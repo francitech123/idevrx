@@ -870,7 +870,7 @@ function AppearanceTab() {
 function DataTab() {
   const [historyCount, setHistoryCount] = useState<number>(0);
   const [msg, setMsg] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
+  const [exportBusy, setExportBusy] = useState(false);
 
   useEffect(() => {
     fetch(`${api()}/api/v1/me/history`, { credentials: 'include' })
@@ -891,14 +891,14 @@ function DataTab() {
   }
 
   async function requestExport() {
-    setBusy(true);
+    setExportBusy(true);
     setMsg(null);
     const res = await fetch(`${api()}/api/v1/account/data-export`, {
       method: 'POST',
       credentials: 'include',
     });
     if (res.ok) setMsg('Export requested. You will get an email when it is ready.');
-    setBusy(false);
+    setExportBusy(false);
   }
 
   return (
@@ -913,7 +913,7 @@ function DataTab() {
         title="Download your data"
         description="Get a copy of your profile and activity."
         action={
-          <SaveBtn onClick={requestExport} busy={busy}>
+          <SaveBtn onClick={requestExport} busy={exportBusy}>
             Request export
           </SaveBtn>
         }
