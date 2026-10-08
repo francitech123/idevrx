@@ -1,4 +1,4 @@
-import { NavLink, Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   Home,
   Users,
@@ -7,7 +7,7 @@ import {
   Settings,
   LogOut,
 } from 'lucide-react';
-import { useCurrentUser, useLogout } from '@/features/auth/useAuth';
+import { useLogout } from '@/features/auth/useAuth';
 import { LogoMark } from '@/components/brand/LogoMark';
 
 interface Props {
@@ -19,7 +19,7 @@ const NAV = [
   { to: '/home', label: 'Home', icon: Home },
   { to: '/following', label: 'Following', icon: Users },
   { to: '/library', label: 'Saved', icon: Bookmark },
-  { to: '/learning', label: 'Learning', icon: BookOpen },
+  { to: '/learning-hub', label: 'Learning', icon: BookOpen },
   { to: '/settings', label: 'Settings', icon: Settings },
 ];
 
@@ -57,6 +57,7 @@ const LINK_GROUPS = [
 export function AppSidebar({ open, onNavigate }: Props) {
   const logout = useLogout();
   const navigate = useNavigate();
+  const { pathname } = useLocation();
 
   async function handleLogout() {
     await logout.mutateAsync();
@@ -76,19 +77,21 @@ export function AppSidebar({ open, onNavigate }: Props) {
       <nav className="app-nav">
         {NAV.map((item) => {
           const Icon = item.icon;
+          const active =
+            pathname === item.to ||
+            (item.to !== '/home' && pathname.startsWith(item.to + '/'));
           return (
-            <NavLink
+            <button
               key={item.to}
-              to={item.to}
-              onClick={onNavigate}
-              className={({ isActive }) => (isActive ? 'on' : '')}
-              style={{ textDecoration: 'none' }}
+              className={active ? 'on' : ''}
+              onClick={() => {
+                navigate(item.to);
+                onNavigate();
+              }}
             >
-              <button className={undefined}>
-                <Icon size={18} strokeWidth={1.8} />
-                <span>{item.label}</span>
-              </button>
-            </NavLink>
+              <Icon size={18} strokeWidth={1.8} />
+              <span>{item.label}</span>
+            </button>
           );
         })}
         <button className="lo" onClick={handleLogout}>
