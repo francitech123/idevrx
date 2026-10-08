@@ -4,6 +4,7 @@ import creatorRoutes, { adminCreatorRouter } from './creator.js';
 import projectRoutes from './projects.js';
 import categoryRoutes from './categories.js';
 import statsRoutes from './stats.js';
+import userRoutes from './users.js';
 import profileRoutes from './profile.js';
 import {
   feedRouter,
@@ -21,6 +22,7 @@ router.use('/categories', categoryRoutes);
 router.use('/stats', statsRoutes);
 router.use('/profiles', profileRoutes);
 router.use('/feed', feedRouter);
+router.use('/users', userRoutes);
 router.use('/comments', commentRouter);
 router.use('/me', meRouter);
 
