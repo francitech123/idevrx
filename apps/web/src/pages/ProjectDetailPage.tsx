@@ -300,12 +300,11 @@ export function ProjectDetailPage() {
     );
   }
 
-  const isOwner = user.id === project.authorId;
+    const isOwner = user.id === project.authorId;
   const category = categoriesData?.find((c) => c.id === project.categoryId);
   const formattedNumber = `PROJECT ${String(project.projectNumber).padStart(3, '0')}`;
-  const publicUrl = `/ide/project-${String(project.projectNumber).padStart(3, '0')}/${project.slug}`;
   const embedUrl = project.youtubeUrl ? youtubeEmbed(project.youtubeUrl) : null;
-
+  
   async function toggleLike() {
     if (!project) return;
     const apiUrl = import.meta.env.VITE_API_URL ?? '';
