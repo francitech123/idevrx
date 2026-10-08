@@ -40,8 +40,6 @@
 .app-side-logo-mark {
   width: 38px;
   height: 38px;
-  border-radius: 10px;
-  background: var(--brand-gradient);
   display: grid;
   place-items: center;
   flex-shrink: 0;
@@ -164,6 +162,17 @@
 
 .app-burger:hover {
   background: #F1F5F9;
+}
+
+.app-top-logo {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  flex-shrink: 0;
 }
 
 .app-search {
@@ -337,6 +346,9 @@
     display: block;
   }
   .app-burger {
+    display: inline-flex;
+  }
+  .app-top-logo {
     display: inline-flex;
   }
   .app-wrap {
