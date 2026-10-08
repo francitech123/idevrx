@@ -14,4 +14,4 @@ router.post('/:courseId/assessment/pass', requireAuth, ctrl.passAssessment);
 export default router;
 
 export const meCoursesRouter = Router();
-meCoursesRouter.get('/enrolled', requireAuth, ctrl.listEnrolled);
+meCoursesRouter.get('/courses/enrolled', requireAuth, ctrl.listEnrolled);
