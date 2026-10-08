@@ -14,4 +14,4 @@ router.post('/:pathId/lessons/:lessonId/complete', requireAuth, ctrl.completeLes
 export default router;
 
 export const meLearningRouter = Router();
-meLearningRouter.get('/enrolled', requireAuth, ctrl.listEnrolled);
+meLearningRouter.get('/paths/enrolled', requireAuth, ctrl.listEnrolled);
