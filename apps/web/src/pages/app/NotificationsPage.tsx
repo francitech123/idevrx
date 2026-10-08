@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import {
   Bell,
   Trash2,
@@ -9,6 +9,7 @@ import {
   UserPlus,
   Bookmark,
   Award,
+  RefreshCw,
 } from 'lucide-react';
 
 interface Notification {
@@ -136,9 +137,7 @@ export function NotificationsPage() {
             Notifications
           </h1>
           <p style={{ color: '#64748B', fontSize: 14 }}>
-            {unreadCount > 0
-              ? `${unreadCount} unread`
-              : 'All caught up.'}
+            {unreadCount > 0 ? `${unreadCount} unread` : 'All caught up.'}
           </p>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
@@ -269,10 +268,12 @@ export function NotificationsPage() {
                 transition: 'background 0.15s',
               }}
               onMouseEnter={(e) => {
-                if (n.read) (e.currentTarget as HTMLDivElement).style.background = '#F8FAFC';
+                if (n.read)
+                  (e.currentTarget as HTMLDivElement).style.background = '#F8FAFC';
               }}
               onMouseLeave={(e) => {
-                if (n.read) (e.currentTarget as HTMLDivElement).style.background = '#fff';
+                if (n.read)
+                  (e.currentTarget as HTMLDivElement).style.background = '#fff';
               }}
             >
               <div
