@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Menu, Search, Bell } from 'lucide-react';
 import { useCurrentUser } from '@/features/auth/useAuth';
 import { NotificationPanel } from './NotificationPanel';
+import { LogoMark } from '@/components/brand/LogoMark';
 
 interface Props {
   onOpenSidebar: () => void;
@@ -50,6 +51,15 @@ export function AppTopBar({ onOpenSidebar }: Props) {
         onClick={onOpenSidebar}
       >
         <Menu size={20} />
+      </button>
+
+      <button
+        type="button"
+        className="app-top-logo"
+        onClick={() => navigate('/home')}
+        aria-label="IDEVRX home"
+      >
+        <LogoMark size={30} />
       </button>
 
       <form className="app-search" onSubmit={handleSearch}>
