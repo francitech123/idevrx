@@ -28,7 +28,6 @@ export function HomeFeedPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [chip, setChip] = useState('All');
-  const [searchQuery, setSearchQuery] = useState('');
 
   const load = useCallback(
     async (nextPage: number, reset: boolean) => {
@@ -80,51 +79,8 @@ export function HomeFeedPage() {
     load(next, false);
   }
 
-  const filtered = searchQuery.trim()
-    ? projects.filter((p) =>
-        (p.title + ' ' + p.shortDescription)
-          .toLowerCase()
-          .includes(searchQuery.trim().toLowerCase())
-      )
-    : projects;
-
   return (
     <div>
-      <div style={{ marginBottom: 24 }}>
-        <h1
-          style={{
-            fontSize: 28,
-            fontWeight: 700,
-            letterSpacing: '-0.02em',
-            marginBottom: 6,
-          }}
-        >
-          {searchQuery ? `Results for "${searchQuery}"` : 'Latest builds'}
-        </h1>
-        <p style={{ color: '#64748B', fontSize: 14 }}>
-          Engineering records and builds from across the community.
-        </p>
-      </div>
-
-      <input
-        type="text"
-        placeholder="Filter the feed..."
-        value={searchQuery}
-        onChange={(e) => setSearchQuery(e.target.value)}
-        style={{
-          width: '100%',
-          maxWidth: 480,
-          height: 40,
-          padding: '0 14px',
-          borderRadius: 10,
-          border: '1px solid #E2E8F0',
-          background: '#fff',
-          fontSize: 13,
-          marginBottom: 16,
-          fontFamily: 'inherit',
-        }}
-      />
-
       <div
         style={{
           display: 'flex',
@@ -171,7 +127,6 @@ export function HomeFeedPage() {
                 height: 300,
                 borderRadius: 16,
                 background: '#E2E8F0',
-                animation: 'pulse 1.5s ease-in-out infinite',
               }}
             />
           ))}
@@ -210,7 +165,7 @@ export function HomeFeedPage() {
         </div>
       )}
 
-      {!loading && !error && filtered.length === 0 && (
+      {!loading && !error && projects.length === 0 && (
         <div
           style={{
             padding: 60,
@@ -242,7 +197,7 @@ export function HomeFeedPage() {
         </div>
       )}
 
-      {filtered.length > 0 && (
+      {projects.length > 0 && (
         <div
           style={{
             display: 'grid',
@@ -250,7 +205,7 @@ export function HomeFeedPage() {
             gap: 20,
           }}
         >
-          {filtered.map((p) => (
+          {projects.map((p) => (
             <FeedCard key={p.id} project={p} />
           ))}
         </div>
