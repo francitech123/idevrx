@@ -78,28 +78,20 @@ function toPublicDetail(p: any) {
   };
 }
 
-/** Returns a project OR null. Does NOT enforce authorization. */
 async function findByIdOrNumber(idOrNumber: string) {
-  // Try project number (numeric string)
   if (/^\d+$/.test(idOrNumber)) {
     const byNumber = await Project.findOne({ projectNumber: Number(idOrNumber) });
     if (byNumber) return byNumber;
   }
-  // Try Mongo ObjectId
   if (/^[0-9a-fA-F]{24}$/.test(idOrNumber)) {
     const byId = await Project.findById(idOrNumber);
     if (byId) return byId;
   }
-  // Try slug
   const bySlug = await Project.findOne({ slug: idOrNumber });
   return bySlug;
 }
 
 export const ProjectService = {
-  /**
-   * Public listing. Only published + public projects.
-   * Never leaks drafts, private, archived, or removed projects.
-   */
   async listPublic(filter: ListFilter = {}) {
     const page = Math.max(1, filter.page ?? 1);
     const limit = Math.min(filter.limit ?? DEFAULT_LIMIT, MAX_LIMIT);
@@ -128,9 +120,6 @@ export const ProjectService = {
     };
   },
 
-  /**
-   * List a Creator's own projects (any status).
-   */
   async listOwnedBy(authorId: string, filter: ListFilter = {}) {
     const page = Math.max(1, filter.page ?? 1);
     const limit = Math.min(filter.limit ?? DEFAULT_LIMIT, MAX_LIMIT);
@@ -155,12 +144,6 @@ export const ProjectService = {
     };
   },
 
-  /**
-   * Get a project by id, number, or slug. Respects visibility per role.
-   * - Public published project → anyone
-   * - Own project (any status) → owner
-   * - Mod/admin → can view any project
-   */
   async getVisible(idOrNumber: string, requester: { id: string; roles: string[] } | null) {
     const project = await findByIdOrNumber(idOrNumber);
     if (!project) throw new NotFoundError();
@@ -173,14 +156,13 @@ export const ProjectService = {
         requester.roles.includes('ceo'));
 
     const isPubliclyVisible =
-      project.status === 'published' &&
+      (project.status === 'published' || project.status === 'updated') &&
       project.visibility === 'public';
 
     if (isPubliclyVisible) return toPublicDetail(project);
     if (isOwner) return toPublicDetail(project);
     if (isPrivileged) return toPublicDetail(project);
 
-    // Not visible to this requester — return 404, not 403, to prevent enumeration
     throw new NotFoundError();
   },
 
@@ -188,21 +170,17 @@ export const ProjectService = {
     const user = await User.findById(input.authorId);
     if (!user) throw new NotFoundError();
 
-    // File 02 §10 + File 05 §45: only Creator can create projects
     if (!user.roles.includes('creator')) {
       throw new ForbiddenError();
     }
 
-    // Validate category if provided
     if (input.categoryId) {
       const cat = await Category.findById(input.categoryId);
       if (!cat) throw new NotFoundError();
     }
 
-    // Generate stable project number (atomic)
     const projectNumber = await nextSequence('projectNumber');
 
-    // Generate unique slug
     const baseSlug = slugify(input.title);
     const slug = await uniqueSlug(baseSlug);
 
@@ -238,31 +216,28 @@ export const ProjectService = {
     return toPublicDetail(project);
   },
 
-  /**
-   * Update a project. Only the owner (or admin in a governance flow) can update.
-   * Client-supplied authorId is IGNORED — ownership is server-authoritative.
-   */
-  async update(id: string, patch: UpdateProjectInput, requester: { id: string; roles: string[] }, req?: any) {
+  async update(
+    id: string,
+    patch: UpdateProjectInput,
+    requester: { id: string; roles: string[] },
+    req?: any
+  ) {
     const project = await Project.findById(id);
     if (!project) throw new NotFoundError();
 
-    // Ownership check (File 05 §15)
     if (project.authorId.toString() !== requester.id) {
       throw new ForbiddenError();
     }
 
-    // Cannot update archived/removed projects
     if (project.status === 'archived' || project.status === 'removed') {
       throw new ConflictError('This project is no longer editable.');
     }
 
-    // Validate category if provided
     if (patch.categoryId !== undefined && patch.categoryId !== null) {
       const cat = await Category.findById(patch.categoryId);
       if (!cat) throw new NotFoundError();
     }
 
-    // Apply allowed fields (never authorId, projectNumber, slug, status, visibility, counts, publishedAt)
     if (patch.title !== undefined) project.title = patch.title;
     if (patch.shortDescription !== undefined) project.shortDescription = patch.shortDescription;
     if (patch.description !== undefined) project.description = patch.description;
@@ -274,10 +249,8 @@ export const ProjectService = {
     if (patch.youtubeUrl !== undefined) project.youtubeUrl = patch.youtubeUrl;
     if (patch.version !== undefined) project.version = patch.version;
 
-    // Refresh searchText
     project.searchText = `${project.title} ${project.shortDescription}`.toLowerCase();
 
-    // If project was published, mark as updated
     if (project.status === 'published') {
       project.status = 'updated';
     }
@@ -287,12 +260,6 @@ export const ProjectService = {
     return toPublicDetail(project);
   },
 
-  /**
-   * Publish a project. Requires:
-   * - owner
-   * - valid state (draft or updated)
-   * - minimum required fields present
-   */
   async publish(id: string, requester: { id: string; roles: string[] }, req?: any) {
     const project = await Project.findById(id);
     if (!project) throw new NotFoundError();
@@ -301,13 +268,10 @@ export const ProjectService = {
       throw new ForbiddenError();
     }
 
-    if (project.status === 'published' || project.status === 'updated') {
-      // Idempotent — republishing an already-published project is fine
-    } else if (project.status === 'archived' || project.status === 'removed') {
+    if (project.status === 'archived' || project.status === 'removed') {
       throw new ConflictError('This project cannot be published.');
     }
 
-    // Minimum requirements to publish
     if (!project.title || project.title.trim().length < 3) {
       throw new ConflictError('Project must have a title before publishing.');
     }
@@ -335,9 +299,6 @@ export const ProjectService = {
     return toPublicDetail(project);
   },
 
-  /**
-   * Unpublish a project (return to draft). Owner only.
-   */
   async unpublish(id: string, requester: { id: string; roles: string[] }, req?: any) {
     const project = await Project.findById(id);
     if (!project) throw new NotFoundError();
@@ -363,9 +324,6 @@ export const ProjectService = {
     return toPublicDetail(project);
   },
 
-  /**
-   * Soft-delete a project (set status = removed). Owner only.
-   */
   async softDelete(id: string, requester: { id: string; roles: string[] }, req?: any) {
     const project = await Project.findById(id);
     if (!project) throw new NotFoundError();
