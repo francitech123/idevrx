@@ -66,10 +66,19 @@ export const updatePreferences: RequestHandler = async (req, res, next) => {
     if (!prefs) prefs = await UserPreferences.create({ userId: user._id });
 
     const body = req.body ?? {};
-    if (body.notifications) Object.assign(prefs.notifications, body.notifications);
-    if (body.playback) Object.assign(prefs.playback, body.playback);
-    if (body.privacy) Object.assign(prefs.privacy, body.privacy);
-    if (body.appearance) Object.assign(prefs.appearance, body.appearance);
+
+    if (body.notifications && typeof body.notifications === 'object') {
+      Object.assign(prefs.notifications, body.notifications);
+    }
+    if (body.playback && typeof body.playback === 'object') {
+      Object.assign(prefs.playback, body.playback);
+    }
+    if (body.privacy && typeof body.privacy === 'object') {
+      Object.assign(prefs.privacy, body.privacy);
+    }
+    if (body.appearance && typeof body.appearance === 'object') {
+      Object.assign(prefs.appearance, body.appearance);
+    }
 
     await prefs.save();
     return ok(res, { preferences: prefs });
