@@ -86,8 +86,13 @@ export const updatePreferences: RequestHandler = async (req, res, next) => {
 
 export const getPublicProfile: RequestHandler = async (req, res, next) => {
   try {
-    const username = req.params.username as string;
-    const user = await User.findOne({ username });
+    const key = req.params.username as string;
+    let user;
+    if (/^[0-9a-fA-F]{24}$/.test(key)) {
+      user = await User.findById(key);
+    } else {
+      user = await User.findOne({ username: key });
+    }
     if (!user) throw new NotFoundError();
     return ok(res, { profile: toPublicProfile(user) });
   } catch (err) { next(err); }
