@@ -141,7 +141,7 @@ export function LibraryPage() {
               : 'Projects you open will appear here.'}
           </p>
           <Link
-            to="/explore"
+            to="/home"
             style={{
               display: 'inline-block',
               padding: '10px 20px',
