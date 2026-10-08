@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Award, BookOpen, CheckCircle2, Play, TrendingUp } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Award, BookOpen, CheckCircle2, TrendingUp } from 'lucide-react';
 
 interface Course {
   id: string;
