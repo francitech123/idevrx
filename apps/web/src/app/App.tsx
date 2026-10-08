@@ -38,6 +38,8 @@ import { CreatorGuidelinesBlogPage } from '@/pages/blog/CreatorGuidelinesBlogPag
 import { HomeFeedPage } from '@/pages/app/HomeFeedPage';
 import { FollowingPage } from '@/pages/app/FollowingPage';
 import { LibraryPage } from '@/pages/app/LibraryPage';
+import { NotificationsPage } from '@/pages/app/NotificationsPage';
+import { NotificationDetailPage } from '@/pages/app/NotificationDetailPage';
 import { LearningHubPage } from '@/pages/app/LearningHubPage';
 import { CourseDetailPage } from '@/pages/app/CourseDetailPage';
 import { RequireAuth } from '@/app/guards/RequireAuth';
@@ -120,7 +122,8 @@ export default function App() {
         <Route path="/settings/:tab" element={<SettingsPage />} />
         <Route path="/learning-hub" element={<LearningHubPage />} />
         <Route path="/learning-hub/course/:slug" element={<CourseDetailPage />} />
-
+        <Route path="/notifications" element={<NotificationsPage />} />
+        <Route path="/notifications/:id" element={<NotificationDetailPage />} />
         <Route path="/ide/:projectNumber/:slug" element={<ProjectDetailPage />} />
 
         <Route path="/creator/apply" element={<CreatorApplyPage />} />
