@@ -206,4 +206,46 @@ export const listSaved: RequestHandler = async (req, res, next) => {
     const page = Number((req as any).validatedQuery?.page ?? 1);
     const limit = Number((req as any).validatedQuery?.limit ?? 20);
     const result = await LibraryService.saved(user._id.toString(), page, limit);
-    return ok
+    return ok(res, { items: result.items }, {
+      page: result.page,
+      limit: result.limit,
+      total: result.total,
+      hasNextPage: result.hasNextPage,
+    });
+  } catch (err) { next(err); }
+};
+
+export const listLiked: RequestHandler = async (req, res, next) => {
+  try {
+    const user = (req as any).user;
+    if (!user) throw new AuthRequiredError();
+    const page = Number((req as any).validatedQuery?.page ?? 1);
+    const limit = Number((req as any).validatedQuery?.limit ?? 20);
+    const result = await LibraryService.liked(user._id.toString(), page, limit);
+    return ok(res, { items: result.items }, {
+      page: result.page,
+      limit: result.limit,
+      total: result.total,
+      hasNextPage: result.hasNextPage,
+    });
+  } catch (err) { next(err); }
+};
+
+export const getFeed: RequestHandler = async (req, res, next) => {
+  try {
+    const user = (req as any).user;
+    const query = (req as any).validatedQuery ?? {};
+    const result = await FeedService.feed({
+      userId: user?._id?.toString(),
+      following: query.following === 'true',
+      page: query.page ?? 1,
+      limit: query.limit ?? 12,
+    });
+    return ok(res, { items: result.items }, {
+      page: result.page,
+      limit: result.limit,
+      total: result.total,
+      hasNextPage: result.hasNextPage,
+    });
+  } catch (err) { next(err); }
+};
