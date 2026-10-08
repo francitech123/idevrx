@@ -67,18 +67,17 @@ export const updatePreferences: RequestHandler = async (req, res, next) => {
 
     const body = req.body ?? {};
 
-    if (body.notifications && typeof body.notifications === 'object') {
-      Object.assign(prefs.notifications, body.notifications);
-    }
-    if (body.playback && typeof body.playback === 'object') {
-      Object.assign(prefs.playback, body.playback);
-    }
-    if (body.privacy && typeof body.privacy === 'object') {
-      Object.assign(prefs.privacy, body.privacy);
-    }
-    if (body.appearance && typeof body.appearance === 'object') {
-      Object.assign(prefs.appearance, body.appearance);
-    }
+    const setSection = (section: 'notifications' | 'playback' | 'privacy' | 'appearance', patch: any) => {
+      if (!patch || typeof patch !== 'object') return;
+      for (const [key, value] of Object.entries(patch)) {
+        prefs!.set(`${section}.${key}`, value);
+      }
+    };
+
+    setSection('notifications', body.notifications);
+    setSection('playback', body.playback);
+    setSection('privacy', body.privacy);
+    setSection('appearance', body.appearance);
 
     await prefs.save();
     return ok(res, { preferences: prefs });
