@@ -42,7 +42,7 @@ export function AppTopBar({ onOpenSidebar }: Props) {
   }
 
   return (
-    <header className="app-top" style={{ position: 'relative' }}>
+    <header className="app-top">
       <button
         type="button"
         className="app-burger"
