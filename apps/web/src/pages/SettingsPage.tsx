@@ -567,7 +567,6 @@ function AccountTab() {
 
 function NotificationsTab() {
   const [prefs, setPrefs] = useState<any>(null);
-  const [busy, setBusy] = useState(false);
 
   useEffect(() => {
     fetch(`${api()}/api/v1/profiles/me/preferences`, { credentials: 'include' })
@@ -583,17 +582,12 @@ function NotificationsTab() {
       ...p,
       notifications: { ...p.notifications, [key]: value },
     }));
-    setBusy(true);
-    try {
-      await fetch(`${api()}/api/v1/profiles/me/preferences`, {
-        method: 'PATCH',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ notifications: { [key]: value } }),
-      });
-    } finally {
-      setBusy(false);
-    }
+    await fetch(`${api()}/api/v1/profiles/me/preferences`, {
+      method: 'PATCH',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ notifications: { [key]: value } }),
+    });
   }
 
   if (!prefs) return <div>Loading...</div>;
