@@ -1,6 +1,10 @@
 import { Router } from 'express';
 import * as ctrl from '../controllers/projectController.js';
 import fileRoutes from './files.js';
+import {
+  projectInteractionRouter,
+  userInteractionRouter,
+} from './interactions.js';
 import { requireAuth } from '../middleware/auth.js';
 import { requireRole } from '../middleware/authorize.js';
 import { validateBody, validateQuery } from '../middleware/validate.js';
@@ -12,10 +16,8 @@ import {
 
 const router = Router();
 
-// --- Public ---
 router.get('/', validateQuery(ListProjectsQuerySchema), ctrl.listPublic);
 
-// --- Authenticated: own projects ---
 router.get(
   '/mine',
   requireAuth,
@@ -24,10 +26,8 @@ router.get(
   ctrl.listOwned
 );
 
-// --- Public: get by id, number, or slug ---
 router.get('/:idOrNumber', ctrl.getOne);
 
-// --- Creator-only: create ---
 router.post(
   '/',
   requireAuth,
@@ -36,7 +36,6 @@ router.post(
   ctrl.create
 );
 
-// --- Creator + ownership: update, publish, unpublish, delete ---
 router.patch(
   '/:id',
   requireAuth,
@@ -45,28 +44,11 @@ router.patch(
   ctrl.update
 );
 
-router.post(
-  '/:id/publish',
-  requireAuth,
-  requireRole('creator'),
-  ctrl.publish
-);
+router.post('/:id/publish', requireAuth, requireRole('creator'), ctrl.publish);
+router.post('/:id/unpublish', requireAuth, requireRole('creator'), ctrl.unpublish);
+router.delete('/:id', requireAuth, requireRole('creator'), ctrl.softDelete);
 
-router.post(
-  '/:id/unpublish',
-  requireAuth,
-  requireRole('creator'),
-  ctrl.unpublish
-);
-
-router.delete(
-  '/:id',
-  requireAuth,
-  requireRole('creator'),
-  ctrl.softDelete
-);
-
-// --- Nested: files under a project ---
 router.use('/:id/files', fileRoutes);
+router.use('/:id', projectInteractionRouter);
 
 export default router;
