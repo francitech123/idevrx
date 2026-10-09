@@ -1,19 +1,21 @@
 /** @type {import('tailwindcss').Config} */
 export default {
   content: ['./index.html', './src/**/*.{ts,tsx}'],
-  darkMode: ['class', '[data-theme="dark"]'],
   theme: {
     extend: {
       colors: {
         paper: 'var(--color-paper)',
+        'paper-raised': 'var(--color-paper-raised)',
+        'paper-muted': 'var(--color-paper-muted)',
         card: 'var(--color-card)',
         ink: 'var(--color-ink)',
-        'ink-soft': 'var(--color-ink-soft)',
+        'ink-subtle': 'var(--color-ink-subtle)',
+        'ink-faint': 'var(--color-ink-faint)',
         muted: 'var(--color-muted)',
         line: 'var(--color-line)',
         'line-strong': 'var(--color-line-strong)',
         accent: 'var(--color-accent)',
-        'accent-hover': 'var(--color-accent-hover)',
+        'accent-hover': 'var(--color-link-hover)',
         'on-ink': 'var(--color-on-ink)',
         success: 'var(--color-success)',
         warning: 'var(--color-warning)',
@@ -26,14 +28,16 @@ export default {
         mono: ['"JetBrains Mono"', 'monospace'],
       },
       borderRadius: {
-        button: '10px',
-        input: '10px',
-        card: '14px',
-        modal: '18px',
+        button: '6px',
+        input: '6px',
+        card: '10px',
       },
       maxWidth: {
         container: '1280px',
-        reading: '760px',
+        reading: '720px',
+      },
+      aspectRatio: {
+        photo: '3 / 2',
       },
       boxShadow: {
         sm: 'var(--shadow-sm)',
