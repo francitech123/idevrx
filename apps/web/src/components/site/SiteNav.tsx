@@ -29,7 +29,6 @@ export function SiteNav() {
           <Wordmark />
         </Link>
 
-        {/* Public marketing links — only for guests */}
         {isGuest && (
           <div className="idx-nav-links">
             <NavLink to="/explore">Explore</NavLink>
@@ -39,7 +38,6 @@ export function SiteNav() {
           </div>
         )}
 
-        {/* Search is useful for both guests and users */}
         <form className="idx-nav-search" onSubmit={handleSearch}>
           <input
             type="text"
@@ -62,8 +60,12 @@ export function SiteNav() {
             </>
           ) : (
             <>
-              <Link to="/login" className="idx-btn idx-btn-outline">Sign In</Link>
-              <Link to="/register" className="idx-btn idx-btn-primary">Get Started</Link>
+              <Link to="/login" className="idx-btn idx-btn-outline">
+                Sign In
+              </Link>
+              <Link to="/register" className="idx-btn idx-btn-primary">
+                Get Started
+              </Link>
             </>
           )}
         </div>
