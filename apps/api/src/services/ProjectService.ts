@@ -233,7 +233,9 @@ export const ProjectService = {
     if (project.authorId.toString() !== requester.id) {
       throw new ForbiddenError();
     }
-
+        if (!project.coverFileId) {
+      throw new ConflictError('A cover image is required before publishing.');
+    }
     if (project.status === 'archived' || project.status === 'removed') {
       throw new ConflictError('This project is no longer editable.');
     }
@@ -253,6 +255,10 @@ export const ProjectService = {
     if (patch.estimatedBuildTime !== undefined) project.estimatedBuildTime = patch.estimatedBuildTime;
     if (patch.youtubeUrl !== undefined) project.youtubeUrl = patch.youtubeUrl;
     if (patch.version !== undefined) project.version = patch.version;
+    if (patch.buildLanguage !== undefined) project.buildLanguage = patch.buildLanguage;
+    if (patch.components !== undefined) project.components = patch.components as any;
+    if (patch.steps !== undefined) project.steps = patch.steps as any;
+    if (patch.codeSamples !== undefined) project.codeSamples = patch.codeSamples as any;
 
     project.searchText = `${project.title} ${project.shortDescription}`.toLowerCase();
 
