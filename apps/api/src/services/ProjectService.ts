@@ -17,6 +17,7 @@ interface CreateProjectInput {
   currency?: string;
   estimatedBuildTime?: string;
   youtubeUrl?: string;
+  buildLanguage?: string;
 }
 
 interface UpdateProjectInput {
@@ -30,6 +31,7 @@ interface UpdateProjectInput {
   estimatedBuildTime?: string;
   youtubeUrl?: string;
   version?: string;
+  buildLanguage?: string;
 }
 
 interface ListFilter {
@@ -44,33 +46,28 @@ interface ListFilter {
 const MAX_LIMIT = 50;
 const DEFAULT_LIMIT = 20;
 
-function toPublicDetail(p: any) {
+function toPublicList(p: any) {
   return {
-    ...toPublicList(p),
-    description: p.description,
+    id: p._id.toString(),
+    projectNumber: p.projectNumber,
+    slug: p.slug,
+    title: p.title,
+    shortDescription: p.shortDescription,
+    coverFileId: p.coverFileId?.toString() ?? null,
+    youtubeUrl: p.youtubeUrl || null,
+    difficulty: p.difficulty ?? null,
+    estimatedCost: p.estimatedCost ?? null,
+    currency: p.currency,
+    estimatedBuildTime: p.estimatedBuildTime || null,
+    version: p.version,
+    status: p.status,
+    visibility: p.visibility,
+    counts: p.counts,
+    publishedAt: p.publishedAt?.toISOString() ?? null,
+    createdAt: p.createdAt.toISOString(),
+    updatedAt: p.updatedAt.toISOString(),
+    authorId: p.authorId?.toString(),
     categoryId: p.categoryId?.toString() ?? null,
-    tagIds: (p.tagIds ?? []).map((t: any) => t.toString()),
-    featured: p.featured,
-    buildLanguage: p.buildLanguage || null,
-    components: (p.components ?? []).map((c: any) => ({
-      id: c._id?.toString() ?? '',
-      name: c.name,
-      quantity: c.quantity,
-      purpose: c.purpose,
-      optional: c.optional,
-    })),
-    steps: (p.steps ?? []).map((s: any) => ({
-      id: s._id?.toString() ?? '',
-      order: s.order,
-      title: s.title,
-      body: s.body,
-    })),
-    codeSamples: (p.codeSamples ?? []).map((c: any) => ({
-      id: c._id?.toString() ?? '',
-      filename: c.filename,
-      language: c.language,
-      code: c.code,
-    })),
   };
 }
 
@@ -78,7 +75,6 @@ function toPublicDetail(p: any) {
   return {
     ...toPublicList(p),
     description: p.description,
-    categoryId: p.categoryId?.toString() ?? null,
     tagIds: (p.tagIds ?? []).map((t: any) => t.toString()),
     featured: p.featured,
   };
@@ -185,7 +181,12 @@ export const ProjectService = {
       if (!cat) throw new NotFoundError();
     }
 
-        const project = await Project.create({
+    const projectNumber = await nextSequence('projectNumber');
+
+    const baseSlug = slugify(input.title);
+    const slug = await uniqueSlug(baseSlug);
+
+    const project = await Project.create({
       projectNumber,
       slug,
       title: input.title,
@@ -197,11 +198,7 @@ export const ProjectService = {
       estimatedCost: input.estimatedCost ?? null,
       currency: input.currency ?? 'USD',
       estimatedBuildTime: input.estimatedBuildTime ?? '',
-      buildLanguage: input.buildLanguage ?? '',
       youtubeUrl: input.youtubeUrl ?? '',
-      components: input.components ?? [],
-      steps: input.steps ?? [],
-      codeSamples: input.codeSamples ?? [],
       status: 'draft',
       visibility: 'private',
       searchText: `${input.title} ${input.shortDescription ?? ''}`.toLowerCase(),
@@ -233,9 +230,7 @@ export const ProjectService = {
     if (project.authorId.toString() !== requester.id) {
       throw new ForbiddenError();
     }
-        if (!project.coverFileId) {
-      throw new ConflictError('A cover image is required before publishing.');
-    }
+
     if (project.status === 'archived' || project.status === 'removed') {
       throw new ConflictError('This project is no longer editable.');
     }
@@ -255,10 +250,6 @@ export const ProjectService = {
     if (patch.estimatedBuildTime !== undefined) project.estimatedBuildTime = patch.estimatedBuildTime;
     if (patch.youtubeUrl !== undefined) project.youtubeUrl = patch.youtubeUrl;
     if (patch.version !== undefined) project.version = patch.version;
-    if (patch.buildLanguage !== undefined) project.buildLanguage = patch.buildLanguage;
-    if (patch.components !== undefined) project.components = patch.components as any;
-    if (patch.steps !== undefined) project.steps = patch.steps as any;
-    if (patch.codeSamples !== undefined) project.codeSamples = patch.codeSamples as any;
 
     project.searchText = `${project.title} ${project.shortDescription}`.toLowerCase();
 
@@ -267,7 +258,6 @@ export const ProjectService = {
     }
 
     await project.save();
-
     return toPublicDetail(project);
   },
 
@@ -288,6 +278,9 @@ export const ProjectService = {
     }
     if (!project.description || project.description.trim().length < 50) {
       throw new ConflictError('Project description must be at least 50 characters.');
+    }
+    if (!project.coverFileId) {
+      throw new ConflictError('Project must have a cover image before publishing.');
     }
 
     project.status = 'published';
@@ -314,51 +307,4 @@ export const ProjectService = {
     const project = await Project.findById(id);
     if (!project) throw new NotFoundError();
 
-    if (project.authorId.toString() !== requester.id) {
-      throw new ForbiddenError();
-    }
-
-    project.status = 'draft';
-    project.visibility = 'private';
-    await project.save();
-
-    await AuditService.record({
-      actorId: requester.id,
-      actorRoles: requester.roles,
-      action: 'project.unpublished',
-      resourceType: 'Project',
-      resourceId: project._id.toString(),
-      outcome: 'success',
-      req,
-    });
-
-    return toPublicDetail(project);
-  },
-
-  async softDelete(id: string, requester: { id: string; roles: string[] }, req?: any) {
-    const project = await Project.findById(id);
-    if (!project) throw new NotFoundError();
-
-    if (project.authorId.toString() !== requester.id) {
-      throw new ForbiddenError();
-    }
-
-    project.status = 'removed';
-    await project.save();
-
-    await AuditService.record({
-      actorId: requester.id,
-      actorRoles: requester.roles,
-      action: 'project.removed',
-      resourceType: 'Project',
-      resourceId: project._id.toString(),
-      outcome: 'success',
-      req,
-    });
-
-    return { removed: true };
-  },
-
-  toPublicList,
-  toPublicDetail,
-};
+    if (project.authorId.toString() !== requester
