@@ -113,4 +113,77 @@ export function CommentSection({
         <button
           onClick={post}
           disabled={busy || !body.trim()}
-          aria-label="Post
+          aria-label="Post comment"
+          style={{
+            width: 42,
+            height: 42,
+            borderRadius: '50%',
+            border: 0,
+            background: '#2563EB',
+            color: '#fff',
+            display: 'grid',
+            placeItems: 'center',
+            cursor: busy ? 'wait' : 'pointer',
+            opacity: !body.trim() ? 0.5 : 1,
+            flexShrink: 0,
+          }}
+        >
+          <Send size={16} />
+        </button>
+      </div>
+
+      {comments.length === 0 && (
+        <p style={{ color: '#64748B', fontSize: 13 }}>
+          No comments yet. Be the first.
+        </p>
+      )}
+
+      {comments.map((c) => (
+        <div
+          key={c.id}
+          style={{
+            display: 'flex',
+            gap: 12,
+            padding: '12px 0',
+            borderTop: '1px solid #E2E8F0',
+          }}
+        >
+          <span
+            style={{
+              width: 38,
+              height: 38,
+              borderRadius: '50%',
+              background: 'linear-gradient(135deg, #06B6D4 0%, #2563EB 55%, #7C3AED 100%)',
+              color: '#fff',
+              display: 'grid',
+              placeItems: 'center',
+              fontFamily: 'var(--font-sans)',
+              fontWeight: 600,
+              fontSize: 12,
+              flexShrink: 0,
+            }}
+          >
+            {c.author ? initials(c.author.displayName) : '?'}
+          </span>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 13, marginBottom: 2 }}>
+              <b>{c.author?.displayName ?? 'Unknown'}</b>{' '}
+              <small style={{ color: '#64748B' }}>{timeAgo(c.createdAt)}</small>
+            </div>
+            <p
+              style={{
+                margin: '2px 0 0',
+                fontSize: 14,
+                color: '#334155',
+                lineHeight: 1.55,
+                whiteSpace: 'pre-wrap',
+              }}
+            >
+              {c.body}
+            </p>
+          </div>
+        </div>
+      ))}
+    </section>
+  );
+}
