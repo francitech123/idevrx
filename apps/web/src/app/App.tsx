@@ -38,8 +38,6 @@ import { CreatorGuidelinesBlogPage } from '@/pages/blog/CreatorGuidelinesBlogPag
 import { HomeFeedPage } from '@/pages/app/HomeFeedPage';
 import { FollowingPage } from '@/pages/app/FollowingPage';
 import { LibraryPage } from '@/pages/app/LibraryPage';
-import { NotificationsPage } from '@/pages/app/NotificationsPage';
-import { NotificationDetailPage } from '@/pages/app/NotificationDetailPage';
 import { LearningHubPage } from '@/pages/app/LearningHubPage';
 import { CourseDetailPage } from '@/pages/app/CourseDetailPage';
 import { RequireAuth } from '@/app/guards/RequireAuth';
@@ -57,7 +55,14 @@ function RootPage() {
   if (isLoading) {
     return (
       <div style={{ padding: 64, maxWidth: 1280, margin: '0 auto' }}>
-        <div style={{ height: 32, width: 200, background: '#E2E8F0', borderRadius: 6 }} />
+        <div
+          style={{
+            height: 32,
+            width: 200,
+            background: 'var(--color-paper-muted)',
+            borderRadius: 6,
+          }}
+        />
       </div>
     );
   }
@@ -68,9 +73,12 @@ function RootPage() {
 export default function App() {
   return (
     <Routes>
+      {/* Public shell — nav + footer, guest-accessible pages */}
       <Route element={<PublicLayout />}>
         <Route path="/" element={<RootPage />} />
+
         <Route path="/explore" element={<ExplorePage />} />
+        <Route path="/ide/:projectNumber/:slug" element={<ProjectDetailPage />} />
 
         <Route path="/about" element={<AboutPage />} />
         <Route path="/contact" element={<ContactPage />} />
@@ -112,25 +120,64 @@ export default function App() {
             </RedirectIfAuthed>
           }
         />
+
+        <Route
+          path="/creator/apply"
+          element={
+            <RequireAuth>
+              <CreatorApplyPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/studio"
+          element={
+            <RequireAuth>
+              <StudioProjectsPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/studio/new"
+          element={
+            <RequireAuth>
+              <NewProjectPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/studio/project/:id"
+          element={
+            <RequireAuth>
+              <EditProjectPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/admin/creator-applications"
+          element={
+            <RequireAuth>
+              <AdminCreatorApplicationsPage />
+            </RequireAuth>
+          }
+        />
       </Route>
 
-      <Route element={<RequireAuth><AppShell /></RequireAuth>}>
+      {/* App shell — sidebar + top bar, signed-in pages */}
+      <Route
+        element={
+          <RequireAuth>
+            <AppShell />
+          </RequireAuth>
+        }
+      >
         <Route path="/home" element={<HomeFeedPage />} />
         <Route path="/following" element={<FollowingPage />} />
         <Route path="/library" element={<LibraryPage />} />
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="/settings/:tab" element={<SettingsPage />} />
         <Route path="/learning-hub" element={<LearningHubPage />} />
-        <Route path="/learning-hub/course/:slug" element={<CourseDetailPage />} />
-        <Route path="/notifications" element={<NotificationsPage />} />
-        <Route path="/notifications/:id" element={<NotificationDetailPage />} />
-        <Route path="/ide/:projectNumber/:slug" element={<ProjectDetailPage />} />
-
-        <Route path="/creator/apply" element={<CreatorApplyPage />} />
-        <Route path="/studio" element={<StudioProjectsPage />} />
-        <Route path="/studio/new" element={<NewProjectPage />} />
-        <Route path="/studio/project/:id" element={<EditProjectPage />} />
-        <Route path="/admin/creator-applications" element={<AdminCreatorApplicationsPage />} />
+        <Route path="/learning-hub/:slug" element={<CourseDetailPage />} />
       </Route>
 
       <Route path="*" element={<NotFoundPage />} />
