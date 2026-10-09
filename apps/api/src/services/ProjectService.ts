@@ -185,12 +185,7 @@ export const ProjectService = {
       if (!cat) throw new NotFoundError();
     }
 
-    const projectNumber = await nextSequence('projectNumber');
-
-    const baseSlug = slugify(input.title);
-    const slug = await uniqueSlug(baseSlug);
-
-    const project = await Project.create({
+        const project = await Project.create({
       projectNumber,
       slug,
       title: input.title,
@@ -202,7 +197,11 @@ export const ProjectService = {
       estimatedCost: input.estimatedCost ?? null,
       currency: input.currency ?? 'USD',
       estimatedBuildTime: input.estimatedBuildTime ?? '',
+      buildLanguage: input.buildLanguage ?? '',
       youtubeUrl: input.youtubeUrl ?? '',
+      components: input.components ?? [],
+      steps: input.steps ?? [],
+      codeSamples: input.codeSamples ?? [],
       status: 'draft',
       visibility: 'private',
       searchText: `${input.title} ${input.shortDescription ?? ''}`.toLowerCase(),
