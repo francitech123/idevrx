@@ -1,13 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Link, useParams, useNavigate, Navigate, useLocation } from 'react-router-dom';
-import {
-  Heart,
-  Bookmark,
-  Share2,
-  MessageCircle,
-  Code2,
-  ChevronRight,
-} from 'lucide-react';
+import { Link, useParams, Navigate, useLocation } from 'react-router-dom';
+import { Heart, Bookmark, Share2, Code2 } from 'lucide-react';
 import { useCurrentUser } from '@/features/auth/useAuth';
 import { useCategories } from '@/features/projects/useProjects';
 import { ProjectVideoPlayer } from '@/components/project/ProjectVideoPlayer';
@@ -96,7 +89,6 @@ interface Comment {
 export function ProjectDetailPage() {
   const { projectNumber, slug } = useParams<{ projectNumber: string; slug: string }>();
   const location = useLocation();
-  const navigate = useNavigate();
   const { user, isLoading: authLoading } = useCurrentUser();
   const { data: categoriesData } = useCategories();
 
@@ -474,18 +466,22 @@ export function ProjectDetailPage() {
                 onClick={toggleBookmark}
                 aria-label="Save"
                 style={{
-                  width: 42,
-                  height: 42,
-                  borderRadius: '50%',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  padding: '9px 16px',
                   border: `1px solid ${saved ? '#2563EB' : '#E2E8F0'}`,
                   background: saved ? '#EFF6FF' : '#fff',
                   color: saved ? '#2563EB' : '#0F172A',
-                  display: 'grid',
-                  placeItems: 'center',
+                  borderRadius: 10,
+                  fontWeight: 600,
+                  fontSize: 13,
                   cursor: 'pointer',
+                  fontFamily: 'inherit',
                 }}
               >
-                <Bookmark size={16} fill={saved ? 'currentColor' : 'none'} />
+                <Bookmark size={14} fill={saved ? 'currentColor' : 'none'} />
+                {bookmarksCount}
               </button>
               <button
                 onClick={share}
