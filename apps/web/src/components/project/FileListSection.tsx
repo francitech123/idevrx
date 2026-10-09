@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Download, FileText } from 'lucide-react';
+import { Download } from 'lucide-react';
 
 interface ProjectFile {
   id: string;
