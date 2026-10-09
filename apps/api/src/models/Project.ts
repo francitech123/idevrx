@@ -9,71 +9,50 @@ export type ProjectStatus =
   | 'removed';
 
 export type ProjectVisibility = 'public' | 'unlisted' | 'private';
-
 export type ProjectDifficulty = 'beginner' | 'intermediate' | 'advanced' | 'expert';
+
+const projectStepSchema = new Schema(
+  {
+    order: { type: Number, required: true },
+    title: { type: String, required: true, maxlength: 200 },
+    body: { type: String, default: '', maxlength: 4000 },
+  },
+  { _id: true }
+);
+
+const projectComponentSchema = new Schema(
+  {
+    name: { type: String, required: true, maxlength: 200 },
+    quantity: { type: String, default: '', maxlength: 64 },
+    purpose: { type: String, default: '', maxlength: 500 },
+    optional: { type: Boolean, default: false },
+  },
+  { _id: true }
+);
+
+const projectCodeSampleSchema = new Schema(
+  {
+    filename: { type: String, required: true, maxlength: 200 },
+    language: { type: String, default: 'text', maxlength: 40 },
+    code: { type: String, default: '', maxlength: 100000 },
+  },
+  { _id: true }
+);
 
 const projectSchema = new Schema(
   {
-    // Stable human-facing identity (File 01 §12, File 04 §8)
-    projectNumber: {
-      type: Number,
-      required: true,
-      unique: true,
-      index: true,
-    },
+    projectNumber: { type: Number, required: true, unique: true, index: true },
+    slug: { type: String, required: true, unique: true, trim: true, lowercase: true, maxlength: 100, index: true },
 
-    // URL slug (unique across all projects)
-    slug: {
-      type: String,
-      required: true,
-      unique: true,
-      trim: true,
-      lowercase: true,
-      maxlength: 100,
-      index: true,
-    },
+    title: { type: String, required: true, trim: true, maxlength: 200 },
+    shortDescription: { type: String, trim: true, maxlength: 500, default: '' },
+    description: { type: String, default: '', maxlength: 20000 },
 
-    // Core metadata
-    title: {
-      type: String,
-      required: true,
-      trim: true,
-      maxlength: 200,
-    },
-    shortDescription: {
-      type: String,
-      trim: true,
-      maxlength: 500,
-      default: '',
-    },
-    description: {
-      type: String,
-      default: '',
-      maxlength: 20000,
-    },
+    authorId: { type: Schema.Types.ObjectId, ref: 'User', required: true, index: true },
 
-    // Ownership — server-authoritative (File 05 §15)
-    authorId: {
-      type: Schema.Types.ObjectId,
-      ref: 'User',
-      required: true,
-      index: true,
-    },
+    categoryId: { type: Schema.Types.ObjectId, ref: 'Category', default: null, index: true },
+    tagIds: { type: [Schema.Types.ObjectId], ref: 'Tag', default: [] },
 
-    // Classification
-    categoryId: {
-      type: Schema.Types.ObjectId,
-      ref: 'Category',
-      default: null,
-      index: true,
-    },
-    tagIds: {
-      type: [Schema.Types.ObjectId],
-      ref: 'Tag',
-      default: [],
-    },
-
-    // Lifecycle (File 06 §3)
     status: {
       type: String,
       enum: ['draft', 'in_review', 'published', 'updated', 'archived', 'removed'],
@@ -87,62 +66,28 @@ const projectSchema = new Schema(
       index: true,
     },
 
-    // Engineering metadata
     difficulty: {
       type: String,
       enum: ['beginner', 'intermediate', 'advanced', 'expert'],
       default: null,
     },
-    estimatedCost: {
-      type: Number,
-      default: null,
-      min: 0,
-    },
-    currency: {
-      type: String,
-      default: 'USD',
-      maxlength: 8,
-    },
-    estimatedBuildTime: {
-      type: String,
-      default: '',
-      maxlength: 100,
-    },
+    estimatedCost: { type: Number, default: null, min: 0 },
+    currency: { type: String, default: 'USD', maxlength: 8 },
+    estimatedBuildTime: { type: String, default: '', maxlength: 100 },
+    buildLanguage: { type: String, default: '', maxlength: 64 },
 
-    // Media + external references
-    coverFileId: {
-      type: Schema.Types.ObjectId,
-      ref: 'ProjectFile',
-      default: null,
-    },
-    youtubeUrl: {
-      type: String,
-      default: '',
-      maxlength: 500,
-    },
+    coverFileId: { type: Schema.Types.ObjectId, ref: 'ProjectFile', default: null, required: false },
 
-    // Versioning
-    version: {
-      type: String,
-      default: 'v0.1',
-      maxlength: 32,
-    },
+    youtubeUrl: { type: String, default: '', maxlength: 500 },
 
-    // Moderation/curation
-    featured: {
-      type: Boolean,
-      default: false,
-      index: true,
-    },
+    components: { type: [projectComponentSchema], default: [] },
+    steps: { type: [projectStepSchema], default: [] },
+    codeSamples: { type: [projectCodeSampleSchema], default: [] },
 
-    // Timestamps
-    publishedAt: {
-      type: Date,
-      default: null,
-      index: true,
-    },
+    version: { type: String, default: 'v0.1', maxlength: 32 },
+    featured: { type: Boolean, default: false, index: true },
+    publishedAt: { type: Date, default: null, index: true },
 
-    // Denormalized counters (File 04 §7)
     counts: {
       views: { type: Number, default: 0 },
       likes: { type: Number, default: 0 },
@@ -150,16 +95,11 @@ const projectSchema = new Schema(
       comments: { type: Number, default: 0 },
     },
 
-    // Full-text search
-    searchText: {
-      type: String,
-      default: '',
-    },
+    searchText: { type: String, default: '' },
   },
   { timestamps: true }
 );
 
-// Indexes for common queries
 projectSchema.index({ status: 1, visibility: 1, publishedAt: -1 });
 projectSchema.index({ authorId: 1, status: 1 });
 projectSchema.index({ title: 'text', shortDescription: 'text', searchText: 'text' });
