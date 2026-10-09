@@ -17,20 +17,34 @@
     line-height: 1.5;
     min-height: 100vh;
     background: var(--color-paper);
+    color: var(--color-ink);
   }
 
   h1,
   h2,
   h3 {
     font-family: var(--font-display);
-    font-weight: 500;
-    line-height: 1.15;
-    letter-spacing: -0.01em;
     text-wrap: balance;
+    line-height: 1.15;
+    font-weight: 500;
+    color: var(--color-ink);
+  }
+
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-sans);
+    font-weight: 600;
+    color: var(--color-ink);
   }
 
   p {
     text-wrap: pretty;
+  }
+
+  code,
+  pre {
+    font-family: var(--font-mono);
   }
 
   button:not(:disabled),
@@ -39,23 +53,14 @@
   }
 
   :focus-visible {
-    outline: 2px solid var(--color-accent);
-    outline-offset: 2px;
+    outline: none;
+    box-shadow: var(--focus-ring);
+    border-radius: 4px;
   }
 
   ::selection {
     background: var(--color-accent);
     color: var(--color-on-ink);
-  }
-
-  input[type='range'] {
-    accent-color: var(--color-ink);
-    width: 100%;
-  }
-
-  a {
-    color: inherit;
-    text-decoration: none;
   }
 }
 
