@@ -57,7 +57,6 @@ export function RelatedProjects({ projects }: { projects: RelatedProject[] }) {
             <span style={{ minWidth: 0 }}>
               <b
                 style={{
-                  display: 'block',
                   lineHeight: 1.3,
                   fontSize: 13,
                   overflow: 'hidden',
@@ -68,7 +67,13 @@ export function RelatedProjects({ projects }: { projects: RelatedProject[] }) {
               >
                 {p.title}
               </b>
-              <small style={{ color: '#64748B', fontSize: 11 }}>
+              <small
+                style={{
+                  color: '#64748B',
+                  fontSize: 11,
+                  display: 'block',
+                }}
+              >
                 Project {String(p.projectNumber).padStart(3, '0')}
               </small>
             </span>
