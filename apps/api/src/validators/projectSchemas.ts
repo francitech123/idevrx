@@ -4,6 +4,25 @@ const DifficultyEnum = z.enum(['beginner', 'intermediate', 'advanced', 'expert']
 
 const youtubeUrlPattern = /^https?:\/\/(www\.|m\.)?(youtube\.com|youtu\.be)\//i;
 
+const ComponentSchema = z.object({
+  name: z.string().min(1).max(200).trim(),
+  quantity: z.string().max(64).trim().optional().default(''),
+  purpose: z.string().max(500).trim().optional().default(''),
+  optional: z.boolean().optional().default(false),
+});
+
+const StepSchema = z.object({
+  order: z.number().int().min(1),
+  title: z.string().min(1).max(200).trim(),
+  body: z.string().max(4000).trim().optional().default(''),
+});
+
+const CodeSampleSchema = z.object({
+  filename: z.string().min(1).max(200).trim(),
+  language: z.string().max(40).trim().optional().default('text'),
+  code: z.string().max(100000).default(''),
+});
+
 export const CreateProjectSchema = z.object({
   title: z.string().min(3).max(200).trim(),
   shortDescription: z.string().max(500).trim().optional().default(''),
@@ -13,6 +32,7 @@ export const CreateProjectSchema = z.object({
   estimatedCost: z.number().min(0).max(10_000_000).optional().nullable(),
   currency: z.string().max(8).optional().default('USD'),
   estimatedBuildTime: z.string().max(100).optional().default(''),
+  buildLanguage: z.string().max(64).optional().default(''),
   youtubeUrl: z
     .string()
     .max(500)
@@ -23,6 +43,9 @@ export const CreateProjectSchema = z.object({
       (v) => v === '' || youtubeUrlPattern.test(v),
       'Must be a YouTube URL (youtube.com or youtu.be)'
     ),
+  components: z.array(ComponentSchema).optional().default([]),
+  steps: z.array(StepSchema).optional().default([]),
+  codeSamples: z.array(CodeSampleSchema).optional().default([]),
 });
 
 export const UpdateProjectSchema = z.object({
@@ -34,6 +57,7 @@ export const UpdateProjectSchema = z.object({
   estimatedCost: z.number().min(0).max(10_000_000).optional().nullable(),
   currency: z.string().max(8).optional(),
   estimatedBuildTime: z.string().max(100).optional(),
+  buildLanguage: z.string().max(64).optional(),
   youtubeUrl: z
     .string()
     .max(500)
@@ -43,6 +67,9 @@ export const UpdateProjectSchema = z.object({
       (v) => v === undefined || v === '' || youtubeUrlPattern.test(v),
       'Must be a YouTube URL (youtube.com or youtu.be)'
     ),
+  components: z.array(ComponentSchema).optional(),
+  steps: z.array(StepSchema).optional(),
+  codeSamples: z.array(CodeSampleSchema).optional(),
   version: z.string().max(32).optional(),
 });
 
