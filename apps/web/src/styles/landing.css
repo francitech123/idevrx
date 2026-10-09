@@ -186,9 +186,32 @@
   overflow: hidden;
   background: var(--color-paper);
   border-bottom: 1px solid var(--color-line);
+  color: var(--color-ink);
+}
+.idx-hero-photo {
+  position: absolute;
+  inset: 0;
+  background-image: url('/hero-banner.webp');
+  background-size: cover;
+  background-position: center;
+  filter: brightness(0.85) saturate(1.05);
+  z-index: 0;
+}
+.idx-hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    rgba(239, 232, 220, 0.96) 0%,
+    rgba(239, 232, 220, 0.88) 32%,
+    rgba(239, 232, 220, 0.6) 55%,
+    rgba(239, 232, 220, 0.2) 100%
+  );
+  z-index: 1;
 }
 .idx-hero-inner {
   position: relative;
+  z-index: 2;
   width: 100%;
 }
 .idx-hero-content { max-width: 720px; }
