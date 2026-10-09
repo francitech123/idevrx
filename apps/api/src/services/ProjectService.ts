@@ -307,4 +307,61 @@ export const ProjectService = {
     const project = await Project.findById(id);
     if (!project) throw new NotFoundError();
 
-    if (project.authorId.toString() !== requester
+    if (project.authorId.toString() !== requester.id) {
+      throw new ForbiddenError();
+    }
+
+    project.status = 'draft';
+    project.visibility = 'private';
+    await project.save();
+
+    await AuditService.record({
+      actorId: requester.id,
+      actorRoles: requester.roles,
+      action: 'project.unpublished',
+      resourceType: 'Project',
+      resourceId: project._id.toString(),
+      outcome: 'success',
+      req,
+    });
+
+    return toPublicDetail(project);
+  },
+
+  async softDelete(id: string, requester: { id: string; roles: string[] }, req?: any) {
+    const project = await Project.findById(id);
+    if (!project) throw new NotFoundError();
+
+    if (project.authorId.toString() !== requester.id) {
+      throw new ForbiddenError();
+    }
+
+    project.status = 'removed';
+    await project.save();
+
+    await AuditService.record({
+      actorId: requester.id,
+      actorRoles: requester.roles,
+      action: 'project.removed',
+      resourceType: 'Project',
+      resourceId: project._id.toString(),
+      outcome: 'success',
+      req,
+    });
+
+    return { removed: true };
+  },
+
+  async setCover(projectId: string, fileId: string, requester: { id: string; roles: string[] }) {
+    const project = await Project.findById(projectId);
+    if (!project) throw new NotFoundError();
+    if (project.authorId.toString() !== requester.id) throw new ForbiddenError();
+
+    project.coverFileId = fileId as any;
+    await project.save();
+    return toPublicDetail(project);
+  },
+
+  toPublicList,
+  toPublicDetail,
+};
