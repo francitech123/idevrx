@@ -36,6 +36,12 @@ router.post(
   requireRole('creator'),
   ctrl.finalizeUpload
 );
+router.post(
+  '/:fileId/set-cover',
+  requireAuth,
+  requireRole('creator'),
+  ctrl.setCover
+);
 
 router.get('/:fileId/download', ctrl.download);
 
