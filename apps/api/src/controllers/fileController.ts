@@ -1,6 +1,7 @@
 import type { RequestHandler } from 'express';
 import { FileService } from '../services/FileService.js';
 import { ok } from '../utils/apiResponse.js';
+import { ProjectService } from '../services/ProjectService.js';
 import { AuthRequiredError } from '../utils/errors.js';
 
 /** Express 5 types req.params values as string | string[]. */
@@ -50,7 +51,18 @@ export const finalizeUpload: RequestHandler = async (req, res, next) => {
     next(err);
   }
 };
-
+export const setCover: RequestHandler = async (req, res, next) => {
+  try {
+    const user = (req as any).user;
+    if (!user) throw new AuthRequiredError();
+    const project = await ProjectService.setCover(
+      param(req.params.id),
+      param(req.params.fileId),
+      { id: user._id.toString(), roles: user.roles }
+    );
+    return ok(res, { project });
+  } catch (err) { next(err); }
+};
 export const listFiles: RequestHandler = async (req, res, next) => {
   try {
     const user = (req as any).user;
