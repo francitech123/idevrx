@@ -44,27 +44,33 @@ interface ListFilter {
 const MAX_LIMIT = 50;
 const DEFAULT_LIMIT = 20;
 
-function toPublicList(p: any) {
+function toPublicDetail(p: any) {
   return {
-    id: p._id.toString(),
-    projectNumber: p.projectNumber,
-    slug: p.slug,
-    title: p.title,
-    shortDescription: p.shortDescription,
-    coverFileId: p.coverFileId?.toString() ?? null,
-    youtubeUrl: p.youtubeUrl || null,
-    difficulty: p.difficulty ?? null,
-    estimatedCost: p.estimatedCost ?? null,
-    currency: p.currency,
-    estimatedBuildTime: p.estimatedBuildTime || null,
-    version: p.version,
-    status: p.status,
-    visibility: p.visibility,
-    counts: p.counts,
-    publishedAt: p.publishedAt?.toISOString() ?? null,
-    createdAt: p.createdAt.toISOString(),
-    updatedAt: p.updatedAt.toISOString(),
-    authorId: p.authorId?.toString(),
+    ...toPublicList(p),
+    description: p.description,
+    categoryId: p.categoryId?.toString() ?? null,
+    tagIds: (p.tagIds ?? []).map((t: any) => t.toString()),
+    featured: p.featured,
+    buildLanguage: p.buildLanguage || null,
+    components: (p.components ?? []).map((c: any) => ({
+      id: c._id?.toString() ?? '',
+      name: c.name,
+      quantity: c.quantity,
+      purpose: c.purpose,
+      optional: c.optional,
+    })),
+    steps: (p.steps ?? []).map((s: any) => ({
+      id: s._id?.toString() ?? '',
+      order: s.order,
+      title: s.title,
+      body: s.body,
+    })),
+    codeSamples: (p.codeSamples ?? []).map((c: any) => ({
+      id: c._id?.toString() ?? '',
+      filename: c.filename,
+      language: c.language,
+      code: c.code,
+    })),
   };
 }
 
