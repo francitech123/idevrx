@@ -1,29 +1,49 @@
 :root {
-  --font-sans: 'Figtree', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-sans: 'Figtree', ui-sans-serif, system-ui, sans-serif;
   --font-display: 'Newsreader', Georgia, 'Times New Roman', serif;
   --font-mono: 'JetBrains Mono', 'SFMono-Regular', Consolas, monospace;
 
-  --color-paper: #efe8dc;
-  --color-card: #f6f1e7;
-  --color-ink: #1a1612;
-  --color-muted: #6f675e;
-  --color-line: #ddd3c4;
-  --color-line-strong: #c8bba8;
-  --color-accent: #c4501a;
-  --color-accent-hover: #a8410f;
-  --color-on-ink: #f6f1e7;
-  --color-ink-soft: #2a241c;
+  --color-paper: #EFE8DC;
+  --color-card: #F6F1E7;
+  --color-ink: #1A1612;
+  --color-muted: #6F675E;
+  --color-line: #DDD3C4;
+  --color-accent: #C4501A;
+  --color-on-ink: #F6F1E7;
 
-  --color-success: #4a7c3a;
-  --color-success-bg: #e8f0e0;
-  --color-warning: #b8860b;
-  --color-warning-bg: #f7eeda;
-  --color-error: #b91c1c;
-  --color-error-bg: #f8e4e0;
-  --color-info: #2457f5;
-  --color-info-bg: #e6edff;
+  --color-paper-raised: #F6F1E7;
+  --color-paper-muted: #E7DFD0;
+  --color-line-strong: #C9BEAC;
 
+  --color-ink-subtle: #4A423A;
+  --color-ink-faint: #8B8279;
+
+  --color-success: #3F6E4A;
+  --color-success-bg: #E4EEDC;
+  --color-warning: #B26A18;
+  --color-warning-bg: #F5E4CC;
+  --color-error: #A32B22;
+  --color-error-bg: #F2DBD5;
+  --color-info: #3A5C7A;
+  --color-info-bg: #DFE7ED;
+
+  --color-link: #C4501A;
+  --color-link-hover: #9A3E12;
+  --color-focus: #C4501A;
   --focus-ring: 0 0 0 3px rgba(196, 80, 26, 0.22);
+
+  --shadow-sm: 0 1px 2px rgba(26, 22, 18, 0.05);
+  --shadow-md: 0 4px 14px rgba(26, 22, 18, 0.07);
+  --shadow-lg: 0 12px 32px rgba(26, 22, 18, 0.10);
+
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-pill: 999px;
+  --radius-button: 6px;
+  --radius-input: 6px;
+  --radius-card: 10px;
 
   --space-1: 4px;
   --space-2: 8px;
@@ -36,24 +56,15 @@
   --space-12: 48px;
   --space-16: 64px;
   --space-20: 80px;
-  --space-24: 96px;
 
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 14px;
-  --radius-xl: 18px;
-  --radius-pill: 999px;
-  --radius-button: 10px;
-  --radius-input: 10px;
-  --radius-card: 14px;
-  --radius-modal: 18px;
+  --container-max-width: 1280px;
+  --reading-width: 720px;
+  --page-padding-desktop: 32px;
+  --page-padding-tablet: 24px;
+  --page-padding-mobile: 16px;
 
-  --container: 1280px;
-  --reading: 760px;
-
-  --shadow-sm: 0 1px 2px rgba(26, 22, 18, 0.04);
-  --shadow-md: 0 6px 24px rgba(26, 22, 18, 0.08);
-  --shadow-lg: 0 16px 48px rgba(26, 22, 18, 0.12);
+  --transition-fast: 120ms ease;
+  --transition-normal: 180ms ease;
 
   --aspect-photo: 3 / 2;
 }
