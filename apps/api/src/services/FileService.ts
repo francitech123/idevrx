@@ -75,7 +75,22 @@ export const FileService = {
         sizeBytes: `File exceeds maximum size of ${MAX_FILE_SIZE_BYTES / 1024 / 1024} MB`,
       });
     }
+  export const setCover: RequestHandler = async (req, res, next) => {
+  try {
+    const user = (req as any).user;
+    if (!user) throw new AuthRequiredError();
 
+    const result = await FileService.setCover(
+      param(req.params.id),
+      param(req.params.fileId),
+      user._id.toString(),
+      user.roles
+    );
+    return ok(res, result);
+  } catch (err) {
+    next(err);
+  }
+};
     const category: FileCategory = detectCategory(input.mimeType);
     const allowed = MIME_ALLOWLIST[category] ?? [];
     if (!allowed.includes(input.mimeType.toLowerCase())) {
