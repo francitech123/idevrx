@@ -1,47 +1,30 @@
 import { useState, useEffect } from 'react';
 import { Link, useParams, useNavigate, Navigate, useLocation } from 'react-router-dom';
 import {
-  ArrowLeft,
   Heart,
   Bookmark,
   Share2,
   MessageCircle,
-  Download,
-  FileText,
-  Award,
-  Calendar,
-  Clock,
-  DollarSign,
-  Tag,
-  UserPlus,
-  UserCheck,
-  RefreshCw,
+  Code2,
+  ChevronRight,
 } from 'lucide-react';
 import { useCurrentUser } from '@/features/auth/useAuth';
 import { useCategories } from '@/features/projects/useProjects';
+import { ProjectVideoPlayer } from '@/components/project/ProjectVideoPlayer';
+import { CodeDialog } from '@/components/project/CodeDialog';
+import { ProjectDescription } from '@/components/project/ProjectDescription';
+import { ProjectAccordion } from '@/components/project/ProjectAccordion';
+import { ComponentTable } from '@/components/project/ComponentTable';
+import { StepList } from '@/components/project/StepList';
+import { FileListSection } from '@/components/project/FileListSection';
+import { RelatedProjects } from '@/components/project/RelatedProjects';
+import { CommentSection } from '@/components/project/CommentSection';
 
 interface Author {
   id: string;
   username: string;
   displayName: string;
   bio: string;
-  avatarUrl: string | null;
-}
-
-interface FileItem {
-  id: string;
-  originalFilename: string;
-  mimeType: string;
-  sizeBytes: number;
-  category: string;
-  downloadEnabled: boolean;
-}
-
-interface Comment {
-  id: string;
-  body: string;
-  createdAt: string;
-  author: { id: string; username: string; displayName: string } | null;
 }
 
 interface ProjectData {
@@ -63,41 +46,51 @@ interface ProjectData {
   version: string;
   youtubeUrl: string | null;
   coverFileId: string | null;
-  featured: boolean;
   counts: { views: number; likes: number; bookmarks: number; comments: number };
   publishedAt: string | null;
+}
+
+interface Component {
+  id: string;
+  name: string;
+  quantity: string;
+  specification: string;
+  notes: string;
+  optional: boolean;
+  sourceUrl: string;
+}
+
+interface Step {
+  id: string;
+  stepNumber: number;
+  title: string;
+  body: string;
+  mediaFileIds: string[];
+  warnings: string[];
+}
+
+interface CodeSample {
+  id: string;
+  filename: string;
+  language: string;
+  code: string;
+  description: string;
+}
+
+interface ProjectFile {
+  id: string;
+  originalFilename: string;
+  mimeType: string;
+  sizeBytes: number;
+  category: string;
+  downloadEnabled: boolean;
+}
+
+interface Comment {
+  id: string;
+  body: string;
   createdAt: string;
-}
-
-function formatBytes(b: number): string {
-  if (b < 1024) return `${b} B`;
-  if (b < 1024 * 1024) return `${(b / 1024).toFixed(1)} KB`;
-  return `${(b / (1024 * 1024)).toFixed(1)} MB`;
-}
-
-function timeAgo(iso: string): string {
-  const diff = Date.now() - new Date(iso).getTime();
-  const min = Math.floor(diff / 60000);
-  if (min < 1) return 'Just now';
-  if (min < 60) return `${min} min ago`;
-  const hrs = Math.floor(min / 60);
-  if (hrs < 24) return `${hrs}h ago`;
-  const days = Math.floor(hrs / 24);
-  if (days < 30) return `${days}d ago`;
-  return new Date(iso).toLocaleDateString();
-}
-
-function youtubeEmbed(url: string): string | null {
-  try {
-    const u = new URL(url);
-    let id = '';
-    if (u.hostname === 'youtu.be') id = u.pathname.slice(1);
-    else if (u.searchParams.get('v')) id = u.searchParams.get('v')!;
-    else if (u.pathname.startsWith('/embed/')) id = u.pathname.split('/')[2];
-    return id ? `https://www.youtube.com/embed/${id}` : null;
-  } catch {
-    return null;
-  }
+  author: { id: string; username: string; displayName: string } | null;
 }
 
 export function ProjectDetailPage() {
@@ -112,7 +105,10 @@ export function ProjectDetailPage() {
 
   const [project, setProject] = useState<ProjectData | null>(null);
   const [author, setAuthor] = useState<Author | null>(null);
-  const [files, setFiles] = useState<FileItem[]>([]);
+  const [components, setComponents] = useState<Component[]>([]);
+  const [steps, setSteps] = useState<Step[]>([]);
+  const [codeSamples, setCodeSamples] = useState<CodeSample[]>([]);
+  const [files, setFiles] = useState<ProjectFile[]>([]);
   const [comments, setComments] = useState<Comment[]>([]);
   const [related, setRelated] = useState<ProjectData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -124,9 +120,7 @@ export function ProjectDetailPage() {
   const [bookmarksCount, setBookmarksCount] = useState(0);
   const [following, setFollowing] = useState(false);
   const [followers, setFollowers] = useState(0);
-
-  const [commentBody, setCommentBody] = useState('');
-  const [commentBusy, setCommentBusy] = useState(false);
+  const [openCode, setOpenCode] = useState<CodeSample | null>(null);
 
   useEffect(() => {
     if (!idOrNumber) return;
@@ -137,7 +131,7 @@ export function ProjectDetailPage() {
     fetch(`${apiUrl}/api/v1/projects/${encodeURIComponent(idOrNumber)}`, {
       credentials: 'include',
     })
-      .then((r) => (r.ok ? r.json() : Promise.reject(new Error('Not found'))))
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error('Project not found'))))
       .then(async (body) => {
         if (!body.success) throw new Error(body.error?.message ?? 'Not found');
         const p: ProjectData = body.data.project;
@@ -145,42 +139,63 @@ export function ProjectDetailPage() {
         setLikesCount(p.counts.likes);
         setBookmarksCount(p.counts.bookmarks);
 
-        const [authorRes, filesRes, commentsRes, relRes] = await Promise.all([
-          fetch(`${apiUrl}/api/v1/profiles/${p.authorId}`, { credentials: 'include' }).catch(
-            () => null
-          ),
-          fetch(`${apiUrl}/api/v1/projects/${p.id}/files`, { credentials: 'include' }).catch(
-            () => null
-          ),
-          fetch(`${apiUrl}/api/v1/projects/${p.id}/comments`, { credentials: 'include' }).catch(
-            () => null
-          ),
-          fetch(
-            `${apiUrl}/api/v1/projects?categoryId=${p.categoryId ?? ''}&limit=4`,
-            { credentials: 'include' }
-          ).catch(() => null),
-        ]);
+        const [authorRes, filesRes, commentsRes, compRes, stepsRes, codeRes, relRes] =
+          await Promise.all([
+            fetch(`${apiUrl}/api/v1/profiles/${p.authorId}`, { credentials: 'include' }).catch(
+              () => null
+            ),
+            fetch(`${apiUrl}/api/v1/projects/${p.id}/files`, {
+              credentials: 'include',
+            }).catch(() => null),
+            fetch(`${apiUrl}/api/v1/projects/${p.id}/comments`, {
+              credentials: 'include',
+            }).catch(() => null),
+            fetch(`${apiUrl}/api/v1/projects/${p.id}/components`, {
+              credentials: 'include',
+            }).catch(() => null),
+            fetch(`${apiUrl}/api/v1/projects/${p.id}/steps`, {
+              credentials: 'include',
+            }).catch(() => null),
+            fetch(`${apiUrl}/api/v1/projects/${p.id}/code`, {
+              credentials: 'include',
+            }).catch(() => null),
+            fetch(
+              `${apiUrl}/api/v1/projects?categoryId=${p.categoryId ?? ''}&limit=4`,
+              { credentials: 'include' }
+            ).catch(() => null),
+          ]);
 
-        if (authorRes && authorRes.ok) {
+        if (authorRes?.ok) {
           const b = await authorRes.json();
           if (b.success) setAuthor(b.data.profile);
         }
-
-        if (filesRes && filesRes.ok) {
+        if (filesRes?.ok) {
           const b = await filesRes.json();
           if (b.success) setFiles(b.data.files ?? []);
         }
-
-        if (commentsRes && commentsRes.ok) {
+        if (commentsRes?.ok) {
           const b = await commentsRes.json();
           if (b.success) setComments(b.data.comments ?? []);
         }
-
-        if (relRes && relRes.ok) {
+        if (compRes?.ok) {
+          const b = await compRes.json();
+          if (b.success) setComponents(b.data.components ?? []);
+        }
+        if (stepsRes?.ok) {
+          const b = await stepsRes.json();
+          if (b.success) setSteps(b.data.steps ?? []);
+        }
+        if (codeRes?.ok) {
+          const b = await codeRes.json();
+          if (b.success) setCodeSamples(b.data.samples ?? []);
+        }
+        if (relRes?.ok) {
           const b = await relRes.json();
           if (b.success) {
             setRelated(
-              (b.data.projects ?? []).filter((x: ProjectData) => x.id !== p.id).slice(0, 3)
+              (b.data.projects ?? [])
+                .filter((x: ProjectData) => x.id !== p.id)
+                .slice(0, 3)
             );
           }
         }
@@ -237,74 +252,6 @@ export function ProjectDetailPage() {
     }).catch(() => {});
   }, [user, project]);
 
-  if (authLoading) return null;
-
-  if (!user) {
-    return <Navigate to="/login" replace state={{ from: location.pathname }} />;
-  }
-
-  if (loading) {
-    return (
-      <div style={{ maxWidth: 1200, margin: '0 auto', padding: 24 }}>
-        <div
-          style={{
-            height: 400,
-            background: '#E2E8F0',
-            borderRadius: 18,
-            marginBottom: 20,
-          }}
-        />
-        <div
-          style={{ height: 40, width: 300, background: '#E2E8F0', borderRadius: 8 }}
-        />
-      </div>
-    );
-  }
-
-  if (error || !project) {
-    return (
-      <div style={{ maxWidth: 600, margin: '0 auto', padding: 64, textAlign: 'center' }}>
-        <p
-          style={{
-            fontFamily: 'var(--font-mono)',
-            fontSize: 12,
-            color: '#64748B',
-            marginBottom: 12,
-          }}
-        >
-          404
-        </p>
-        <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 12 }}>
-          Project not found
-        </h1>
-        <p style={{ color: '#64748B', marginBottom: 24 }}>
-          {error ?? "This project doesn't exist or isn't publicly visible."}
-        </p>
-        <Link
-          to="/home"
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 8,
-            padding: '10px 18px',
-            background: '#fff',
-            border: '1px solid #E2E8F0',
-            borderRadius: 10,
-            fontWeight: 600,
-            textDecoration: 'none',
-          }}
-        >
-          <ArrowLeft size={14} /> Back to feed
-        </Link>
-      </div>
-    );
-  }
-
-    const isOwner = user.id === project.authorId;
-  const category = categoriesData?.find((c) => c.id === project.categoryId);
-  const formattedNumber = `PROJECT ${String(project.projectNumber).padStart(3, '0')}`;
-  const embedUrl = project.youtubeUrl ? youtubeEmbed(project.youtubeUrl) : null;
-  
   async function toggleLike() {
     if (!project) return;
     const apiUrl = import.meta.env.VITE_API_URL ?? '';
@@ -349,7 +296,7 @@ export function ProjectDetailPage() {
     }
   }
 
-  async function handleShare() {
+  async function share() {
     if (navigator.share) {
       navigator.share({ title: project?.title, url: window.location.href }).catch(() => {});
     } else {
@@ -359,156 +306,131 @@ export function ProjectDetailPage() {
     }
   }
 
-  async function postComment() {
-    if (!project || !commentBody.trim()) return;
-    setCommentBusy(true);
-    const apiUrl = import.meta.env.VITE_API_URL ?? '';
-    try {
-      const res = await fetch(`${apiUrl}/api/v1/projects/${project.id}/comments`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ body: commentBody.trim() }),
-      });
-      if (res.ok) {
-        const b = await res.json();
-        if (b.success) {
-          setComments((prev) => [b.data.comment, ...prev]);
-          setCommentBody('');
-        }
-      }
-    } finally {
-      setCommentBusy(false);
-    }
+  if (authLoading) return null;
+
+  if (!user) {
+    return <Navigate to="/login" replace state={{ from: location.pathname }} />;
   }
 
-  async function downloadFile(fileId: string) {
-    if (!project) return;
-    const apiUrl = import.meta.env.VITE_API_URL ?? '';
-    const res = await fetch(
-      `${apiUrl}/api/v1/projects/${project.id}/files/${fileId}/download`,
-      { credentials: 'include' }
+  if (loading) {
+    return (
+      <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+        <div
+          style={{
+            aspectRatio: '16/9',
+            background: '#E2E8F0',
+            borderRadius: 20,
+            marginBottom: 20,
+          }}
+        />
+        <div style={{ height: 40, width: 300, background: '#E2E8F0', borderRadius: 8 }} />
+      </div>
     );
-    if (res.ok) {
-      const b = await res.json();
-      if (b.success && b.data.downloadUrl) {
-        const a = document.createElement('a');
-        a.href = b.data.downloadUrl;
-        a.download = b.data.filename;
-        a.rel = 'noopener';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-      }
-    }
   }
+
+  if (error || !project) {
+    return (
+      <div style={{ maxWidth: 600, margin: '0 auto', padding: 64, textAlign: 'center' }}>
+        <p
+          style={{
+            fontFamily: 'var(--font-mono)',
+            fontSize: 12,
+            color: '#64748B',
+            marginBottom: 12,
+          }}
+        >
+          404
+        </p>
+        <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 12 }}>
+          Project not found
+        </h1>
+        <p style={{ color: '#64748B', marginBottom: 24 }}>
+          {error ?? "This project doesn't exist or isn't publicly visible."}
+        </p>
+        <Link
+          to="/home"
+          style={{
+            display: 'inline-block',
+            padding: '10px 20px',
+            background: '#fff',
+            border: '1px solid #E2E8F0',
+            borderRadius: 10,
+            fontWeight: 600,
+            textDecoration: 'none',
+          }}
+        >
+          Back to feed
+        </Link>
+      </div>
+    );
+  }
+
+  const isOwner = user.id === project.authorId;
+  const category = categoriesData?.find((c) => c.id === project.categoryId);
+  const formattedNumber = `PROJECT ${String(project.projectNumber).padStart(3, '0')}`;
+  const categorySlug = category?.slug ?? 'all';
 
   return (
     <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-      <button
-        onClick={() => navigate('/home')}
+      <div
         style={{
-          display: 'inline-flex',
-          alignItems: 'center',
+          display: 'flex',
           gap: 8,
-          padding: '9px 16px',
-          border: '1px solid #E2E8F0',
-          background: '#fff',
-          borderRadius: 10,
-          cursor: 'pointer',
-          fontFamily: 'inherit',
-          fontWeight: 600,
+          flexWrap: 'wrap',
+          color: '#64748B',
           fontSize: 13,
-          marginBottom: 20,
+          marginBottom: 18,
         }}
       >
-        <ArrowLeft size={14} /> Back
-      </button>
+        <Link to="/home" style={{ color: 'inherit', textDecoration: 'none' }}>
+          Home
+        </Link>
+        <span>/</span>
+        <Link
+          to={`/explore?category=${categorySlug}`}
+          style={{ color: 'inherit', textDecoration: 'none' }}
+        >
+          {category?.name ?? 'Projects'}
+        </Link>
+        <span>/</span>
+        <b style={{ color: '#0F172A', fontWeight: 500 }}>{formattedNumber}</b>
+      </div>
+
+      <ProjectVideoPlayer
+        youtubeUrl={project.youtubeUrl}
+        projectNumber={project.projectNumber}
+      />
 
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'minmax(0, 1fr) minmax(260px, 340px)',
-          gap: 28,
+          gridTemplateColumns: 'minmax(0, 1fr) clamp(280px, 24vw, 380px)',
+          gap: 'clamp(20px, 3vw, 48px)',
+          alignItems: 'start',
         }}
-        className="project-detail-grid"
+        className="project-layout"
       >
-        <div>
-          <div
-            style={{
-              position: 'relative',
-              aspectRatio: '16/9',
-              background: 'linear-gradient(135deg, #0A1225 0%, #1E293B 100%)',
-              borderRadius: 18,
-              overflow: 'hidden',
-              marginBottom: 20,
-              color: '#fff',
-            }}
-          >
-            <span
-              style={{
-                position: 'absolute',
-                top: 14,
-                left: 14,
-                background: 'rgba(15, 23, 42, 0.7)',
-                padding: '5px 12px',
-                borderRadius: 99,
-                fontSize: 12,
-                fontWeight: 600,
-                backdropFilter: 'blur(8px)',
-              }}
-            >
-              {category?.name ?? 'Project'}
-            </span>
-            <span
-              style={{
-                position: 'absolute',
-                bottom: 14,
-                right: 14,
-                fontFamily: 'var(--font-mono)',
-                fontSize: 11,
-                background: 'rgba(15, 23, 42, 0.85)',
-                padding: '5px 10px',
-                borderRadius: 6,
-                backdropFilter: 'blur(8px)',
-              }}
-            >
-              {project.version}
-            </span>
-          </div>
-
-          <p
-            style={{
-              fontFamily: 'var(--font-mono)',
-              fontSize: 11,
-              letterSpacing: '0.16em',
-              textTransform: 'uppercase',
-              color: '#2563EB',
-              fontWeight: 600,
-              marginBottom: 8,
-            }}
-          >
-            {formattedNumber}
-          </p>
+        <article>
           <h1
             style={{
-              fontSize: 'clamp(24px, 3vw, 40px)',
+              fontSize: 'clamp(28px, 3.8vw, 52px)',
               fontWeight: 700,
-              letterSpacing: '-0.025em',
+              letterSpacing: '-0.035em',
               lineHeight: 1.1,
               marginBottom: 12,
             }}
           >
             {project.title}
           </h1>
+
           {project.shortDescription && (
             <p
               style={{
-                fontSize: 17,
                 color: '#475569',
-                lineHeight: 1.55,
-                marginBottom: 20,
                 maxWidth: '70ch',
+                fontSize: 17,
+                margin: '0 0 20px',
+                lineHeight: 1.6,
               }}
             >
               {project.shortDescription}
@@ -518,122 +440,26 @@ export function ProjectDetailPage() {
           <div
             style={{
               display: 'flex',
-              gap: 8,
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 24,
+              margin: '20px 0',
+              borderBottom: '1px solid #E2E8F0',
+              paddingBottom: 18,
               flexWrap: 'wrap',
-              marginBottom: 24,
             }}
           >
-            <button
-              onClick={toggleLike}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 8,
-                padding: '9px 16px',
-                border: `1px solid ${liked ? '#2563EB' : '#E2E8F0'}`,
-                background: liked ? '#EFF6FF' : '#fff',
-                color: liked ? '#2563EB' : '#0F172A',
-                borderRadius: 10,
-                fontWeight: 600,
-                fontSize: 13,
-                cursor: 'pointer',
-                fontFamily: 'inherit',
-              }}
-            >
-              <Heart size={14} fill={liked ? 'currentColor' : 'none'} />
-              {likesCount}
-            </button>
-            <button
-              onClick={toggleBookmark}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 8,
-                padding: '9px 16px',
-                border: `1px solid ${saved ? '#2563EB' : '#E2E8F0'}`,
-                background: saved ? '#EFF6FF' : '#fff',
-                color: saved ? '#2563EB' : '#0F172A',
-                borderRadius: 10,
-                fontWeight: 600,
-                fontSize: 13,
-                cursor: 'pointer',
-                fontFamily: 'inherit',
-              }}
-            >
-              <Bookmark size={14} fill={saved ? 'currentColor' : 'none'} />
-              {bookmarksCount}
-            </button>
-            <button
-              onClick={handleShare}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 8,
-                padding: '9px 16px',
-                border: '1px solid #E2E8F0',
-                background: '#fff',
-                borderRadius: 10,
-                fontWeight: 600,
-                fontSize: 13,
-                cursor: 'pointer',
-                fontFamily: 'inherit',
-              }}
-            >
-              <Share2 size={14} />
-              Share
-            </button>
-          </div>
-
-          {author && project.authorId !== user.id && (
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 12,
-                padding: 14,
-                background: '#fff',
-                border: '1px solid #E2E8F0',
-                borderRadius: 14,
-                marginBottom: 24,
-              }}
-            >
-              <div
-                style={{
-                  width: 44,
-                  height: 44,
-                  borderRadius: '50%',
-                  background:
-                    'linear-gradient(135deg, #06B6D4 0%, #2563EB 55%, #7C3AED 100%)',
-                  display: 'grid',
-                  placeItems: 'center',
-                  color: '#fff',
-                  fontWeight: 600,
-                  fontSize: 14,
-                }}
-              >
-                {author.displayName
-                  .split(/\s+/)
-                  .map((w) => w[0])
-                  .join('')
-                  .slice(0, 2)
-                  .toUpperCase()}
-              </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontWeight: 600 }}>{author.displayName}</div>
-                <div style={{ fontSize: 12, color: '#64748B' }}>
-                  @{author.username} · {followers} followers
-                </div>
-              </div>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
               <button
-                onClick={toggleFollow}
+                onClick={toggleLike}
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: 8,
-                  padding: '8px 14px',
-                  border: `1px solid ${following ? '#E2E8F0' : '#2563EB'}`,
-                  background: following ? '#fff' : '#2563EB',
-                  color: following ? '#0F172A' : '#fff',
+                  padding: '9px 16px',
+                  border: `1px solid ${liked ? '#2563EB' : '#E2E8F0'}`,
+                  background: liked ? '#EFF6FF' : '#fff',
+                  color: liked ? '#2563EB' : '#0F172A',
                   borderRadius: 10,
                   fontWeight: 600,
                   fontSize: 13,
@@ -641,437 +467,261 @@ export function ProjectDetailPage() {
                   fontFamily: 'inherit',
                 }}
               >
-                {following ? <UserCheck size={14} /> : <UserPlus size={14} />}
-                {following ? 'Following' : 'Follow'}
+                <Heart size={14} fill={liked ? 'currentColor' : 'none'} />
+                {likesCount}
               </button>
-            </div>
-          )}
-
-          {embedUrl && (
-            <div
-              style={{
-                aspectRatio: '16/9',
-                borderRadius: 14,
-                overflow: 'hidden',
-                marginBottom: 24,
-              }}
-            >
-              <iframe
-                src={embedUrl}
-                title={project.title}
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-                style={{ width: '100%', height: '100%', border: 0 }}
-              />
-            </div>
-          )}
-
-          {project.description && (
-            <div
-              style={{
-                background: '#fff',
-                border: '1px solid #E2E8F0',
-                borderRadius: 16,
-                padding: 24,
-                marginBottom: 24,
-              }}
-            >
-              <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 14 }}>
-                Description
-              </h2>
-              <div
-                style={{
-                  fontSize: 15,
-                  lineHeight: 1.7,
-                  color: '#334155',
-                  whiteSpace: 'pre-wrap',
-                }}
-              >
-                {project.description}
-              </div>
-            </div>
-          )}
-
-          {files.length > 0 && (
-            <div
-              style={{
-                background: '#fff',
-                border: '1px solid #E2E8F0',
-                borderRadius: 16,
-                padding: 24,
-                marginBottom: 24,
-              }}
-            >
-              <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 14 }}>
-                Files
-              </h2>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {files.map((f) => (
-                  <div
-                    key={f.id}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 12,
-                      padding: '10px 14px',
-                      border: '1px solid #E2E8F0',
-                      borderRadius: 12,
-                    }}
-                  >
-                    <FileText size={18} style={{ color: '#2563EB', flexShrink: 0 }} />
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div
-                        style={{
-                          fontWeight: 600,
-                          fontSize: 13,
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap',
-                        }}
-                      >
-                        {f.originalFilename}
-                      </div>
-                      <div style={{ fontSize: 11, color: '#64748B' }}>
-                        {f.category} · {formatBytes(f.sizeBytes)}
-                      </div>
-                    </div>
-                    {(f.downloadEnabled || isOwner) && (
-                      <button
-                        onClick={() => downloadFile(f.id)}
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: 6,
-                          padding: '6px 12px',
-                          border: '1px solid #E2E8F0',
-                          background: '#fff',
-                          borderRadius: 8,
-                          fontWeight: 600,
-                          fontSize: 12,
-                          cursor: 'pointer',
-                          fontFamily: 'inherit',
-                        }}
-                      >
-                        <Download size={13} /> Download
-                      </button>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          <div
-            style={{
-              background: '#fff',
-              border: '1px solid #E2E8F0',
-              borderRadius: 16,
-              padding: 24,
-            }}
-          >
-            <h2
-              style={{
-                fontSize: 18,
-                fontWeight: 700,
-                marginBottom: 18,
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
-              }}
-            >
-              <MessageCircle size={18} /> Comments ({comments.length})
-            </h2>
-
-            <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
-              <input
-                type="text"
-                placeholder="Add a comment..."
-                value={commentBody}
-                onChange={(e) => setCommentBody(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    postComment();
-                  }
-                }}
-                style={{
-                  flex: 1,
-                  border: '1px solid #E2E8F0',
-                  borderRadius: 10,
-                  padding: '10px 14px',
-                  fontFamily: 'inherit',
-                  fontSize: 14,
-                }}
-              />
               <button
-                onClick={postComment}
-                disabled={commentBusy || !commentBody.trim()}
+                onClick={toggleBookmark}
+                aria-label="Save"
                 style={{
-                  padding: '10px 18px',
-                  background: '#2563EB',
-                  color: '#fff',
-                  border: 0,
-                  borderRadius: 10,
-                  fontWeight: 600,
-                  fontSize: 13,
-                  cursor: commentBusy ? 'wait' : 'pointer',
-                  fontFamily: 'inherit',
-                  opacity: !commentBody.trim() ? 0.5 : 1,
+                  width: 42,
+                  height: 42,
+                  borderRadius: '50%',
+                  border: `1px solid ${saved ? '#2563EB' : '#E2E8F0'}`,
+                  background: saved ? '#EFF6FF' : '#fff',
+                  color: saved ? '#2563EB' : '#0F172A',
+                  display: 'grid',
+                  placeItems: 'center',
+                  cursor: 'pointer',
                 }}
               >
-                Post
+                <Bookmark size={16} fill={saved ? 'currentColor' : 'none'} />
+              </button>
+              <button
+                onClick={share}
+                aria-label="Share"
+                style={{
+                  width: 42,
+                  height: 42,
+                  borderRadius: '50%',
+                  border: '1px solid #E2E8F0',
+                  background: '#fff',
+                  display: 'grid',
+                  placeItems: 'center',
+                  cursor: 'pointer',
+                }}
+              >
+                <Share2 size={16} />
               </button>
             </div>
 
-            {comments.length === 0 && (
-              <p style={{ color: '#64748B', fontSize: 13 }}>
-                No comments yet. Be the first.
-              </p>
-            )}
-
-            {comments.map((c) => (
+            {author && project.authorId !== user.id && (
               <div
-                key={c.id}
                 style={{
-                  padding: '12px 0',
-                  borderBottom: '1px solid #E2E8F0',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 12,
+                  minWidth: 260,
+                  justifyContent: 'flex-end',
                 }}
               >
-                <div
+                <span
                   style={{
+                    width: 38,
+                    height: 38,
+                    borderRadius: '50%',
+                    background:
+                      'linear-gradient(135deg, #06B6D4 0%, #2563EB 55%, #7C3AED 100%)',
+                    color: '#fff',
+                    display: 'grid',
+                    placeItems: 'center',
                     fontWeight: 600,
                     fontSize: 13,
-                    marginBottom: 4,
                   }}
                 >
-                  {c.author?.displayName ?? 'Unknown'}
+                  {author.displayName
+                    .split(/\s+/)
+                    .map((w) => w[0])
+                    .join('')
+                    .slice(0, 2)
+                    .toUpperCase()}
+                </span>
+                <div style={{ flex: 1, minWidth: 0, lineHeight: 1.35 }}>
+                  <b style={{ fontSize: 14, display: 'block' }}>{author.displayName}</b>
+                  <small style={{ color: '#64748B', fontSize: 12, display: 'block' }}>
+                    {followers} followers
+                  </small>
                 </div>
-                <div style={{ fontSize: 14, color: '#334155', marginBottom: 4 }}>
-                  {c.body}
-                </div>
-                <div style={{ fontSize: 11, color: '#64748B' }}>
-                  {timeAgo(c.createdAt)}
-                </div>
+                <button
+                  onClick={toggleFollow}
+                  style={{
+                    padding: '8px 14px',
+                    border: `1px solid ${following ? '#E2E8F0' : '#2563EB'}`,
+                    background: following ? '#fff' : '#2563EB',
+                    color: following ? '#0F172A' : '#fff',
+                    borderRadius: 10,
+                    fontWeight: 600,
+                    fontSize: 13,
+                    cursor: 'pointer',
+                    fontFamily: 'inherit',
+                  }}
+                >
+                  {following ? 'Following' : 'Follow'}
+                </button>
               </div>
-            ))}
-          </div>
-        </div>
-
-        <aside>
-          <div
-            style={{
-              background: '#fff',
-              border: '1px solid #E2E8F0',
-              borderRadius: 16,
-              padding: 20,
-              marginBottom: 20,
-              position: 'sticky',
-              top: 88,
-            }}
-          >
-            <h3
-              style={{
-                fontSize: 12,
-                fontWeight: 600,
-                letterSpacing: '0.12em',
-                textTransform: 'uppercase',
-                color: '#64748B',
-                marginBottom: 14,
-              }}
-            >
-              Details
-            </h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <MetaRow
-                icon={<Award size={14} />}
-                label="Status"
-                value={project.status}
-              />
-              <MetaRow
-                icon={<Tag size={14} />}
-                label="Version"
-                value={project.version}
-              />
-              {category && (
-                <MetaRow
-                  icon={<Tag size={14} />}
-                  label="Category"
-                  value={category.name}
-                />
-              )}
-              {project.difficulty && (
-                <MetaRow
-                  icon={<Award size={14} />}
-                  label="Difficulty"
-                  value={project.difficulty}
-                />
-              )}
-              {project.estimatedBuildTime && (
-                <MetaRow
-                  icon={<Clock size={14} />}
-                  label="Build time"
-                  value={project.estimatedBuildTime}
-                />
-              )}
-              {project.estimatedCost != null && (
-                <MetaRow
-                  icon={<DollarSign size={14} />}
-                  label="Estimated cost"
-                  value={`${project.currency} ${project.estimatedCost}`}
-                />
-              )}
-              {project.publishedAt && (
-                <MetaRow
-                  icon={<Calendar size={14} />}
-                  label="Published"
-                  value={new Date(project.publishedAt).toLocaleDateString()}
-                />
-              )}
-            </div>
-
-            {isOwner && (
-              <Link
-                to={`/studio/project/${project.id}`}
-                style={{
-                  display: 'block',
-                  marginTop: 20,
-                  padding: '11px 18px',
-                  background: '#2563EB',
-                  color: '#fff',
-                  borderRadius: 10,
-                  fontWeight: 600,
-                  fontSize: 13,
-                  textAlign: 'center',
-                  textDecoration: 'none',
-                }}
-              >
-                Edit project
-              </Link>
             )}
           </div>
 
-          {related.length > 0 && (
+          <ProjectDescription
+            description={project.description}
+            shortDescription={project.shortDescription}
+            difficulty={project.difficulty}
+            publishedAt={project.publishedAt}
+            estimatedBuildTime={project.estimatedBuildTime}
+            views={project.counts.views}
+            category={category?.name ?? null}
+            tags={[]}
+          />
+
+          <div style={{ display: 'grid', gap: 12, marginTop: 24 }}>
+            <ProjectAccordion
+              title="Components and tools"
+              subtitle={`${components.length} part${components.length === 1 ? '' : 's'}`}
+            >
+              <ComponentTable components={components} />
+            </ProjectAccordion>
+
+            <ProjectAccordion
+              title="Build process"
+              subtitle={`${steps.length} step${steps.length === 1 ? '' : 's'}`}
+            >
+              <StepList steps={steps} />
+            </ProjectAccordion>
+
+            {codeSamples.length > 0 && (
+              <div
+                style={{
+                  background: '#fff',
+                  border: '1px solid #E2E8F0',
+                  borderRadius: 14,
+                  padding: '14px 18px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 12,
+                }}
+              >
+                <span
+                  style={{
+                    width: 38,
+                    height: 38,
+                    borderRadius: 10,
+                    background: '#EFF6FF',
+                    color: '#2563EB',
+                    display: 'grid',
+                    placeItems: 'center',
+                    flexShrink: 0,
+                  }}
+                >
+                  <Code2 size={18} />
+                </span>
+                <div style={{ flex: 1, lineHeight: 1.35 }}>
+                  <b style={{ display: 'block', fontSize: 15 }}>Code sample</b>
+                  <small style={{ color: '#64748B', fontSize: 13, display: 'block' }}>
+                    {codeSamples[0].filename}
+                  </small>
+                </div>
+                <button
+                  onClick={() => setOpenCode(codeSamples[0])}
+                  style={{
+                    padding: '8px 14px',
+                    border: '1px solid #E2E8F0',
+                    background: '#fff',
+                    borderRadius: 10,
+                    fontWeight: 600,
+                    fontSize: 13,
+                    cursor: 'pointer',
+                    fontFamily: 'inherit',
+                  }}
+                >
+                  View code
+                </button>
+              </div>
+            )}
+
+            <ProjectAccordion
+              title="Project files"
+              subtitle={`${files.length} file${files.length === 1 ? '' : 's'}`}
+            >
+              <FileListSection
+                files={files}
+                projectId={project.id}
+                canDownload={isOwner}
+              />
+            </ProjectAccordion>
+          </div>
+
+          <CommentSection
+            projectId={project.id}
+            comments={comments}
+            onCommentPosted={(c) => setComments((prev) => [c, ...prev])}
+          />
+        </article>
+
+        <aside
+          style={{
+            position: 'sticky',
+            top: 88,
+            display: 'grid',
+            gap: 16,
+          }}
+          className="project-aside"
+        >
+          {author && (
             <div
               style={{
                 background: '#fff',
                 border: '1px solid #E2E8F0',
                 borderRadius: 16,
-                padding: 20,
+                padding: 18,
               }}
             >
-              <h3 style={{ fontSize: 15, fontWeight: 700, marginBottom: 14 }}>
-                More like this
+              <h3 style={{ fontSize: 15, fontWeight: 700, marginBottom: 12 }}>
+                About {author.displayName}
               </h3>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {related.map((r) => (
-                  <Link
-                    key={r.id}
-                    to={`/ide/project-${String(r.projectNumber).padStart(3, '0')}/${r.slug}`}
-                    style={{
-                      display: 'block',
-                      padding: '10px 12px',
-                      borderRadius: 10,
-                      textDecoration: 'none',
-                      color: '#0F172A',
-                      border: '1px solid #E2E8F0',
-                    }}
-                  >
-                    <div
-                      style={{
-                        fontFamily: 'var(--font-mono)',
-                        fontSize: 10,
-                        color: '#2563EB',
-                        fontWeight: 600,
-                        marginBottom: 4,
-                      }}
-                    >
-                      PROJECT {String(r.projectNumber).padStart(3, '0')}
-                    </div>
-                    <div style={{ fontSize: 13, fontWeight: 600, lineHeight: 1.3 }}>
-                      {r.title}
-                    </div>
-                  </Link>
-                ))}
-              </div>
+              <p style={{ fontSize: 13, color: '#64748B', margin: 0, lineHeight: 1.6 }}>
+                {author.bio || 'Creator on IDEVRX.'}
+              </p>
+              {isOwner && (
+                <Link
+                  to={`/studio/project/${project.id}`}
+                  style={{
+                    display: 'block',
+                    marginTop: 14,
+                    padding: '10px 16px',
+                    background: '#2563EB',
+                    color: '#fff',
+                    borderRadius: 10,
+                    fontWeight: 600,
+                    fontSize: 13,
+                    textAlign: 'center',
+                    textDecoration: 'none',
+                  }}
+                >
+                  Edit project
+                </Link>
+              )}
             </div>
           )}
 
-          <button
-            onClick={() => window.location.reload()}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 8,
-              marginTop: 20,
-              padding: '9px 16px',
-              border: '1px solid #E2E8F0',
-              background: '#fff',
-              borderRadius: 10,
-              fontWeight: 600,
-              fontSize: 13,
-              cursor: 'pointer',
-              fontFamily: 'inherit',
-              width: '100%',
-              justifyContent: 'center',
-            }}
-          >
-            <RefreshCw size={14} />
-            Refresh
-          </button>
+          <RelatedProjects projects={related} />
         </aside>
       </div>
 
+      {openCode && (
+        <CodeDialog
+          open={!!openCode}
+          filename={openCode.filename}
+          code={openCode.code}
+          onClose={() => setOpenCode(null)}
+        />
+      )}
+
       <style>{`
-        @media (max-width: 900px) {
-          .project-detail-grid {
-            grid-template-columns: 1fr !important;
-          }
+        @media (max-width: 1180px) {
+          .project-layout { grid-template-columns: 1fr !important; }
+          .project-aside { position: static !important; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); }
         }
       `}</style>
-    </div>
-  );
-}
-
-function MetaRow({
-  icon,
-  label,
-  value,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-}) {
-  return (
-    <div
-      style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        gap: 12,
-        fontSize: 13,
-      }}
-    >
-      <span
-        style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: 6,
-          color: '#64748B',
-        }}
-      >
-        {icon}
-        {label}
-      </span>
-      <span
-        style={{
-          fontWeight: 600,
-          color: '#0F172A',
-          fontFamily: 'var(--font-mono)',
-          fontSize: 12,
-        }}
-      >
-        {value}
-      </span>
     </div>
   );
 }
