@@ -137,7 +137,45 @@ export const FileService = {
       storageKey,
     };
   },
+  /**
+   * Set a project's cover image. The file must be an image the creator owns.
+   */
+  async setCover(projectId: string, fileId: string, userId: string, userRoles: string[]) {
+    const project = await Project.findById(projectId);
+    if (!project) throw new NotFoundError();
 
+    if (project.authorId.toString() !== userId) {
+      throw new ForbiddenError();
+    }
+
+    const file = await ProjectFile.findOne({
+      _id: fileId,
+      projectId: project._id,
+      deletedAt: null,
+    });
+    if (!file) throw new NotFoundError();
+    if (file.processingStatus !== 'ready') {
+      throw new ConflictError('This file is not ready yet.');
+    }
+    if (file.category !== 'image') {
+      throw new ValidationError({ fileId: 'Cover must be an image.' });
+    }
+
+    project.coverFileId = file._id as any;
+    await project.save();
+
+    await AuditService.record({
+      actorId: userId,
+      actorRoles: userRoles,
+      action: 'project.cover_set',
+      resourceType: 'Project',
+      resourceId: project._id.toString(),
+      outcome: 'success',
+      metadata: { fileId: file._id.toString() },
+    });
+
+    return { coverFileId: file._id.toString() };
+  },
   async finalizeUpload(input: FinalizeInput, req?: any) {
     const project = await Project.findById(input.projectId);
     if (!project) throw new NotFoundError();
