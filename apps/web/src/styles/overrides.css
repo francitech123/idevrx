@@ -1,0 +1,392 @@
+/* ============================================================
+   IDEVRX — Global color overrides
+   Remaps hardcoded whites, grays, and blues to the warm cream
+   design system. Applies to any element inside the app shell
+   or a public page. Surgical: only targets known legacy values.
+   ============================================================ */
+
+/* ------------------------------------------------------------
+   Base: force cream background everywhere
+   ------------------------------------------------------------ */
+html,
+body,
+#root,
+.idx-page,
+.idx-block,
+.idx-hero,
+.idx-final-cta-wrap,
+.app-shell,
+.app-main,
+.app-wrap {
+  background: var(--color-paper) !important;
+  color: var(--color-ink);
+}
+
+/* ------------------------------------------------------------
+   Any element with a hardcoded white background
+   ------------------------------------------------------------ */
+.app-main [style*="background: #fff"],
+.app-main [style*="background:#fff"],
+.app-main [style*="background: #ffffff"],
+.app-main [style*="background:#ffffff"],
+.app-main [style*="background: white"],
+.app-main [style*="background:white"],
+.app-main [style*="background: rgb(255, 255, 255)"],
+.idx-page [style*="background: #fff"],
+.idx-page [style*="background:#fff"],
+.idx-page [style*="background: #ffffff"],
+.idx-page [style*="background:#ffffff"],
+.idx-page [style*="background: white"],
+.idx-page [style*="background:white"],
+.idx-page [style*="background: rgb(255, 255, 255)"],
+.idx-block [style*="background: #fff"],
+.idx-block [style*="background:#fff"],
+.idx-block [style*="background: #ffffff"],
+.idx-block [style*="background:#ffffff"],
+.idx-block [style*="background: white"],
+.idx-block [style*="background:white"] {
+  background: var(--color-card) !important;
+}
+
+/* ------------------------------------------------------------
+   Any element with a hardcoded white border
+   ------------------------------------------------------------ */
+.app-main [style*="1px solid #E2E8F0"],
+.app-main [style*="1px solid #e2e8f0"],
+.app-main [style*="1px solid #e5e7eb"],
+.app-main [style*="1px solid #e5e7eb "],
+.app-main [style*="1px solid #eaeaea"],
+.app-main [style*="1px solid #ddd"],
+.app-main [style*="border: 1px solid #E2E8F0"],
+.idx-page [style*="1px solid #E2E8F0"],
+.idx-page [style*="1px solid #e2e8f0"],
+.idx-block [style*="1px solid #E2E8F0"],
+.idx-block [style*="1px solid #e2e8f0"] {
+  border-color: var(--color-line) !important;
+}
+
+/* ------------------------------------------------------------
+   Any element with a hardcoded border-top / border-bottom
+   ------------------------------------------------------------ */
+.app-main [style*="border-top: 1px solid #E2E8F0"],
+.app-main [style*="border-bottom: 1px solid #E2E8F0"],
+.idx-page [style*="border-top: 1px solid #E2E8F0"],
+.idx-page [style*="border-bottom: 1px solid #E2E8F0"],
+.idx-block [style*="border-top: 1px solid #E2E8F0"],
+.idx-block [style*="border-bottom: 1px solid #E2E8F0"] {
+  border-color: var(--color-line) !important;
+}
+
+/* ------------------------------------------------------------
+   Any hardcoded blue accents → remap to burnt orange
+   ------------------------------------------------------------ */
+.app-main [style*="#2563EB"],
+.app-main [style*="#2563eb"],
+.app-main [style*="#1D4ED8"],
+.app-main [style*="#1d4ed8"],
+.app-main [style*="#3B82F6"],
+.app-main [style*="#3b82f6"],
+.app-main [style*="#2457f5"],
+.app-main [style*="#6a3df0"],
+.idx-page [style*="#2563EB"],
+.idx-page [style*="#2563eb"],
+.idx-block [style*="#2563EB"],
+.idx-block [style*="#2563eb"] {
+  color: var(--color-accent) !important;
+}
+
+/* ------------------------------------------------------------
+   Hardcoded blue backgrounds → remap to ink or accent
+   ------------------------------------------------------------ */
+.app-main [style*="background: #2563EB"],
+.app-main [style*="background: #2563eb"],
+.app-main [style*="background:#2563EB"],
+.app-main [style*="background:#2563eb"],
+.app-main [style*="background: #1D4ED8"],
+.app-main [style*="background: #1d4ed8"],
+.app-main [style*="background:#1D4ED8"],
+.idx-page [style*="background: #2563EB"],
+.idx-page [style*="background: #2563eb"],
+.idx-block [style*="background: #2563EB"],
+.idx-block [style*="background: #2563eb"] {
+  background: var(--color-accent) !important;
+}
+
+/* ------------------------------------------------------------
+   Hardcoded light-blue backgrounds (selected states, soft tints)
+   ------------------------------------------------------------ */
+.app-main [style*="background: #EFF6FF"],
+.app-main [style*="background:#EFF6FF"],
+.app-main [style*="background: #eff6ff"],
+.app-main [style*="background: #E6EDFF"],
+.app-main [style*="background: #e6edff"],
+.idx-page [style*="background: #EFF6FF"],
+.idx-block [style*="background: #EFF6FF"] {
+  background: var(--color-card) !important;
+}
+
+/* ------------------------------------------------------------
+   Gradients — remove them all, replace with solid accent
+   ------------------------------------------------------------ */
+.app-main [style*="linear-gradient(135deg, #06B6D4"],
+.app-main [style*="linear-gradient(135deg,#06B6D4"],
+.app-main [style*="linear-gradient(135deg, #2457F5"],
+.app-main [style*="linear-gradient(135deg,#2457F5"],
+.app-main [style*="linear-gradient(135deg, #0A1225"],
+.idx-page [style*="linear-gradient(135deg, #06B6D4"],
+.idx-block [style*="linear-gradient(135deg, #06B6D4"],
+.idx-project-author-avatar,
+.idx-project-image,
+.rl i {
+  background: var(--color-accent) !important;
+}
+
+/* ------------------------------------------------------------
+   Headings — force display font + ink color
+   ------------------------------------------------------------ */
+.app-main h1,
+.app-main h2,
+.app-main h3,
+.idx-page h1,
+.idx-page h2,
+.idx-page h3,
+.idx-block h1,
+.idx-block h2,
+.idx-block h3 {
+  font-family: var(--font-display) !important;
+  color: var(--color-ink) !important;
+  font-weight: 500 !important;
+  letter-spacing: -0.015em;
+}
+
+/* ------------------------------------------------------------
+   Body text inside app pages — warm ink
+   ------------------------------------------------------------ */
+.app-main p,
+.app-main span:not([class*="badge"]):not([class*="stat"]),
+.app-main li,
+.app-main label,
+.app-main td,
+.app-main th {
+  color: inherit;
+}
+
+/* ------------------------------------------------------------
+   Muted text — remap to warm muted
+   ------------------------------------------------------------ */
+.app-main [style*="#64748B"],
+.app-main [style*="#64748b"],
+.app-main [style*="#6B7280"],
+.app-main [style*="#6b7280"],
+.app-main [style*="#94A3B8"],
+.app-main [style*="#94a3b8"],
+.idx-page [style*="#64748B"],
+.idx-page [style*="#64748b"],
+.idx-block [style*="#64748B"],
+.idx-block [style*="#64748b"] {
+  color: var(--color-muted) !important;
+}
+
+/* ------------------------------------------------------------
+   Dark text — remap to ink
+   ------------------------------------------------------------ */
+.app-main [style*="#0F172A"],
+.app-main [style*="#0f172a"],
+.app-main [style*="#111827"],
+.app-main [style*="#111827 "],
+.app-main [style*="#334155"],
+.app-main [style*="#334155 "],
+.idx-page [style*="#0F172A"],
+.idx-page [style*="#0f172a"],
+.idx-block [style*="#0F172A"],
+.idx-block [style*="#0f172a"] {
+  color: var(--color-ink) !important;
+}
+
+/* ------------------------------------------------------------
+   Ink-black sidebar — keep it ink (already uses tokens)
+   ------------------------------------------------------------ */
+.app-side {
+  background: var(--color-ink) !important;
+}
+
+/* ------------------------------------------------------------
+   Avatar circles and pills — unify to accent
+   ------------------------------------------------------------ */
+.app-avatar,
+.idx-project-author-avatar,
+.app-iconbtn[style*="#2563EB"],
+.app-main [style*="border-radius: 50%"],
+.app-main [style*="border-radius:50%"],
+.app-main [style*="border-radius: '50%'"] {
+  background-color: var(--color-accent) !important;
+}
+
+/* ------------------------------------------------------------
+   Placeholder images and skeleton blocks
+   ------------------------------------------------------------ */
+.app-main [style*="background: #E2E8F0"],
+.app-main [style*="background:#E2E8F0"],
+.app-main [style*="background: #E2E8F0 "],
+.app-main [style*="background: #CBD5E1"],
+.app-main [style*="background:#CBD5E1"],
+.app-main [style*="background: #E5E7EB"],
+.app-main [style*="background: #e5e7eb"],
+.app-main [style*="background: #F1F5F9"],
+.app-main [style*="background:#F1F5F9"],
+.app-main [style*="background: #F8FAFC"],
+.app-main [style*="background:#F8FAFC"],
+.idx-page [style*="background: #E2E8F0"],
+.idx-block [style*="background: #E2E8F0"] {
+  background: var(--color-paper-muted) !important;
+}
+
+/* ------------------------------------------------------------
+   Hover states on buttons and links
+   ------------------------------------------------------------ */
+.app-main button:hover:not(:disabled),
+.idx-page button:hover:not(:disabled) {
+  transition: opacity 0.15s, background 0.15s, border-color 0.15s;
+}
+
+/* ------------------------------------------------------------
+   Input fields inside the app — cream background
+   ------------------------------------------------------------ */
+.app-main input,
+.app-main textarea,
+.app-main select,
+.idx-page input,
+.idx-page textarea,
+.idx-page select {
+  background: var(--color-card) !important;
+  border-color: var(--color-line) !important;
+  color: var(--color-ink) !important;
+  font-family: var(--font-sans) !important;
+}
+
+.app-main input::placeholder,
+.app-main textarea::placeholder,
+.idx-page input::placeholder,
+.idx-page textarea::placeholder {
+  color: var(--color-ink-faint) !important;
+}
+
+.app-main input:focus,
+.app-main textarea:focus,
+.app-main select:focus {
+  border-color: var(--color-accent) !important;
+  outline: none;
+}
+
+/* ------------------------------------------------------------
+   Tables inside app pages
+   ------------------------------------------------------------ */
+.app-main table {
+  border-color: var(--color-line);
+}
+
+.app-main th {
+  color: var(--color-muted) !important;
+  border-color: var(--color-line) !important;
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.app-main td {
+  color: var(--color-ink) !important;
+  border-color: var(--color-line) !important;
+}
+
+/* ------------------------------------------------------------
+   Lists, blockquotes, hr inside content
+   ------------------------------------------------------------ */
+.app-main ul li::marker,
+.idx-page ul li::marker {
+  color: var(--color-accent);
+}
+
+.app-main hr,
+.idx-page hr {
+  border-color: var(--color-line) !important;
+}
+
+/* ------------------------------------------------------------
+   Modal / dialog / panel surfaces
+   ------------------------------------------------------------ */
+[role="dialog"],
+.app-main [style*="box-shadow: 0 14px 40px"],
+.app-main [style*="box-shadow: 0 12px 32px"] {
+  background: var(--color-card) !important;
+  border-color: var(--color-line) !important;
+}
+
+/* ------------------------------------------------------------
+   Old .idx-nav (public nav) — cream translucent
+   ------------------------------------------------------------ */
+.idx-nav {
+  background: rgba(239, 232, 220, 0.9) !important;
+  border-bottom-color: var(--color-line) !important;
+}
+
+/* ------------------------------------------------------------
+   Old .app-top (authenticated header) — cream translucent
+   ------------------------------------------------------------ */
+.app-top {
+  background: rgba(239, 232, 220, 0.9) !important;
+  border-bottom-color: var(--color-line) !important;
+}
+
+/* ------------------------------------------------------------
+   Kill any residual blue focus rings from browser defaults
+   ------------------------------------------------------------ */
+*:focus-visible {
+  outline: none !important;
+  box-shadow: 0 0 0 3px rgba(196, 80, 26, 0.22) !important;
+}
+
+/* ------------------------------------------------------------
+   Kill default blue link color inside any element
+   ------------------------------------------------------------ */
+.app-main a:not([class]),
+.idx-page a:not([class]) {
+  color: var(--color-accent);
+}
+
+/* ------------------------------------------------------------
+   Notification badge — accent, not red
+   ------------------------------------------------------------ */
+.app-badge {
+  background: var(--color-accent) !important;
+  color: var(--color-on-ink) !important;
+}
+
+/* ------------------------------------------------------------
+   Tabs and chip rows inside app pages
+   ------------------------------------------------------------ */
+.app-main [role="tab"],
+.app-main [class*="tab"] {
+  border-color: var(--color-line) !important;
+}
+
+/* ------------------------------------------------------------
+   Any "Coming soon" / informational notices — warm tone
+   ------------------------------------------------------------ */
+.app-main [style*="border: 1px dashed #CBD5E1"],
+.app-main [style*="border: 1px dashed #cbd5e1"],
+.idx-page [style*="border: 1px dashed #CBD5E1"] {
+  border-color: var(--color-line-strong) !important;
+  background: var(--color-card) !important;
+}
+
+/* ------------------------------------------------------------
+   Card containers with radius inside app pages — cream fill
+   ------------------------------------------------------------ */
+.app-main > div > div[style*="border-radius: 16px"],
+.app-main > div > div[style*="border-radius:16px"],
+.app-main [class*="card"] {
+  background: var(--color-card) !important;
+  border-color: var(--color-line) !important;
+}
