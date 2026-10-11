@@ -29,13 +29,14 @@ export function ProjectDescription({
   const displayText = expanded ? fullText : firstParagraph;
 
   return (
-    <div style={{ marginTop: 24 }}>
+    <div style={{ marginTop: 26 }}>
       <p
         style={{
-          fontSize: 16,
+          fontFamily: 'var(--font-sans)',
+          fontSize: 17,
           lineHeight: 1.7,
-          color: '#334155',
-          marginBottom: 12,
+          color: 'var(--color-ink-subtle)',
+          marginBottom: 14,
           maxWidth: '72ch',
           whiteSpace: 'pre-wrap',
         }}
@@ -49,10 +50,10 @@ export function ProjectDescription({
             style={{
               display: 'grid',
               gridTemplateColumns: 'repeat(5, minmax(90px, 1fr))',
-              margin: '20px 0',
-              border: '1px solid #E2E8F0',
-              borderRadius: 12,
-              background: '#fff',
+              margin: '22px 0',
+              border: '1px solid var(--color-line)',
+              borderRadius: 10,
+              background: 'var(--color-card)',
               overflow: 'hidden',
             }}
             className="project-meta-grid"
@@ -73,17 +74,19 @@ export function ProjectDescription({
                 display: 'flex',
                 flexWrap: 'wrap',
                 gap: 8,
-                marginBottom: 12,
+                marginBottom: 14,
               }}
             >
               {tags.map((t) => (
                 <span
                   key={t}
                   style={{
-                    background: '#EFF6FF',
-                    color: '#2563EB',
+                    fontFamily: 'var(--font-sans)',
+                    background: 'var(--color-card)',
+                    color: 'var(--color-accent)',
+                    border: '1px solid var(--color-line)',
                     padding: '4px 11px',
-                    borderRadius: 99,
+                    borderRadius: 999,
                     fontSize: 13,
                     fontWeight: 500,
                   }}
@@ -102,17 +105,31 @@ export function ProjectDescription({
           style={{
             border: 0,
             background: 'none',
-            color: '#2563EB',
+            color: 'var(--color-accent)',
             fontWeight: 600,
             padding: 0,
             cursor: 'pointer',
-            fontFamily: 'inherit',
+            fontFamily: 'var(--font-sans)',
             fontSize: 14,
           }}
         >
           {expanded ? 'Show less' : 'Show more'}
         </button>
       )}
+
+      <style>{`
+        @media (max-width: 700px) {
+          .project-meta-grid {
+            grid-template-columns: repeat(2, 1fr) !important;
+          }
+          .project-meta-grid > div {
+            border-bottom: 1px solid var(--color-line);
+          }
+          .project-meta-grid > div:nth-child(2n) {
+            border-right: 0 !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }
@@ -122,20 +139,30 @@ function MetaCell({ label, value }: { label: string; value: string }) {
     <div
       style={{
         padding: '12px 14px',
-        borderRight: '1px solid #E2E8F0',
+        borderRight: '1px solid var(--color-line)',
       }}
     >
       <span
         style={{
           display: 'block',
-          color: '#64748B',
+          fontFamily: 'var(--font-sans)',
+          color: 'var(--color-muted)',
           fontSize: 12,
-          marginBottom: 3,
+          marginBottom: 4,
         }}
       >
         {label}
       </span>
-      <b style={{ fontSize: 14 }}>{value}</b>
+      <b
+        style={{
+          fontFamily: 'var(--font-sans)',
+          fontSize: 14,
+          color: 'var(--color-ink)',
+          fontWeight: 600,
+        }}
+      >
+        {value}
+      </b>
     </div>
   );
 }
