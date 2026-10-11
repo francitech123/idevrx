@@ -151,7 +151,7 @@ function CreatorCard({ creator }: { creator: FollowedCreator }) {
 
   return (
     <Link
-      to={`/@${creator.username}`}
+      to={`/creators/${creator.username}`}
       style={{
         display: 'flex',
         gap: 16,
