@@ -72,41 +72,51 @@ export function LearningHubPage() {
     <div>
       <div
         style={{
-          background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)',
-          color: '#fff',
-          borderRadius: 22,
+          background: 'var(--color-ink)',
+          color: 'var(--color-paper)',
+          borderRadius: 12,
           padding: 'clamp(24px, 4vw, 48px)',
           marginBottom: 32,
+          border: '1px solid var(--color-line)',
         }}
       >
         <h1
           style={{
-            fontSize: 'clamp(24px, 3.6vw, 44px)',
-            fontWeight: 700,
-            letterSpacing: '-0.025em',
+            fontFamily: 'var(--font-display)',
+            fontSize: 'clamp(28px, 3.6vw, 44px)',
+            fontWeight: 500,
+            letterSpacing: '-0.02em',
             maxWidth: '22ch',
             marginBottom: 12,
+            color: 'var(--color-paper)',
           }}
         >
           Learn engineering. Build your knowledge. Get certified.
         </h1>
-        <p style={{ color: '#AAB8C4', maxWidth: '60ch', marginBottom: 20 }}>
+        <p
+          style={{
+            color: 'rgba(246, 241, 231, 0.75)',
+            maxWidth: '60ch',
+            marginBottom: 22,
+            fontFamily: 'var(--font-sans)',
+            fontSize: 16,
+          }}
+        >
           Structured courses for practical learners. Track progress, pass the
           assessment, and earn an IDEVRX certificate.
         </p>
         {courses[0] && (
           <button
-            onClick={() => navigate(`/learning-hub/course/${courses[0].slug}`)}
+            onClick={() => navigate(`/learning-hub/${courses[0].slug}`)}
             style={{
               padding: '11px 22px',
-              background:
-                'linear-gradient(135deg, #06B6D4 0%, #2563EB 55%, #7C3AED 100%)',
-              color: '#fff',
+              background: 'var(--color-accent)',
+              color: 'var(--color-on-ink)',
               border: 0,
-              borderRadius: 10,
+              borderRadius: 6,
               fontWeight: 600,
               cursor: 'pointer',
-              fontFamily: 'inherit',
+              fontFamily: 'var(--font-sans)',
             }}
           >
             Start with {courses[0].title}
@@ -117,9 +127,9 @@ export function LearningHubPage() {
       <div
         style={{
           display: 'flex',
-          gap: 8,
+          gap: 24,
           marginBottom: 24,
-          borderBottom: '1px solid #E2E8F0',
+          borderBottom: '1px solid var(--color-line)',
         }}
       >
         {(
@@ -133,16 +143,20 @@ export function LearningHubPage() {
             key={t.key}
             onClick={() => setTab(t.key)}
             style={{
-              padding: '10px 4px',
+              padding: '10px 0',
               border: 0,
               background: 'none',
-              borderBottom: tab === t.key ? '2px solid #2563EB' : '2px solid transparent',
-              color: tab === t.key ? '#2563EB' : '#64748B',
+              borderBottom:
+                tab === t.key
+                  ? '2px solid var(--color-accent)'
+                  : '2px solid transparent',
+              color:
+                tab === t.key ? 'var(--color-ink)' : 'var(--color-muted)',
               fontWeight: 600,
               fontSize: 14,
               cursor: 'pointer',
               marginBottom: -1,
-              fontFamily: 'inherit',
+              fontFamily: 'var(--font-sans)',
             }}
           >
             {t.label}
@@ -163,8 +177,8 @@ export function LearningHubPage() {
               key={i}
               style={{
                 height: 260,
-                borderRadius: 16,
-                background: '#E2E8F0',
+                borderRadius: 10,
+                background: 'var(--color-paper-muted)',
               }}
             />
           ))}
@@ -185,13 +199,16 @@ export function LearningHubPage() {
                 gridColumn: '1 / -1',
                 padding: 60,
                 textAlign: 'center',
-                border: '1px dashed #CBD5E1',
-                borderRadius: 16,
-                color: '#64748B',
+                border: '1px dashed var(--color-line-strong)',
+                borderRadius: 10,
+                color: 'var(--color-muted)',
+                background: 'var(--color-card)',
               }}
             >
               <BookOpen size={28} style={{ marginBottom: 12 }} />
-              <p>No courses available yet.</p>
+              <p style={{ fontFamily: 'var(--font-sans)' }}>
+                No courses available yet.
+              </p>
             </div>
           )}
           {courses.map((c) => (
@@ -214,12 +231,15 @@ export function LearningHubPage() {
                 gridColumn: '1 / -1',
                 padding: 60,
                 textAlign: 'center',
-                border: '1px dashed #CBD5E1',
-                borderRadius: 16,
-                color: '#64748B',
+                border: '1px dashed var(--color-line-strong)',
+                borderRadius: 10,
+                color: 'var(--color-muted)',
+                background: 'var(--color-card)',
               }}
             >
-              <p>No learning paths yet.</p>
+              <p style={{ fontFamily: 'var(--font-sans)' }}>
+                No learning paths yet.
+              </p>
             </div>
           )}
           {paths.map((p) => (
@@ -235,30 +255,44 @@ export function LearningHubPage() {
               style={{
                 padding: 60,
                 textAlign: 'center',
-                border: '1px dashed #CBD5E1',
-                borderRadius: 16,
-                color: '#64748B',
+                border: '1px dashed var(--color-line-strong)',
+                borderRadius: 10,
+                color: 'var(--color-muted)',
+                background: 'var(--color-card)',
               }}
             >
               <TrendingUp size={28} style={{ marginBottom: 12 }} />
-              <h3 style={{ marginBottom: 8, color: '#0F172A' }}>
+              <h3
+                style={{
+                  fontFamily: 'var(--font-display)',
+                  fontSize: 24,
+                  fontWeight: 500,
+                  marginBottom: 8,
+                  color: 'var(--color-ink)',
+                }}
+              >
                 No progress yet
               </h3>
-              <p style={{ marginBottom: 20 }}>
+              <p
+                style={{
+                  marginBottom: 22,
+                  fontFamily: 'var(--font-sans)',
+                  color: 'var(--color-muted)',
+                }}
+              >
                 Enroll in a course or learning path to track your progress.
               </p>
               <button
                 onClick={() => setTab('courses')}
                 style={{
-                  padding: '10px 20px',
-                  background:
-                    'linear-gradient(135deg, #06B6D4 0%, #2563EB 55%, #7C3AED 100%)',
-                  color: '#fff',
+                  padding: '11px 22px',
+                  background: 'var(--color-accent)',
+                  color: 'var(--color-on-ink)',
                   border: 0,
-                  borderRadius: 10,
+                  borderRadius: 6,
                   fontWeight: 600,
                   cursor: 'pointer',
-                  fontFamily: 'inherit',
+                  fontFamily: 'var(--font-sans)',
                 }}
               >
                 Browse courses
@@ -270,10 +304,10 @@ export function LearningHubPage() {
             <div
               key={e.course.id}
               style={{
-                background: '#fff',
-                border: '1px solid #E2E8F0',
-                borderRadius: 16,
-                padding: 20,
+                background: 'var(--color-card)',
+                border: '1px solid var(--color-line)',
+                borderRadius: 10,
+                padding: 22,
               }}
             >
               <div
@@ -282,24 +316,33 @@ export function LearningHubPage() {
                   justifyContent: 'space-between',
                   alignItems: 'flex-start',
                   gap: 16,
-                  marginBottom: 12,
+                  marginBottom: 14,
                 }}
               >
                 <div>
                   <div
                     style={{
-                      fontFamily: 'var(--font-mono)',
-                      fontSize: 10,
-                      letterSpacing: '0.12em',
-                      textTransform: 'uppercase',
-                      color: '#2563EB',
+                      fontFamily: 'var(--font-sans)',
+                      fontSize: 11,
                       fontWeight: 600,
+                      letterSpacing: '0.08em',
+                      textTransform: 'uppercase',
+                      color: 'var(--color-accent)',
                       marginBottom: 6,
                     }}
                   >
-                    COURSE
+                    Course
                   </div>
-                  <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 4 }}>
+                  <h3
+                    style={{
+                      fontFamily: 'var(--font-display)',
+                      fontSize: 22,
+                      fontWeight: 500,
+                      letterSpacing: '-0.012em',
+                      marginBottom: 4,
+                      color: 'var(--color-ink)',
+                    }}
+                  >
                     {e.course.title}
                   </h3>
                 </div>
@@ -310,11 +353,12 @@ export function LearningHubPage() {
                       alignItems: 'center',
                       gap: 6,
                       padding: '5px 10px',
-                      background: '#F0FDF4',
-                      color: '#16A34A',
-                      borderRadius: 99,
+                      background: 'var(--color-success-bg)',
+                      color: 'var(--color-success)',
+                      borderRadius: 999,
                       fontSize: 12,
                       fontWeight: 600,
+                      fontFamily: 'var(--font-sans)',
                     }}
                   >
                     <Award size={14} />
@@ -325,17 +369,17 @@ export function LearningHubPage() {
               <div
                 style={{
                   height: 6,
-                  background: '#E2E8F0',
-                  borderRadius: 99,
+                  background: 'var(--color-paper-muted)',
+                  borderRadius: 999,
                   overflow: 'hidden',
-                  marginBottom: 8,
+                  marginBottom: 10,
                 }}
               >
                 <div
                   style={{
                     height: '100%',
                     width: `${e.percentComplete}%`,
-                    background: '#2563EB',
+                    background: 'var(--color-accent)',
                   }}
                 />
               </div>
@@ -343,9 +387,10 @@ export function LearningHubPage() {
                 style={{
                   display: 'flex',
                   justifyContent: 'space-between',
+                  fontFamily: 'var(--font-sans)',
                   fontSize: 13,
-                  color: '#64748B',
-                  marginBottom: 12,
+                  color: 'var(--color-muted)',
+                  marginBottom: 14,
                 }}
               >
                 <span>
@@ -354,16 +399,16 @@ export function LearningHubPage() {
                 <span>{e.percentComplete}%</span>
               </div>
               <button
-                onClick={() => navigate(`/learning-hub/course/${e.course.slug}`)}
+                onClick={() => navigate(`/learning-hub/${e.course.slug}`)}
                 style={{
                   padding: '9px 18px',
-                  background: '#2563EB',
-                  color: '#fff',
+                  background: 'var(--color-accent)',
+                  color: 'var(--color-on-ink)',
                   border: 0,
-                  borderRadius: 10,
+                  borderRadius: 6,
                   fontWeight: 600,
                   cursor: 'pointer',
-                  fontFamily: 'inherit',
+                  fontFamily: 'var(--font-sans)',
                   fontSize: 13,
                 }}
               >
@@ -376,35 +421,44 @@ export function LearningHubPage() {
             <div
               key={e.path.id}
               style={{
-                background: '#fff',
-                border: '1px solid #E2E8F0',
-                borderRadius: 16,
-                padding: 20,
+                background: 'var(--color-card)',
+                border: '1px solid var(--color-line)',
+                borderRadius: 10,
+                padding: 22,
               }}
             >
               <div
                 style={{
-                  fontFamily: 'var(--font-mono)',
-                  fontSize: 10,
-                  letterSpacing: '0.12em',
-                  textTransform: 'uppercase',
-                  color: '#2563EB',
+                  fontFamily: 'var(--font-sans)',
+                  fontSize: 11,
                   fontWeight: 600,
+                  letterSpacing: '0.08em',
+                  textTransform: 'uppercase',
+                  color: 'var(--color-accent)',
                   marginBottom: 6,
                 }}
               >
-                LEARNING PATH
+                Learning Path
               </div>
-              <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 12 }}>
+              <h3
+                style={{
+                  fontFamily: 'var(--font-display)',
+                  fontSize: 22,
+                  fontWeight: 500,
+                  letterSpacing: '-0.012em',
+                  marginBottom: 14,
+                  color: 'var(--color-ink)',
+                }}
+              >
                 {e.path.title}
               </h3>
               <div
                 style={{
                   height: 6,
-                  background: '#E2E8F0',
-                  borderRadius: 99,
+                  background: 'var(--color-paper-muted)',
+                  borderRadius: 999,
                   overflow: 'hidden',
-                  marginBottom: 8,
+                  marginBottom: 10,
                 }}
               >
                 <div
@@ -415,11 +469,17 @@ export function LearningHubPage() {
                         ? Math.round((e.completedCount / e.totalLessons) * 100)
                         : 0
                     }%`,
-                    background: '#2563EB',
+                    background: 'var(--color-accent)',
                   }}
                 />
               </div>
-              <div style={{ fontSize: 13, color: '#64748B' }}>
+              <div
+                style={{
+                  fontFamily: 'var(--font-sans)',
+                  fontSize: 13,
+                  color: 'var(--color-muted)',
+                }}
+              >
                 {e.completedCount} of {e.totalLessons} lessons
               </div>
             </div>
@@ -435,9 +495,9 @@ function CourseCard({ course }: { course: Course }) {
   return (
     <article
       style={{
-        background: '#fff',
-        border: '1px solid #E2E8F0',
-        borderRadius: 16,
+        background: 'var(--color-card)',
+        border: '1px solid var(--color-line)',
+        borderRadius: 10,
         overflow: 'hidden',
         display: 'flex',
         flexDirection: 'column',
@@ -445,45 +505,65 @@ function CourseCard({ course }: { course: Course }) {
     >
       <div
         style={{
-          aspectRatio: '16/10',
-          background: 'linear-gradient(135deg, #2457F5 0%, #6A3DF0 100%)',
+          aspectRatio: '3 / 2',
+          background: 'var(--color-ink)',
           position: 'relative',
           display: 'grid',
           placeItems: 'center',
-          color: '#fff',
+          color: 'var(--color-paper)',
         }}
       >
-        <BookOpen size={48} opacity={0.4} />
+        <BookOpen size={48} opacity={0.35} />
         <span
           style={{
             position: 'absolute',
             bottom: 12,
             left: 12,
+            fontFamily: 'var(--font-sans)',
             fontSize: 12,
             fontWeight: 600,
+            color: 'var(--color-paper)',
           }}
         >
           {course.lessonCount} lessons
         </span>
       </div>
-      <div style={{ padding: 16, display: 'flex', flexDirection: 'column', flex: 1 }}>
-        <h3 style={{ fontSize: 17, fontWeight: 700, marginBottom: 6 }}>
+      <div style={{ padding: 20, display: 'flex', flexDirection: 'column', flex: 1 }}>
+        <h3
+          style={{
+            fontFamily: 'var(--font-display)',
+            fontSize: 22,
+            fontWeight: 500,
+            letterSpacing: '-0.012em',
+            marginBottom: 8,
+            color: 'var(--color-ink)',
+          }}
+        >
           {course.title}
         </h3>
-        <p style={{ fontSize: 13, color: '#475569', marginBottom: 14, flex: 1 }}>
+        <p
+          style={{
+            fontFamily: 'var(--font-sans)',
+            fontSize: 14,
+            color: 'var(--color-muted)',
+            marginBottom: 16,
+            flex: 1,
+            lineHeight: 1.55,
+          }}
+        >
           {course.description}
         </p>
         <button
-          onClick={() => navigate(`/learning-hub/course/${course.slug}`)}
+          onClick={() => navigate(`/learning-hub/${course.slug}`)}
           style={{
             padding: '9px 18px',
-            background: '#2563EB',
-            color: '#fff',
+            background: 'var(--color-accent)',
+            color: 'var(--color-on-ink)',
             border: 0,
-            borderRadius: 10,
+            borderRadius: 6,
             fontWeight: 600,
             cursor: 'pointer',
-            fontFamily: 'inherit',
+            fontFamily: 'var(--font-sans)',
             fontSize: 13,
           }}
         >
@@ -498,35 +578,53 @@ function PathCard({ path }: { path: LearningPath }) {
   return (
     <article
       style={{
-        background: '#fff',
-        border: '1px solid #E2E8F0',
-        borderRadius: 16,
-        padding: 18,
+        background: 'var(--color-card)',
+        border: '1px solid var(--color-line)',
+        borderRadius: 10,
+        padding: 20,
       }}
     >
       <div
         style={{
-          fontFamily: 'var(--font-mono)',
-          fontSize: 10,
-          letterSpacing: '0.12em',
-          textTransform: 'uppercase',
-          color: '#2563EB',
+          fontFamily: 'var(--font-sans)',
+          fontSize: 11,
           fontWeight: 600,
-          marginBottom: 8,
+          letterSpacing: '0.08em',
+          textTransform: 'uppercase',
+          color: 'var(--color-accent)',
+          marginBottom: 10,
         }}
       >
-        {path.category || 'LEARNING PATH'}
+        {path.category || 'Learning Path'}
       </div>
-      <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 8 }}>
+      <h3
+        style={{
+          fontFamily: 'var(--font-display)',
+          fontSize: 22,
+          fontWeight: 500,
+          letterSpacing: '-0.012em',
+          marginBottom: 8,
+          color: 'var(--color-ink)',
+        }}
+      >
         {path.title}
       </h3>
-      <p style={{ fontSize: 13, color: '#475569', marginBottom: 12 }}>
+      <p
+        style={{
+          fontFamily: 'var(--font-sans)',
+          fontSize: 14,
+          color: 'var(--color-muted)',
+          marginBottom: 14,
+          lineHeight: 1.55,
+        }}
+      >
         {path.description}
       </p>
       <div
         style={{
+          fontFamily: 'var(--font-sans)',
           fontSize: 12,
-          color: '#64748B',
+          color: 'var(--color-muted)',
           display: 'flex',
           alignItems: 'center',
           gap: 6,
