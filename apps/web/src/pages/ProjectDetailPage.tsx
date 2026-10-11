@@ -940,4 +940,68 @@ export function ProjectDetailPage() {
                       color: 'inherit',
                     }}
                   >
-                    <span
+                    <span                      style={{
+                        width: 84,
+                        aspectRatio: '3 / 2',
+                        borderRadius: 6,
+                        background: 'var(--color-paper-muted)',
+                        flexShrink: 0,
+                      }}
+                    />
+                    <span style={{ minWidth: 0 }}>
+                      <b
+                        style={{
+                          fontFamily: 'var(--font-display)',
+                          lineHeight: 1.25,
+                          fontSize: 15,
+                          fontWeight: 500,
+                          letterSpacing: '-0.01em',
+                          overflow: 'hidden',
+                          display: '-webkit-box',
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: 'vertical',
+                          color: 'var(--color-ink)',
+                        }}
+                      >
+                        {p.title}
+                      </b>
+                      <small
+                        style={{
+                          fontFamily: 'var(--font-sans)',
+                          color: 'var(--color-muted)',
+                          fontSize: 11,
+                          display: 'block',
+                          marginTop: 4,
+                        }}
+                      >
+                        Project {String(p.projectNumber).padStart(3, '0')}
+                      </small>
+                    </span>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <RelatedProjects projects={related} />
+        </aside>
+      </div>
+
+      {openCode && (
+        <CodeDialog
+          open={!!openCode}
+          filename={openCode.filename}
+          code={openCode.code}
+          onClose={() => setOpenCode(null)}
+        />
+      )}
+
+      <style>{`
+        @media (max-width: 1180px) {
+          .project-layout { grid-template-columns: 1fr !important; }
+          .project-aside { position: static !important; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); }
+        }
+      `}</style>
+    </div>
+  );
+}
