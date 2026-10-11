@@ -465,69 +465,6 @@ export function ProjectDetailPage() {
             }}
           >
             <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-              <button
-                onClick={toggleLike}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 8,
-                  padding: '9px 16px',
-                  border: `1px solid ${
-                    liked ? 'var(--color-accent)' : 'var(--color-line-strong)'
-                  }`,
-                  background: liked ? 'var(--color-accent)' : 'var(--color-card)',
-                  color: liked ? 'var(--color-on-ink)' : 'var(--color-ink)',
-                  borderRadius: 6,
-                  fontWeight: 600,
-                  fontSize: 13,
-                  cursor: 'pointer',
-                  fontFamily: 'var(--font-sans)',
-                }}
-              >
-                <Heart size={14} fill={liked ? 'currentColor' : 'none'} />
-                {likesCount}
-              </button>
-              <button
-                onClick={toggleBookmark}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 8,
-                  padding: '9px 16px',
-                  border: `1px solid ${
-                    saved ? 'var(--color-accent)' : 'var(--color-line-strong)'
-                  }`,
-                  background: saved ? 'var(--color-accent)' : 'var(--color-card)',
-                  color: saved ? 'var(--color-on-ink)' : 'var(--color-ink)',
-                  borderRadius: 6,
-                  fontWeight: 600,
-                  fontSize: 13,
-                  cursor: 'pointer',
-                  fontFamily: 'var(--font-sans)',
-                }}
-              >
-                <Bookmark size={14} fill={saved ? 'currentColor' : 'none'} />
-                {bookmarksCount}
-              </button>
-              <button
-                onClick={share}
-                aria-label="Share"
-                style={{
-                  width: 42,
-                  height: 42,
-                  borderRadius: 6,
-                  border: '1px solid var(--color-line-strong)',
-                  background: 'var(--color-card)',
-                  color: 'var(--color-ink)',
-                  display: 'grid',
-                  placeItems: 'center',
-                  cursor: 'pointer',
-                }}
-              >
-                <Share2 size={16} />
-              </button>
-            </div>
-
             {author && project.authorId !== user.id && (
               <div
                 style={{
