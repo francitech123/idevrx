@@ -4,6 +4,7 @@ import { PublicLayout } from '@/components/site/PublicLayout';
 import { AppShell } from '@/components/app/AppShell';
 import { LandingPage } from '@/pages/LandingPage';
 import { ExplorePage } from '@/pages/ExplorePage';
+import { CreatorProfilePage } from '@/pages/CreatorProfilePage';
 import { ProjectDetailPage } from '@/pages/ProjectDetailPage';
 import { LoginPage } from '@/pages/LoginPage';
 import { RegisterPage } from '@/pages/RegisterPage';
@@ -79,6 +80,9 @@ export default function App() {
 
         <Route path="/explore" element={<ExplorePage />} />
         <Route path="/ide/:projectNumber/:slug" element={<ProjectDetailPage />} />
+
+        <Route path="/@:username" element={<CreatorProfilePage />} />
+        <Route path="/creators/:username" element={<CreatorProfilePage />} />
 
         <Route path="/about" element={<AboutPage />} />
         <Route path="/contact" element={<ContactPage />} />
