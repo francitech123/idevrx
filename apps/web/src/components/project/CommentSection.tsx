@@ -67,12 +67,13 @@ export function CommentSection({
 
   return (
     <section
-      style={{
-        marginTop: 32,
-        paddingTop: 28,
-        borderTop: '1px solid var(--color-line)',
-      }}
-    >
+  id="comments"
+  style={{
+    marginTop: 32,
+    paddingTop: 28,
+    borderTop: '1px solid var(--color-line)',
+  }}
+>
       <div
         style={{
           display: 'flex',
