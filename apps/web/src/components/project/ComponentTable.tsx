@@ -11,7 +11,14 @@ interface Component {
 export function ComponentTable({ components }: { components: Component[] }) {
   if (components.length === 0) {
     return (
-      <p style={{ color: '#64748B', fontSize: 14, margin: 0 }}>
+      <p
+        style={{
+          color: 'var(--color-muted)',
+          fontSize: 14,
+          margin: 0,
+          fontFamily: 'var(--font-sans)',
+        }}
+      >
         No components listed.
       </p>
     );
@@ -38,16 +45,25 @@ export function ComponentTable({ components }: { components: Component[] }) {
           {components.map((c) => (
             <tr key={c.id}>
               <td style={tdStyle}>
-                <span style={{ fontWeight: 600 }}>{c.name}</span>
+                <span
+                  style={{
+                    fontFamily: 'var(--font-sans)',
+                    fontWeight: 600,
+                    color: 'var(--color-ink)',
+                  }}
+                >
+                  {c.name}
+                </span>
                 {c.optional && (
                   <span
                     style={{
                       marginLeft: 8,
+                      fontFamily: 'var(--font-sans)',
                       fontSize: 11,
                       padding: '2px 8px',
-                      background: '#F1F5F9',
-                      color: '#64748B',
-                      borderRadius: 99,
+                      background: 'var(--color-paper-muted)',
+                      color: 'var(--color-muted)',
+                      borderRadius: 999,
                       fontWeight: 500,
                     }}
                   >
@@ -69,9 +85,10 @@ export function ComponentTable({ components }: { components: Component[] }) {
 const thStyle: React.CSSProperties = {
   textAlign: 'left',
   padding: '10px 12px',
-  borderBottom: '1px solid #E2E8F0',
-  fontSize: 12,
-  color: '#64748B',
+  borderBottom: '1px solid var(--color-line)',
+  fontFamily: 'var(--font-sans)',
+  fontSize: 11,
+  color: 'var(--color-muted)',
   textTransform: 'uppercase',
   letterSpacing: '0.06em',
   fontWeight: 600,
@@ -80,7 +97,9 @@ const thStyle: React.CSSProperties = {
 const tdStyle: React.CSSProperties = {
   textAlign: 'left',
   padding: '10px 12px',
-  borderBottom: '1px solid #E2E8F0',
+  borderBottom: '1px solid var(--color-line)',
+  fontFamily: 'var(--font-sans)',
   fontSize: 14,
   verticalAlign: 'top',
+  color: 'var(--color-ink-subtle)',
 };
