@@ -14,9 +14,9 @@ export function ProjectAccordion({ title, subtitle, children, defaultOpen = fals
   return (
     <div
       style={{
-        background: '#fff',
-        border: '1px solid #E2E8F0',
-        borderRadius: 14,
+        background: 'var(--color-card)',
+        border: '1px solid var(--color-line)',
+        borderRadius: 10,
         overflow: 'hidden',
       }}
     >
@@ -26,7 +26,7 @@ export function ProjectAccordion({ title, subtitle, children, defaultOpen = fals
           display: 'flex',
           alignItems: 'center',
           gap: 12,
-          padding: '14px 18px',
+          padding: '16px 20px',
           width: '100%',
           border: 0,
           background: 'none',
@@ -36,11 +36,23 @@ export function ProjectAccordion({ title, subtitle, children, defaultOpen = fals
         }}
       >
         <div style={{ flex: 1, lineHeight: 1.35 }}>
-          <b style={{ fontSize: 15, color: '#0F172A' }}>{title}</b>
+          <b
+            style={{
+              fontFamily: 'var(--font-display)',
+              fontSize: 20,
+              fontWeight: 500,
+              letterSpacing: '-0.012em',
+              color: 'var(--color-ink)',
+              display: 'block',
+            }}
+          >
+            {title}
+          </b>
           <small
             style={{
+              fontFamily: 'var(--font-sans)',
               display: 'block',
-              color: '#64748B',
+              color: 'var(--color-muted)',
               fontSize: 13,
               marginTop: 2,
             }}
@@ -51,7 +63,7 @@ export function ProjectAccordion({ title, subtitle, children, defaultOpen = fals
         <ChevronDown
           size={18}
           style={{
-            color: '#64748B',
+            color: 'var(--color-muted)',
             transition: 'transform 0.2s',
             transform: open ? 'rotate(180deg)' : 'none',
           }}
@@ -59,7 +71,15 @@ export function ProjectAccordion({ title, subtitle, children, defaultOpen = fals
       </button>
 
       {open && (
-        <div style={{ padding: '0 18px 18px' }}>{children}</div>
+        <div
+          style={{
+            padding: '0 20px 20px',
+            borderTop: '1px solid var(--color-line)',
+            paddingTop: 18,
+          }}
+        >
+          {children}
+        </div>
       )}
     </div>
   );
