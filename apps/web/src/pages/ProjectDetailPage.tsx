@@ -133,9 +133,9 @@ export function ProjectDetailPage() {
 
         const [authorRes, filesRes, commentsRes, compRes, stepsRes, codeRes, relRes] =
           await Promise.all([
-            fetch(`${apiUrl}/api/v1/profiles/${p.authorId}`, { credentials: 'include' }).catch(
-              () => null
-            ),
+            fetch(`${apiUrl}/api/v1/profiles/${p.authorId}`, {
+              credentials: 'include',
+            }).catch(() => null),
             fetch(`${apiUrl}/api/v1/projects/${p.id}/files`, {
               credentials: 'include',
             }).catch(() => null),
@@ -285,6 +285,7 @@ export function ProjectDetailPage() {
     if (res.ok) {
       const b = await res.json();
       setFollowing(b.data.following);
+      setFollowers((f) => f + (b.data.following ? 1 : -1));
     }
   }
 
@@ -310,33 +311,61 @@ export function ProjectDetailPage() {
         <div
           style={{
             aspectRatio: '16/9',
-            background: '#E2E8F0',
-            borderRadius: 20,
-            marginBottom: 20,
+            background: 'var(--color-paper-muted)',
+            borderRadius: 12,
+            marginBottom: 22,
           }}
         />
-        <div style={{ height: 40, width: 300, background: '#E2E8F0', borderRadius: 8 }} />
+        <div
+          style={{
+            height: 40,
+            width: 300,
+            background: 'var(--color-paper-muted)',
+            borderRadius: 6,
+          }}
+        />
       </div>
     );
   }
 
   if (error || !project) {
     return (
-      <div style={{ maxWidth: 600, margin: '0 auto', padding: 64, textAlign: 'center' }}>
+      <div
+        style={{
+          maxWidth: 600,
+          margin: '0 auto',
+          padding: 64,
+          textAlign: 'center',
+        }}
+      >
         <p
           style={{
             fontFamily: 'var(--font-mono)',
             fontSize: 12,
-            color: '#64748B',
-            marginBottom: 12,
+            color: 'var(--color-muted)',
+            marginBottom: 14,
           }}
         >
           404
         </p>
-        <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 12 }}>
+        <h1
+          style={{
+            fontFamily: 'var(--font-display)',
+            fontSize: 32,
+            fontWeight: 500,
+            marginBottom: 14,
+            color: 'var(--color-ink)',
+          }}
+        >
           Project not found
         </h1>
-        <p style={{ color: '#64748B', marginBottom: 24 }}>
+        <p
+          style={{
+            fontFamily: 'var(--font-sans)',
+            color: 'var(--color-muted)',
+            marginBottom: 24,
+          }}
+        >
           {error ?? "This project doesn't exist or isn't publicly visible."}
         </p>
         <Link
@@ -344,11 +373,13 @@ export function ProjectDetailPage() {
           style={{
             display: 'inline-block',
             padding: '10px 20px',
-            background: '#fff',
-            border: '1px solid #E2E8F0',
-            borderRadius: 10,
+            background: 'var(--color-card)',
+            border: '1px solid var(--color-line-strong)',
+            borderRadius: 6,
             fontWeight: 600,
             textDecoration: 'none',
+            color: 'var(--color-ink)',
+            fontFamily: 'var(--font-sans)',
           }}
         >
           Back to feed
@@ -360,34 +391,9 @@ export function ProjectDetailPage() {
   const isOwner = user.id === project.authorId;
   const category = categoriesData?.find((c) => c.id === project.categoryId);
   const formattedNumber = `PROJECT ${String(project.projectNumber).padStart(3, '0')}`;
-  const categorySlug = category?.slug ?? 'all';
 
   return (
     <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-      <div
-        style={{
-          display: 'flex',
-          gap: 8,
-          flexWrap: 'wrap',
-          color: '#64748B',
-          fontSize: 13,
-          marginBottom: 18,
-        }}
-      >
-        <Link to="/home" style={{ color: 'inherit', textDecoration: 'none' }}>
-          Home
-        </Link>
-        <span>/</span>
-        <Link
-          to={`/explore?category=${categorySlug}`}
-          style={{ color: 'inherit', textDecoration: 'none' }}
-        >
-          {category?.name ?? 'Projects'}
-        </Link>
-        <span>/</span>
-        <b style={{ color: '#0F172A', fontWeight: 500 }}>{formattedNumber}</b>
-      </div>
-
       <ProjectVideoPlayer
         youtubeUrl={project.youtubeUrl}
         projectNumber={project.projectNumber}
@@ -403,13 +409,29 @@ export function ProjectDetailPage() {
         className="project-layout"
       >
         <article>
+          <div
+            style={{
+              fontFamily: 'var(--font-sans)',
+              fontSize: 11,
+              fontWeight: 600,
+              letterSpacing: '0.14em',
+              textTransform: 'uppercase',
+              color: 'var(--color-accent)',
+              marginBottom: 12,
+            }}
+          >
+            {formattedNumber}
+          </div>
+
           <h1
             style={{
-              fontSize: 'clamp(28px, 3.8vw, 52px)',
-              fontWeight: 700,
-              letterSpacing: '-0.035em',
-              lineHeight: 1.1,
-              marginBottom: 12,
+              fontFamily: 'var(--font-display)',
+              fontSize: 'clamp(32px, 3.8vw, 56px)',
+              fontWeight: 500,
+              letterSpacing: '-0.028em',
+              lineHeight: 1.05,
+              marginBottom: 14,
+              color: 'var(--color-ink)',
             }}
           >
             {project.title}
@@ -418,10 +440,11 @@ export function ProjectDetailPage() {
           {project.shortDescription && (
             <p
               style={{
-                color: '#475569',
+                fontFamily: 'var(--font-sans)',
+                color: 'var(--color-ink-subtle)',
                 maxWidth: '70ch',
                 fontSize: 17,
-                margin: '0 0 20px',
+                margin: '0 0 22px',
                 lineHeight: 1.6,
               }}
             >
@@ -435,9 +458,9 @@ export function ProjectDetailPage() {
               alignItems: 'center',
               justifyContent: 'space-between',
               gap: 24,
-              margin: '20px 0',
-              borderBottom: '1px solid #E2E8F0',
-              paddingBottom: 18,
+              margin: '22px 0',
+              borderBottom: '1px solid var(--color-line)',
+              paddingBottom: 20,
               flexWrap: 'wrap',
             }}
           >
@@ -449,14 +472,16 @@ export function ProjectDetailPage() {
                   alignItems: 'center',
                   gap: 8,
                   padding: '9px 16px',
-                  border: `1px solid ${liked ? '#2563EB' : '#E2E8F0'}`,
-                  background: liked ? '#EFF6FF' : '#fff',
-                  color: liked ? '#2563EB' : '#0F172A',
-                  borderRadius: 10,
+                  border: `1px solid ${
+                    liked ? 'var(--color-accent)' : 'var(--color-line-strong)'
+                  }`,
+                  background: liked ? 'var(--color-accent)' : 'var(--color-card)',
+                  color: liked ? 'var(--color-on-ink)' : 'var(--color-ink)',
+                  borderRadius: 6,
                   fontWeight: 600,
                   fontSize: 13,
                   cursor: 'pointer',
-                  fontFamily: 'inherit',
+                  fontFamily: 'var(--font-sans)',
                 }}
               >
                 <Heart size={14} fill={liked ? 'currentColor' : 'none'} />
@@ -464,20 +489,21 @@ export function ProjectDetailPage() {
               </button>
               <button
                 onClick={toggleBookmark}
-                aria-label="Save"
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: 8,
                   padding: '9px 16px',
-                  border: `1px solid ${saved ? '#2563EB' : '#E2E8F0'}`,
-                  background: saved ? '#EFF6FF' : '#fff',
-                  color: saved ? '#2563EB' : '#0F172A',
-                  borderRadius: 10,
+                  border: `1px solid ${
+                    saved ? 'var(--color-accent)' : 'var(--color-line-strong)'
+                  }`,
+                  background: saved ? 'var(--color-accent)' : 'var(--color-card)',
+                  color: saved ? 'var(--color-on-ink)' : 'var(--color-ink)',
+                  borderRadius: 6,
                   fontWeight: 600,
                   fontSize: 13,
                   cursor: 'pointer',
-                  fontFamily: 'inherit',
+                  fontFamily: 'var(--font-sans)',
                 }}
               >
                 <Bookmark size={14} fill={saved ? 'currentColor' : 'none'} />
@@ -489,9 +515,10 @@ export function ProjectDetailPage() {
                 style={{
                   width: 42,
                   height: 42,
-                  borderRadius: '50%',
-                  border: '1px solid #E2E8F0',
-                  background: '#fff',
+                  borderRadius: 6,
+                  border: '1px solid var(--color-line-strong)',
+                  background: 'var(--color-card)',
+                  color: 'var(--color-ink)',
                   display: 'grid',
                   placeItems: 'center',
                   cursor: 'pointer',
@@ -511,18 +538,21 @@ export function ProjectDetailPage() {
                   justifyContent: 'flex-end',
                 }}
               >
-                <span
+                <Link
+                  to={`/@${author.username}`}
                   style={{
-                    width: 38,
-                    height: 38,
+                    width: 40,
+                    height: 40,
                     borderRadius: '50%',
-                    background:
-                      'linear-gradient(135deg, #06B6D4 0%, #2563EB 55%, #7C3AED 100%)',
-                    color: '#fff',
+                    background: 'var(--color-accent)',
+                    color: 'var(--color-on-ink)',
                     display: 'grid',
                     placeItems: 'center',
-                    fontWeight: 600,
-                    fontSize: 13,
+                    fontFamily: 'var(--font-display)',
+                    fontWeight: 500,
+                    fontSize: 15,
+                    textDecoration: 'none',
+                    flexShrink: 0,
                   }}
                 >
                   {author.displayName
@@ -531,10 +561,29 @@ export function ProjectDetailPage() {
                     .join('')
                     .slice(0, 2)
                     .toUpperCase()}
-                </span>
+                </Link>
                 <div style={{ flex: 1, minWidth: 0, lineHeight: 1.35 }}>
-                  <b style={{ fontSize: 14, display: 'block' }}>{author.displayName}</b>
-                  <small style={{ color: '#64748B', fontSize: 12, display: 'block' }}>
+                  <Link
+                    to={`/@${author.username}`}
+                    style={{
+                      fontFamily: 'var(--font-sans)',
+                      fontSize: 14,
+                      display: 'block',
+                      color: 'var(--color-ink)',
+                      textDecoration: 'none',
+                      fontWeight: 600,
+                    }}
+                  >
+                    {author.displayName}
+                  </Link>
+                  <small
+                    style={{
+                      fontFamily: 'var(--font-sans)',
+                      color: 'var(--color-muted)',
+                      fontSize: 12,
+                      display: 'block',
+                    }}
+                  >
                     {followers} followers
                   </small>
                 </div>
@@ -542,14 +591,18 @@ export function ProjectDetailPage() {
                   onClick={toggleFollow}
                   style={{
                     padding: '8px 14px',
-                    border: `1px solid ${following ? '#E2E8F0' : '#2563EB'}`,
-                    background: following ? '#fff' : '#2563EB',
-                    color: following ? '#0F172A' : '#fff',
-                    borderRadius: 10,
+                    border: `1px solid ${
+                      following ? 'var(--color-line-strong)' : 'var(--color-accent)'
+                    }`,
+                    background: following
+                      ? 'var(--color-card)'
+                      : 'var(--color-accent)',
+                    color: following ? 'var(--color-ink)' : 'var(--color-on-ink)',
+                    borderRadius: 6,
                     fontWeight: 600,
                     fontSize: 13,
                     cursor: 'pointer',
-                    fontFamily: 'inherit',
+                    fontFamily: 'var(--font-sans)',
                   }}
                 >
                   {following ? 'Following' : 'Follow'}
@@ -569,7 +622,7 @@ export function ProjectDetailPage() {
             tags={[]}
           />
 
-          <div style={{ display: 'grid', gap: 12, marginTop: 24 }}>
+          <div style={{ display: 'grid', gap: 12, marginTop: 26 }}>
             <ProjectAccordion
               title="Components and tools"
               subtitle={`${components.length} part${components.length === 1 ? '' : 's'}`}
@@ -587,9 +640,9 @@ export function ProjectDetailPage() {
             {codeSamples.length > 0 && (
               <div
                 style={{
-                  background: '#fff',
-                  border: '1px solid #E2E8F0',
-                  borderRadius: 14,
+                  background: 'var(--color-card)',
+                  border: '1px solid var(--color-line)',
+                  borderRadius: 10,
                   padding: '14px 18px',
                   display: 'flex',
                   alignItems: 'center',
@@ -600,9 +653,9 @@ export function ProjectDetailPage() {
                   style={{
                     width: 38,
                     height: 38,
-                    borderRadius: 10,
-                    background: '#EFF6FF',
-                    color: '#2563EB',
+                    borderRadius: 8,
+                    background: 'var(--color-paper)',
+                    color: 'var(--color-accent)',
                     display: 'grid',
                     placeItems: 'center',
                     flexShrink: 0,
@@ -611,8 +664,24 @@ export function ProjectDetailPage() {
                   <Code2 size={18} />
                 </span>
                 <div style={{ flex: 1, lineHeight: 1.35 }}>
-                  <b style={{ display: 'block', fontSize: 15 }}>Code sample</b>
-                  <small style={{ color: '#64748B', fontSize: 13, display: 'block' }}>
+                  <b
+                    style={{
+                      fontFamily: 'var(--font-sans)',
+                      fontSize: 15,
+                      display: 'block',
+                      color: 'var(--color-ink)',
+                    }}
+                  >
+                    Code sample
+                  </b>
+                  <small
+                    style={{
+                      fontFamily: 'var(--font-mono)',
+                      color: 'var(--color-muted)',
+                      fontSize: 12,
+                      display: 'block',
+                    }}
+                  >
                     {codeSamples[0].filename}
                   </small>
                 </div>
@@ -620,13 +689,14 @@ export function ProjectDetailPage() {
                   onClick={() => setOpenCode(codeSamples[0])}
                   style={{
                     padding: '8px 14px',
-                    border: '1px solid #E2E8F0',
-                    background: '#fff',
-                    borderRadius: 10,
+                    border: '1px solid var(--color-line-strong)',
+                    background: 'var(--color-paper)',
+                    borderRadius: 6,
                     fontWeight: 600,
                     fontSize: 13,
                     cursor: 'pointer',
-                    fontFamily: 'inherit',
+                    fontFamily: 'var(--font-sans)',
+                    color: 'var(--color-ink)',
                   }}
                 >
                   View code
@@ -665,16 +735,38 @@ export function ProjectDetailPage() {
           {author && (
             <div
               style={{
-                background: '#fff',
-                border: '1px solid #E2E8F0',
-                borderRadius: 16,
-                padding: 18,
+                background: 'var(--color-card)',
+                border: '1px solid var(--color-line)',
+                borderRadius: 10,
+                padding: 20,
               }}
             >
-              <h3 style={{ fontSize: 15, fontWeight: 700, marginBottom: 12 }}>
-                About {author.displayName}
-              </h3>
-              <p style={{ fontSize: 13, color: '#64748B', margin: 0, lineHeight: 1.6 }}>
+              <Link
+                to={`/@${author.username}`}
+                style={{ textDecoration: 'none' }}
+              >
+                <h3
+                  style={{
+                    fontFamily: 'var(--font-display)',
+                    fontSize: 20,
+                    fontWeight: 500,
+                    letterSpacing: '-0.012em',
+                    marginBottom: 12,
+                    color: 'var(--color-ink)',
+                  }}
+                >
+                  About {author.displayName}
+                </h3>
+              </Link>
+              <p
+                style={{
+                  fontFamily: 'var(--font-sans)',
+                  fontSize: 13,
+                  color: 'var(--color-muted)',
+                  margin: 0,
+                  lineHeight: 1.6,
+                }}
+              >
                 {author.bio || 'Creator on IDEVRX.'}
               </p>
               {isOwner && (
@@ -682,15 +774,16 @@ export function ProjectDetailPage() {
                   to={`/studio/project/${project.id}`}
                   style={{
                     display: 'block',
-                    marginTop: 14,
+                    marginTop: 16,
                     padding: '10px 16px',
-                    background: '#2563EB',
-                    color: '#fff',
-                    borderRadius: 10,
+                    background: 'var(--color-accent)',
+                    color: 'var(--color-on-ink)',
+                    borderRadius: 6,
                     fontWeight: 600,
                     fontSize: 13,
                     textAlign: 'center',
                     textDecoration: 'none',
+                    fontFamily: 'var(--font-sans)',
                   }}
                 >
                   Edit project
