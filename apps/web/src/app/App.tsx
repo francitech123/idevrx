@@ -4,10 +4,9 @@ import { PublicLayout } from '@/components/site/PublicLayout';
 import { AppShell } from '@/components/app/AppShell';
 import { LandingPage } from '@/pages/LandingPage';
 import { ExplorePage } from '@/pages/ExplorePage';
-import { CreatorProfilePage } from '@/pages/CreatorProfilePage';
 import { ProjectDetailPage } from '@/pages/ProjectDetailPage';
-import { LoginPage } from '@/pages/LoginPage';
 import { CreatorProfilePage } from '@/pages/CreatorProfilePage';
+import { LoginPage } from '@/pages/LoginPage';
 import { RegisterPage } from '@/pages/RegisterPage';
 import { SettingsPage } from '@/pages/SettingsPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
@@ -75,7 +74,6 @@ function RootPage() {
 export default function App() {
   return (
     <Routes>
-      {/* Public shell — nav + footer, guest-accessible pages */}
       <Route element={<PublicLayout />}>
         <Route path="/" element={<RootPage />} />
 
@@ -84,9 +82,8 @@ export default function App() {
 
         <Route path="/@:username" element={<CreatorProfilePage />} />
         <Route path="/creators/:username" element={<CreatorProfilePage />} />
-        <Route path="/@:username" element={<CreatorProfilePage />} />
-        <Route path="/creators/:username" element={<CreatorProfilePage />} />
 
+        <Route path="/about" element={<AboutPage />} />
         <Route path="/contact" element={<ContactPage />} />
         <Route path="/help" element={<HelpPage />} />
         <Route path="/learning" element={<LearningPage />} />
@@ -169,7 +166,6 @@ export default function App() {
         />
       </Route>
 
-      {/* App shell — sidebar + top bar, signed-in pages */}
       <Route
         element={
           <RequireAuth>
