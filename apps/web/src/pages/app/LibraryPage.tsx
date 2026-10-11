@@ -53,18 +53,26 @@ export function LibraryPage() {
 
   return (
     <div>
-      <div style={{ marginBottom: 24 }}>
+      <div style={{ marginBottom: 28 }}>
         <h1
           style={{
-            fontSize: 28,
-            fontWeight: 700,
+            fontFamily: 'var(--font-display)',
+            fontSize: 36,
+            fontWeight: 500,
             letterSpacing: '-0.02em',
             marginBottom: 6,
+            color: 'var(--color-ink)',
           }}
         >
           Library
         </h1>
-        <p style={{ color: '#64748B', fontSize: 14 }}>
+        <p
+          style={{
+            fontFamily: 'var(--font-sans)',
+            color: 'var(--color-muted)',
+            fontSize: 15,
+          }}
+        >
           Everything you saved, liked, or opened recently.
         </p>
       </div>
@@ -72,9 +80,9 @@ export function LibraryPage() {
       <div
         style={{
           display: 'flex',
-          gap: 8,
+          gap: 24,
           marginBottom: 24,
-          borderBottom: '1px solid #E2E8F0',
+          borderBottom: '1px solid var(--color-line)',
         }}
       >
         {TABS.map((t) => (
@@ -82,16 +90,20 @@ export function LibraryPage() {
             key={t.key}
             onClick={() => setTab(t.key)}
             style={{
-              padding: '10px 4px',
+              padding: '10px 0',
               border: 0,
               background: 'none',
-              borderBottom: tab === t.key ? '2px solid #2563EB' : '2px solid transparent',
-              color: tab === t.key ? '#2563EB' : '#64748B',
+              borderBottom:
+                tab === t.key
+                  ? '2px solid var(--color-accent)'
+                  : '2px solid transparent',
+              color:
+                tab === t.key ? 'var(--color-ink)' : 'var(--color-muted)',
               fontWeight: 600,
               fontSize: 14,
               cursor: 'pointer',
               marginBottom: -1,
-              fontFamily: 'inherit',
+              fontFamily: 'var(--font-sans)',
             }}
           >
             {t.label}
@@ -112,8 +124,8 @@ export function LibraryPage() {
               key={i}
               style={{
                 height: 300,
-                borderRadius: 16,
-                background: '#E2E8F0',
+                borderRadius: 10,
+                background: 'var(--color-paper-muted)',
               }}
             />
           ))}
@@ -125,15 +137,30 @@ export function LibraryPage() {
           style={{
             padding: 60,
             textAlign: 'center',
-            border: '1px dashed #CBD5E1',
-            borderRadius: 16,
-            color: '#64748B',
+            border: '1px dashed var(--color-line-strong)',
+            borderRadius: 10,
+            color: 'var(--color-muted)',
+            background: 'var(--color-card)',
           }}
         >
-          <h3 style={{ marginBottom: 8, color: '#0F172A' }}>
+          <h3
+            style={{
+              fontFamily: 'var(--font-display)',
+              fontSize: 26,
+              fontWeight: 500,
+              marginBottom: 8,
+              color: 'var(--color-ink)',
+            }}
+          >
             Nothing here yet
           </h3>
-          <p style={{ marginBottom: 20 }}>
+          <p
+            style={{
+              marginBottom: 22,
+              fontFamily: 'var(--font-sans)',
+              color: 'var(--color-muted)',
+            }}
+          >
             {tab === 'saved'
               ? 'Save any project and it will appear here.'
               : tab === 'liked'
@@ -141,16 +168,16 @@ export function LibraryPage() {
               : 'Projects you open will appear here.'}
           </p>
           <Link
-            to="/home"
+            to="/explore"
             style={{
               display: 'inline-block',
-              padding: '10px 20px',
-              background:
-                'linear-gradient(135deg, #06B6D4 0%, #2563EB 55%, #7C3AED 100%)',
-              color: '#fff',
-              borderRadius: 10,
+              padding: '11px 22px',
+              background: 'var(--color-accent)',
+              color: 'var(--color-on-ink)',
+              borderRadius: 6,
               fontWeight: 600,
               textDecoration: 'none',
+              fontFamily: 'var(--font-sans)',
             }}
           >
             Browse projects
@@ -173,9 +200,9 @@ export function LibraryPage() {
                 key={p.id}
                 onClick={() => navigate(url)}
                 style={{
-                  background: '#fff',
-                  border: '1px solid #E2E8F0',
-                  borderRadius: 16,
+                  background: 'var(--color-card)',
+                  border: '1px solid var(--color-line)',
+                  borderRadius: 10,
                   overflow: 'hidden',
                   cursor: 'pointer',
                   display: 'flex',
@@ -184,8 +211,8 @@ export function LibraryPage() {
               >
                 <div
                   style={{
-                    aspectRatio: '16/10',
-                    background: 'linear-gradient(135deg, #0A1225 0%, #1E293B 100%)',
+                    aspectRatio: '3 / 2',
+                    background: 'var(--color-paper-muted)',
                     position: 'relative',
                   }}
                 >
@@ -194,35 +221,61 @@ export function LibraryPage() {
                       position: 'absolute',
                       bottom: 12,
                       right: 12,
-                      fontFamily: 'var(--font-mono)',
+                      fontFamily: 'var(--font-sans)',
                       fontSize: 10,
-                      background: 'rgba(15,23,42,0.85)',
-                      color: '#fff',
-                      padding: '5px 9px',
-                      borderRadius: 6,
+                      fontWeight: 600,
+                      letterSpacing: '0.08em',
+                      textTransform: 'uppercase',
+                      background: 'var(--color-ink)',
+                      color: 'var(--color-paper)',
+                      padding: '4px 8px',
+                      borderRadius: 4,
                     }}
                   >
                     {p.version}
                   </span>
                 </div>
-                <div style={{ padding: 16 }}>
+                <div style={{ padding: 18 }}>
                   <div
                     style={{
-                      fontFamily: 'var(--font-mono)',
-                      fontSize: 10,
-                      textTransform: 'uppercase',
-                      color: '#2563EB',
+                      fontFamily: 'var(--font-sans)',
+                      fontSize: 11,
                       fontWeight: 600,
-                      marginBottom: 6,
+                      letterSpacing: '0.06em',
+                      textTransform: 'uppercase',
+                      color: 'var(--color-accent)',
+                      marginBottom: 8,
                     }}
                   >
                     PROJECT {String(p.projectNumber).padStart(3, '0')}
                   </div>
-                  <h3 style={{ fontSize: 17, fontWeight: 700, marginBottom: 6 }}>
+                  <h3
+                    style={{
+                      fontFamily: 'var(--font-display)',
+                      fontSize: 21,
+                      fontWeight: 500,
+                      letterSpacing: '-0.012em',
+                      lineHeight: 1.2,
+                      marginBottom: 8,
+                      color: 'var(--color-ink)',
+                    }}
+                  >
                     {p.title}
                   </h3>
                   {p.shortDescription && (
-                    <p style={{ fontSize: 13, color: '#475569', marginBottom: 12 }}>
+                    <p
+                      style={{
+                        fontFamily: 'var(--font-sans)',
+                        fontSize: 13.5,
+                        color: 'var(--color-muted)',
+                        lineHeight: 1.55,
+                        marginBottom: 14,
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical',
+                        overflow: 'hidden',
+                      }}
+                    >
                       {p.shortDescription}
                     </p>
                   )}
@@ -230,8 +283,9 @@ export function LibraryPage() {
                     style={{
                       display: 'flex',
                       gap: 14,
+                      fontFamily: 'var(--font-sans)',
                       fontSize: 12,
-                      color: '#64748B',
+                      color: 'var(--color-muted)',
                     }}
                   >
                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
