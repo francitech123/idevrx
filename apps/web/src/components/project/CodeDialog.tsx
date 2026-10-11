@@ -37,7 +37,7 @@ export function CodeDialog({ open, filename, code, onClose }: Props) {
       style={{
         position: 'fixed',
         inset: 0,
-        background: 'rgba(0,0,0,0.65)',
+        background: 'rgba(26, 22, 18, 0.7)',
         zIndex: 100,
         display: 'grid',
         placeItems: 'center',
@@ -49,9 +49,9 @@ export function CodeDialog({ open, filename, code, onClose }: Props) {
         style={{
           width: 'min(720px, 100%)',
           maxHeight: '86vh',
-          background: '#fff',
-          border: '1px solid #E2E8F0',
-          borderRadius: 18,
+          background: 'var(--color-card)',
+          border: '1px solid var(--color-line)',
+          borderRadius: 12,
           overflow: 'hidden',
           display: 'flex',
           flexDirection: 'column',
@@ -64,14 +64,14 @@ export function CodeDialog({ open, filename, code, onClose }: Props) {
             justifyContent: 'space-between',
             gap: 10,
             padding: '12px 14px 12px 20px',
-            borderBottom: '1px solid #E2E8F0',
+            borderBottom: '1px solid var(--color-line)',
           }}
         >
           <span
             style={{
               fontFamily: 'var(--font-mono)',
               fontSize: 13,
-              color: '#0F172A',
+              color: 'var(--color-ink)',
             }}
           >
             {filename}
@@ -91,11 +91,7 @@ export function CodeDialog({ open, filename, code, onClose }: Props) {
             >
               <Download size={15} />
             </button>
-            <button
-              onClick={onClose}
-              aria-label="Close"
-              style={iconBtnStyle}
-            >
+            <button onClick={onClose} aria-label="Close" style={iconBtnStyle}>
               <X size={15} />
             </button>
           </div>
@@ -106,9 +102,9 @@ export function CodeDialog({ open, filename, code, onClose }: Props) {
           style={{
             position: 'relative',
             margin: 16,
-            borderRadius: 12,
-            background: '#0E1B24',
-            color: '#D6E2EE',
+            borderRadius: 8,
+            background: 'var(--color-ink)',
+            color: 'var(--color-paper)',
             overflow: 'hidden',
             cursor: revealed ? 'default' : 'pointer',
           }}
@@ -148,13 +144,13 @@ export function CodeDialog({ open, filename, code, onClose }: Props) {
                 width: 46,
                 height: 46,
                 borderRadius: '50%',
-                background: '#fff',
-                color: '#0E1B24',
+                background: 'var(--color-paper)',
+                color: 'var(--color-ink)',
                 border: 0,
                 display: 'grid',
                 placeItems: 'center',
                 cursor: 'pointer',
-                boxShadow: '0 6px 20px rgba(0,0,0,0.3)',
+                boxShadow: '0 6px 20px rgba(0, 0, 0, 0.4)',
               }}
             >
               <Eye size={18} />
@@ -171,10 +167,10 @@ const iconBtnStyle: React.CSSProperties = {
   height: 36,
   padding: 0,
   borderRadius: '50%',
-  border: '1px solid #E2E8F0',
-  background: '#fff',
+  border: '1px solid var(--color-line)',
+  background: 'var(--color-paper)',
   display: 'grid',
   placeItems: 'center',
   cursor: 'pointer',
-  color: '#0F172A',
+  color: 'var(--color-ink)',
 };
