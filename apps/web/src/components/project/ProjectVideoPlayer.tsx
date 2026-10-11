@@ -97,13 +97,15 @@ export function ProjectVideoPlayer({ youtubeUrl, projectNumber }: Props) {
       <div
         style={{
           aspectRatio: '16/9',
-          borderRadius: 20,
-          background: 'linear-gradient(135deg, #0A1225 0%, #1E293B 100%)',
+          borderRadius: 12,
+          background: 'var(--color-ink)',
           display: 'grid',
           placeItems: 'center',
-          color: '#64748B',
+          color: 'var(--color-paper)',
           fontSize: 14,
-          marginBottom: 24,
+          marginBottom: 26,
+          fontFamily: 'var(--font-sans)',
+          opacity: 0.85,
         }}
       >
         No video for this project
@@ -119,10 +121,10 @@ export function ProjectVideoPlayer({ youtubeUrl, projectNumber }: Props) {
       style={{
         position: 'relative',
         aspectRatio: '16/9',
-        borderRadius: 20,
+        borderRadius: 12,
         overflow: 'hidden',
         background: '#000',
-        marginBottom: 24,
+        marginBottom: 26,
         maxHeight: '78vh',
       }}
     >
@@ -158,7 +160,7 @@ export function ProjectVideoPlayer({ youtubeUrl, projectNumber }: Props) {
               position: 'absolute',
               inset: 0,
               background:
-                'linear-gradient(180deg, rgba(8,13,24,0.15) 0%, rgba(8,13,24,0.65) 100%)',
+                'linear-gradient(180deg, rgba(26, 22, 18, 0.15) 0%, rgba(26, 22, 18, 0.7) 100%)',
             }}
           />
           <span
@@ -166,12 +168,12 @@ export function ProjectVideoPlayer({ youtubeUrl, projectNumber }: Props) {
               position: 'absolute',
               right: '3%',
               bottom: '8%',
-              fontFamily: 'var(--font-sans)',
-              fontWeight: 800,
+              fontFamily: 'var(--font-display)',
+              fontWeight: 500,
               fontSize: 'clamp(90px, 19vw, 280px)',
               lineHeight: 1,
               letterSpacing: '-0.05em',
-              color: 'rgba(255,255,255,0.12)',
+              color: 'rgba(246, 241, 231, 0.14)',
               userSelect: 'none',
               pointerEvents: 'none',
             }}
@@ -193,12 +195,12 @@ export function ProjectVideoPlayer({ youtubeUrl, projectNumber }: Props) {
               height: 'clamp(56px, 8vw, 88px)',
               borderRadius: '50%',
               border: 0,
-              background: '#fff',
-              color: '#0F172A',
+              background: 'var(--color-paper)',
+              color: 'var(--color-ink)',
               display: 'grid',
               placeItems: 'center',
               cursor: 'pointer',
-              boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5)',
             }}
           >
             <Play size={28} fill="currentColor" />
@@ -213,7 +215,8 @@ export function ProjectVideoPlayer({ youtubeUrl, projectNumber }: Props) {
           right: 0,
           bottom: 0,
           padding: '34px clamp(12px, 2vw, 24px) 12px',
-          background: 'linear-gradient(transparent, rgba(0,0,0,0.75))',
+          background:
+            'linear-gradient(transparent, rgba(26, 22, 18, 0.85))',
           display: 'flex',
           alignItems: 'center',
           gap: 12,
@@ -226,7 +229,7 @@ export function ProjectVideoPlayer({ youtubeUrl, projectNumber }: Props) {
           style={{
             border: 0,
             background: 'none',
-            color: '#fff',
+            color: 'var(--color-paper)',
             cursor: 'pointer',
             display: 'grid',
             placeItems: 'center',
@@ -254,8 +257,8 @@ export function ProjectVideoPlayer({ youtubeUrl, projectNumber }: Props) {
               position: 'relative',
               width: '100%',
               height: 4,
-              borderRadius: 9,
-              background: 'rgba(255,255,255,0.3)',
+              borderRadius: 999,
+              background: 'rgba(246, 241, 231, 0.3)',
             }}
           >
             <div
@@ -265,8 +268,8 @@ export function ProjectVideoPlayer({ youtubeUrl, projectNumber }: Props) {
                 top: 0,
                 bottom: 0,
                 width: `${progress}%`,
-                borderRadius: 9,
-                background: '#fff',
+                borderRadius: 999,
+                background: 'var(--color-accent)',
               }}
             />
           </div>
@@ -275,7 +278,7 @@ export function ProjectVideoPlayer({ youtubeUrl, projectNumber }: Props) {
         <span
           style={{
             fontSize: 12,
-            color: '#fff',
+            color: 'var(--color-paper)',
             fontFamily: 'var(--font-mono)',
             whiteSpace: 'nowrap',
           }}
@@ -290,7 +293,7 @@ export function ProjectVideoPlayer({ youtubeUrl, projectNumber }: Props) {
           style={{
             border: 0,
             background: 'none',
-            color: '#fff',
+            color: 'var(--color-paper)',
             cursor: 'pointer',
             display: 'grid',
             placeItems: 'center',
