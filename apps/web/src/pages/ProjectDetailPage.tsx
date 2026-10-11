@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useParams, Navigate, useLocation } from 'react-router-dom';
-import { Heart, Bookmark, Share2, Code2 } from 'lucide-react';
+import { Heart, Bookmark, Share2, Code2, MessageCircle } from 'lucide-react';
 import { useCurrentUser } from '@/features/auth/useAuth';
 import { useCategories } from '@/features/projects/useProjects';
 import { ProjectVideoPlayer } from '@/components/project/ProjectVideoPlayer';
@@ -12,7 +12,6 @@ import { StepList } from '@/components/project/StepList';
 import { FileListSection } from '@/components/project/FileListSection';
 import { RelatedProjects } from '@/components/project/RelatedProjects';
 import { CommentSection } from '@/components/project/CommentSection';
-import { Heart, Bookmark, Share2, Code2, MessageCircle } from 'lucide-react';
 
 interface Author {
   id: string;
@@ -104,6 +103,7 @@ export function ProjectDetailPage() {
   const [files, setFiles] = useState<ProjectFile[]>([]);
   const [comments, setComments] = useState<Comment[]>([]);
   const [related, setRelated] = useState<ProjectData[]>([]);
+  const [moreFromAuthor, setMoreFromAuthor] = useState<ProjectData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -132,7 +132,7 @@ export function ProjectDetailPage() {
         setLikesCount(p.counts.likes);
         setBookmarksCount(p.counts.bookmarks);
 
-        const [authorRes, filesRes, commentsRes, compRes, stepsRes, codeRes, relRes] =
+        const [authorRes, filesRes, commentsRes, compRes, stepsRes, codeRes, relRes, authorProjectsRes] =
           await Promise.all([
             fetch(`${apiUrl}/api/v1/profiles/${p.authorId}`, {
               credentials: 'include',
@@ -156,6 +156,9 @@ export function ProjectDetailPage() {
               `${apiUrl}/api/v1/projects?categoryId=${p.categoryId ?? ''}&limit=4`,
               { credentials: 'include' }
             ).catch(() => null),
+            fetch(`${apiUrl}/api/v1/profiles/${p.authorId}/projects?limit=6`, {
+              credentials: 'include',
+            }).catch(() => null),
           ]);
 
         if (authorRes?.ok) {
@@ -189,6 +192,16 @@ export function ProjectDetailPage() {
               (b.data.projects ?? [])
                 .filter((x: ProjectData) => x.id !== p.id)
                 .slice(0, 3)
+            );
+          }
+        }
+        if (authorProjectsRes?.ok) {
+          const b = await authorProjectsRes.json();
+          if (b.success) {
+            setMoreFromAuthor(
+              (b.data.items ?? [])
+                .filter((x: ProjectData) => x.id !== p.id)
+                .slice(0, 4)
             );
           }
         }
@@ -232,7 +245,7 @@ export function ProjectDetailPage() {
         .then((r) => (r.ok ? r.json() : null))
         .then((b) => {
           if (b?.success) {
-            setFollowing(b.data.following);
+            setFollowing(!!b.data.following);
             setFollowers(b.data.followers ?? 0);
           }
         })
@@ -285,7 +298,7 @@ export function ProjectDetailPage() {
     });
     if (res.ok) {
       const b = await res.json();
-      setFollowing(b.data.following);
+      setFollowing(!!b.data.following);
       setFollowers((f) => f + (b.data.following ? 1 : -1));
     }
   }
@@ -466,6 +479,93 @@ export function ProjectDetailPage() {
             }}
           >
             <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+              <button
+                onClick={toggleLike}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  padding: '9px 16px',
+                  border: `1px solid ${
+                    liked ? 'var(--color-accent)' : 'var(--color-line-strong)'
+                  }`,
+                  background: liked ? 'var(--color-accent)' : 'var(--color-card)',
+                  color: liked ? 'var(--color-on-ink)' : 'var(--color-ink)',
+                  borderRadius: 6,
+                  fontWeight: 600,
+                  fontSize: 13,
+                  cursor: 'pointer',
+                  fontFamily: 'var(--font-sans)',
+                }}
+              >
+                <Heart size={14} fill={liked ? 'currentColor' : 'none'} />
+                {likesCount}
+              </button>
+
+              <a
+                href="#comments"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  padding: '9px 16px',
+                  border: '1px solid var(--color-line-strong)',
+                  background: 'var(--color-card)',
+                  color: 'var(--color-ink)',
+                  borderRadius: 6,
+                  fontWeight: 600,
+                  fontSize: 13,
+                  cursor: 'pointer',
+                  fontFamily: 'var(--font-sans)',
+                  textDecoration: 'none',
+                }}
+              >
+                <MessageCircle size={14} />
+                {comments.length}
+              </a>
+
+              <button
+                onClick={toggleBookmark}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  padding: '9px 16px',
+                  border: `1px solid ${
+                    saved ? 'var(--color-accent)' : 'var(--color-line-strong)'
+                  }`,
+                  background: saved ? 'var(--color-accent)' : 'var(--color-card)',
+                  color: saved ? 'var(--color-on-ink)' : 'var(--color-ink)',
+                  borderRadius: 6,
+                  fontWeight: 600,
+                  fontSize: 13,
+                  cursor: 'pointer',
+                  fontFamily: 'var(--font-sans)',
+                }}
+              >
+                <Bookmark size={14} fill={saved ? 'currentColor' : 'none'} />
+                {bookmarksCount}
+              </button>
+
+              <button
+                onClick={share}
+                aria-label="Share"
+                style={{
+                  width: 42,
+                  height: 42,
+                  borderRadius: 6,
+                  border: '1px solid var(--color-line-strong)',
+                  background: 'var(--color-card)',
+                  color: 'var(--color-ink)',
+                  display: 'grid',
+                  placeItems: 'center',
+                  cursor: 'pointer',
+                }}
+              >
+                <Share2 size={16} />
+              </button>
+            </div>
+
             {author && project.authorId !== user.id && (
               <div
                 style={{
@@ -502,7 +602,7 @@ export function ProjectDetailPage() {
                 </Link>
                 <div style={{ flex: 1, minWidth: 0, lineHeight: 1.35 }}>
                   <Link
-                    to={`/@${author.username}`}
+                    to={`/creators/${author.username}`}
                     style={{
                       fontFamily: 'var(--font-sans)',
                       fontSize: 14,
@@ -679,41 +779,108 @@ export function ProjectDetailPage() {
                 padding: 20,
               }}
             >
-              <Link
-                to={`/@${author.username}`}
-                style={{ textDecoration: 'none' }}
-              >
-                <h3
-                  style={{
-                    fontFamily: 'var(--font-display)',
-                    fontSize: 20,
-                    fontWeight: 500,
-                    letterSpacing: '-0.012em',
-                    marginBottom: 12,
-                    color: 'var(--color-ink)',
-                  }}
-                >
-                  About {author.displayName}
-                </h3>
-              </Link>
-              <p
+              <div
                 style={{
-                  fontFamily: 'var(--font-sans)',
-                  fontSize: 13,
-                  color: 'var(--color-muted)',
-                  margin: 0,
-                  lineHeight: 1.6,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 12,
+                  marginBottom: 14,
                 }}
               >
-                {author.bio || 'Creator on IDEVRX.'}
-              </p>
+                <Link
+                  to={`/creators/${author.username}`}
+                  style={{
+                    width: 44,
+                    height: 44,
+                    borderRadius: '50%',
+                    background: 'var(--color-accent)',
+                    color: 'var(--color-on-ink)',
+                    display: 'grid',
+                    placeItems: 'center',
+                    fontFamily: 'var(--font-display)',
+                    fontWeight: 500,
+                    fontSize: 17,
+                    textDecoration: 'none',
+                    flexShrink: 0,
+                  }}
+                >
+                  {author.displayName
+                    .split(/\s+/)
+                    .map((w) => w[0])
+                    .join('')
+                    .slice(0, 2)
+                    .toUpperCase()}
+                </Link>
+                <div style={{ minWidth: 0, flex: 1 }}>
+                  <Link
+                    to={`/creators/${author.username}`}
+                    style={{
+                      fontFamily: 'var(--font-display)',
+                      fontSize: 18,
+                      fontWeight: 500,
+                      letterSpacing: '-0.012em',
+                      display: 'block',
+                      color: 'var(--color-ink)',
+                      textDecoration: 'none',
+                      lineHeight: 1.2,
+                    }}
+                  >
+                    {author.displayName}
+                  </Link>
+                  <small
+                    style={{
+                      fontFamily: 'var(--font-sans)',
+                      color: 'var(--color-muted)',
+                      fontSize: 12,
+                      display: 'block',
+                      marginTop: 2,
+                    }}
+                  >
+                    @{author.username}
+                  </small>
+                </div>
+              </div>
+
+              {author.bio && (
+                <p
+                  style={{
+                    fontFamily: 'var(--font-sans)',
+                    fontSize: 13,
+                    color: 'var(--color-ink-subtle)',
+                    marginBottom: 14,
+                    lineHeight: 1.55,
+                  }}
+                >
+                  {author.bio}
+                </p>
+              )}
+
+              <Link
+                to={`/creators/${author.username}`}
+                style={{
+                  display: 'block',
+                  padding: '9px 16px',
+                  border: '1px solid var(--color-line-strong)',
+                  background: 'var(--color-paper)',
+                  color: 'var(--color-ink)',
+                  borderRadius: 6,
+                  fontWeight: 600,
+                  fontSize: 13,
+                  textAlign: 'center',
+                  textDecoration: 'none',
+                  fontFamily: 'var(--font-sans)',
+                }}
+              >
+                View profile
+              </Link>
+
               {isOwner && (
                 <Link
                   to={`/studio/project/${project.id}`}
                   style={{
                     display: 'block',
-                    marginTop: 16,
-                    padding: '10px 16px',
+                    marginTop: 8,
+                    padding: '9px 16px',
                     background: 'var(--color-accent)',
                     color: 'var(--color-on-ink)',
                     borderRadius: 6,
@@ -727,6 +894,85 @@ export function ProjectDetailPage() {
                   Edit project
                 </Link>
               )}
+            </div>
+          )}
+
+          {author && moreFromAuthor.length > 0 && (
+            <div
+              style={{
+                background: 'var(--color-card)',
+                border: '1px solid var(--color-line)',
+                borderRadius: 10,
+                padding: 20,
+              }}
+            >
+              <h3
+                style={{
+                  fontFamily: 'var(--font-display)',
+                  fontSize: 20,
+                  fontWeight: 500,
+                  letterSpacing: '-0.012em',
+                  marginBottom: 14,
+                  color: 'var(--color-ink)',
+                }}
+              >
+                More from {author.displayName.split(' ')[0]}
+              </h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                {moreFromAuthor.map((p) => (
+                  <Link
+                    key={p.id}
+                    to={`/ide/project-${String(p.projectNumber).padStart(3, '0')}/${p.slug}`}
+                    style={{
+                      display: 'flex',
+                      gap: 12,
+                      alignItems: 'center',
+                      padding: '10px 0',
+                      textDecoration: 'none',
+                      color: 'inherit',
+                    }}
+                  >
+                    <span
+                      style={{
+                        width: 84,
+                        aspectRatio: '3 / 2',
+                        borderRadius: 6,
+                        background: 'var(--color-paper-muted)',
+                        flexShrink: 0,
+                      }}
+                    />
+                    <span style={{ minWidth: 0 }}>
+                      <b
+                        style={{
+                          fontFamily: 'var(--font-display)',
+                          lineHeight: 1.25,
+                          fontSize: 15,
+                          fontWeight: 500,
+                          letterSpacing: '-0.01em',
+                          overflow: 'hidden',
+                          display: '-webkit-box',
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: 'vertical',
+                          color: 'var(--color-ink)',
+                        }}
+                      >
+                        {p.title}
+                      </b>
+                      <small
+                        style={{
+                          fontFamily: 'var(--font-sans)',
+                          color: 'var(--color-muted)',
+                          fontSize: 11,
+                          display: 'block',
+                          marginTop: 4,
+                        }}
+                      >
+                        Project {String(p.projectNumber).padStart(3, '0')}
+                      </small>
+                    </span>
+                  </Link>
+                ))}
+              </div>
             </div>
           )}
 
