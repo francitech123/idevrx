@@ -1,7 +1,5 @@
 import { useState } from 'react';
-import { Button } from '@/components/ui/Button';
-import { FileSizeBadge } from './FileSizeBadge';
-import { useDownloadFile } from '@/features/files/useFiles';
+import { fileApi } from '@/features/files/fileApi';
 import type { ProjectFile } from '@/features/files/fileApi';
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -15,6 +13,12 @@ const CATEGORY_LABELS: Record<string, string> = {
   other: 'File',
 };
 
+function formatBytes(b: number): string {
+  if (b < 1024) return `${b} B`;
+  if (b < 1024 * 1024) return `${(b / 1024).toFixed(1)} KB`;
+  return `${(b / (1024 * 1024)).toFixed(1)} MB`;
+}
+
 export function FileCard({
   file,
   projectId,
@@ -26,14 +30,14 @@ export function FileCard({
   onRemove?: () => void;
   canRemove?: boolean;
 }) {
-  const download = useDownloadFile(projectId);
+  const [downloading, setDownloading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function handleDownload() {
     setError(null);
+    setDownloading(true);
     try {
-      const result = await download.mutateAsync(file.id);
-      // Trigger browser download
+      const result = await fileApi.download(projectId, file.id);
       const a = document.createElement('a');
       a.href = result.downloadUrl;
       a.download = result.filename;
@@ -43,45 +47,114 @@ export function FileCard({
       document.body.removeChild(a);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Download failed');
+    } finally {
+      setDownloading(false);
     }
   }
 
   return (
-    <div className="rounded-card border border-border bg-surface p-4">
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0 flex-1">
-          <p className="text-xs font-mono text-brand-primary mb-0.5">
-            {CATEGORY_LABELS[file.category] ?? 'File'}
-          </p>
-          <p className="text-sm font-medium text-text-primary truncate" title={file.originalFilename}>
-            {file.originalFilename}
-          </p>
-          <div className="flex items-center gap-3 mt-1">
-            <FileSizeBadge sizeBytes={file.sizeBytes} />
-            <span className="text-xs text-text-muted truncate">{file.mimeType}</span>
-          </div>
+    <div
+      style={{
+        background: 'var(--color-paper)',
+        border: '1px solid var(--color-line)',
+        borderRadius: 10,
+        padding: 16,
+      }}
+    >
+      <div>
+        <p
+          style={{
+            fontFamily: 'var(--font-sans)',
+            fontSize: 11,
+            fontWeight: 600,
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase',
+            color: 'var(--color-accent)',
+            marginBottom: 4,
+          }}
+        >
+          {CATEGORY_LABELS[file.category] ?? 'File'}
+        </p>
+        <p
+          style={{
+            fontFamily: 'var(--font-sans)',
+            fontSize: 14,
+            fontWeight: 600,
+            color: 'var(--color-ink)',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+            marginBottom: 4,
+          }}
+          title={file.originalFilename}
+        >
+          {file.originalFilename}
+        </p>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+            fontFamily: 'var(--font-sans)',
+            fontSize: 12,
+            color: 'var(--color-muted)',
+          }}
+        >
+          <span>{formatBytes(file.sizeBytes)}</span>
+          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            {file.mimeType}
+          </span>
         </div>
       </div>
 
       {error && (
-        <p className="text-xs text-error mt-2" role="alert">
+        <p
+          style={{
+            fontFamily: 'var(--font-sans)',
+            fontSize: 12,
+            color: 'var(--color-error)',
+            marginTop: 10,
+          }}
+          role="alert"
+        >
           {error}
         </p>
       )}
 
-      <div className="flex gap-2 mt-3">
-        <Button
-          variant="secondary"
-          size="md"
+      <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
+        <button
           onClick={handleDownload}
-          loading={download.isPending}
+          disabled={downloading}
+          style={{
+            padding: '8px 16px',
+            border: '1px solid var(--color-line-strong)',
+            background: 'var(--color-card)',
+            color: 'var(--color-ink)',
+            borderRadius: 6,
+            fontWeight: 600,
+            fontSize: 13,
+            cursor: downloading ? 'wait' : 'pointer',
+            fontFamily: 'var(--font-sans)',
+          }}
         >
-          Download
-        </Button>
+          {downloading ? 'Preparing...' : 'Download'}
+        </button>
         {canRemove && onRemove && (
-          <Button variant="ghost" size="md" onClick={onRemove}>
+          <button
+            onClick={onRemove}
+            style={{
+              padding: '8px 16px',
+              border: 0,
+              background: 'transparent',
+              color: 'var(--color-muted)',
+              fontWeight: 600,
+              fontSize: 13,
+              cursor: 'pointer',
+              fontFamily: 'var(--font-sans)',
+            }}
+          >
             Remove
-          </Button>
+          </button>
         )}
       </div>
     </div>
