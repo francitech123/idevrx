@@ -131,7 +131,16 @@ export const followStatus: RequestHandler = async (req, res, next) => {
     if (!user) throw new AuthRequiredError();
     const result = await FollowService.status(user._id.toString(), param(req.params.id));
     const counts = await FollowService.counts(param(req.params.id));
-    return ok(res, { ...result, ...counts });
+    return ok(res, { following: result.following, followers: counts.followers, followingCount: counts.following });
+  } catch (err) { next(err); }
+};
+export const followStatus: RequestHandler = async (req, res, next) => {
+  try {
+    const user = (req as any).user;
+    if (!user) throw new AuthRequiredError();
+    const result = await FollowService.status(user._id.toString(), param(req.params.id));
+    const counts = await FollowService.counts(param(req.params.id));
+    return ok(res, { following: result.following, followers: counts.followers, followingCount: counts.following });
   } catch (err) { next(err); }
 };
 
