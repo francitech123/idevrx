@@ -1,34 +1,28 @@
 import { useEffect, useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { Heart, MessageCircle, Folder } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
-interface FeedProject {
+interface FollowedCreator {
   id: string;
-  projectNumber: number;
-  slug: string;
-  title: string;
-  shortDescription: string;
-  difficulty: string | null;
-  estimatedBuildTime: string | null;
-  version: string;
-  counts: { views: number; likes: number; bookmarks: number; comments: number };
-  authorId: string;
-  publishedAt: string | null;
+  username: string;
+  displayName: string;
+  bio: string;
+  creatorStatus: string;
+  projectCount: number;
+  followedAt: string;
 }
 
 export function FollowingPage() {
-  const [projects, setProjects] = useState<FeedProject[]>([]);
+  const [creators, setCreators] = useState<FollowedCreator[]>([]);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
 
   useEffect(() => {
     const apiUrl = import.meta.env.VITE_API_URL ?? '';
-    fetch(`${apiUrl}/api/v1/feed?following=true&limit=30`, {
+    fetch(`${apiUrl}/api/v1/me/following?limit=50`, {
       credentials: 'include',
     })
       .then((r) => (r.ok ? r.json() : null))
       .then((body) => {
-        if (body && body.success) setProjects(body.data.items ?? []);
+        if (body && body.success) setCreators(body.data.items ?? []);
       })
       .catch(() => {})
       .finally(() => setLoading(false));
@@ -56,7 +50,7 @@ export function FollowingPage() {
             fontSize: 15,
           }}
         >
-          New builds from creators you follow.
+          Creators you follow.
         </p>
       </div>
 
@@ -64,15 +58,15 @@ export function FollowingPage() {
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-            gap: 20,
+            gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+            gap: 16,
           }}
         >
           {[1, 2, 3].map((i) => (
             <div
               key={i}
               style={{
-                height: 300,
+                height: 160,
                 borderRadius: 10,
                 background: 'var(--color-paper-muted)',
               }}
@@ -81,7 +75,7 @@ export function FollowingPage() {
         </div>
       )}
 
-      {!loading && projects.length === 0 && (
+      {!loading && creators.length === 0 && (
         <div
           style={{
             padding: 60,
@@ -130,125 +124,118 @@ export function FollowingPage() {
         </div>
       )}
 
-      {!loading && projects.length > 0 && (
+      {!loading && creators.length > 0 && (
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-            gap: 20,
+            gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+            gap: 16,
           }}
         >
-          {projects.map((p) => {
-            const url = `/ide/project-${String(p.projectNumber).padStart(3, '0')}/${p.slug}`;
-            return (
-              <article
-                key={p.id}
-                onClick={() => navigate(url)}
-                style={{
-                  background: 'var(--color-card)',
-                  border: '1px solid var(--color-line)',
-                  borderRadius: 10,
-                  overflow: 'hidden',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  flexDirection: 'column',
-                }}
-              >
-                <div
-                  style={{
-                    aspectRatio: '3 / 2',
-                    background: 'var(--color-paper-muted)',
-                    position: 'relative',
-                  }}
-                >
-                  <span
-                    style={{
-                      position: 'absolute',
-                      bottom: 12,
-                      right: 12,
-                      fontFamily: 'var(--font-sans)',
-                      fontSize: 10,
-                      fontWeight: 600,
-                      letterSpacing: '0.08em',
-                      textTransform: 'uppercase',
-                      background: 'var(--color-ink)',
-                      color: 'var(--color-paper)',
-                      padding: '4px 8px',
-                      borderRadius: 4,
-                    }}
-                  >
-                    {p.version}
-                  </span>
-                </div>
-                <div style={{ padding: 18 }}>
-                  <div
-                    style={{
-                      fontFamily: 'var(--font-sans)',
-                      fontSize: 11,
-                      fontWeight: 600,
-                      letterSpacing: '0.06em',
-                      textTransform: 'uppercase',
-                      color: 'var(--color-accent)',
-                      marginBottom: 8,
-                    }}
-                  >
-                    PROJECT {String(p.projectNumber).padStart(3, '0')}
-                  </div>
-                  <h3
-                    style={{
-                      fontFamily: 'var(--font-display)',
-                      fontSize: 21,
-                      fontWeight: 500,
-                      letterSpacing: '-0.012em',
-                      lineHeight: 1.2,
-                      marginBottom: 8,
-                      color: 'var(--color-ink)',
-                    }}
-                  >
-                    {p.title}
-                  </h3>
-                  {p.shortDescription && (
-                    <p
-                      style={{
-                        fontFamily: 'var(--font-sans)',
-                        fontSize: 13.5,
-                        color: 'var(--color-muted)',
-                        lineHeight: 1.55,
-                        marginBottom: 14,
-                        display: '-webkit-box',
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: 'vertical',
-                        overflow: 'hidden',
-                      }}
-                    >
-                      {p.shortDescription}
-                    </p>
-                  )}
-                  <div
-                    style={{
-                      display: 'flex',
-                      gap: 14,
-                      fontFamily: 'var(--font-sans)',
-                      fontSize: 12,
-                      color: 'var(--color-muted)',
-                    }}
-                  >
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                      <Heart size={13} /> {p.counts.likes}
-                    </span>
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                      <MessageCircle size={13} /> {p.counts.comments}
-                    </span>
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                      <Folder size={13} /> {p.counts.bookmarks}
-                    </span>
-                  </div>
-                </div>
-              </article>
-            );
-          })}
+          {creators.map((c) => (
+            <CreatorCard key={c.id} creator={c} />
+          ))}
         </div>
       )}
     </div>
+  );
+}
+
+function CreatorCard({ creator }: { creator: FollowedCreator }) {
+  const initials = creator.displayName
+    .split(/\s+/)
+    .map((w) => w[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase();
+
+  return (
+    <Link
+      to={`/@${creator.username}`}
+      style={{
+        display: 'flex',
+        gap: 16,
+        alignItems: 'flex-start',
+        padding: 20,
+        background: 'var(--color-card)',
+        border: '1px solid var(--color-line)',
+        borderRadius: 10,
+        textDecoration: 'none',
+        color: 'inherit',
+      }}
+    >
+      <div
+        style={{
+          width: 60,
+          height: 60,
+          borderRadius: '50%',
+          background: 'var(--color-accent)',
+          color: 'var(--color-on-ink)',
+          display: 'grid',
+          placeItems: 'center',
+          fontFamily: 'var(--font-display)',
+          fontWeight: 500,
+          fontSize: 22,
+          letterSpacing: '-0.02em',
+          flexShrink: 0,
+        }}
+      >
+        {initials}
+      </div>
+
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <h3
+          style={{
+            fontFamily: 'var(--font-display)',
+            fontSize: 20,
+            fontWeight: 500,
+            letterSpacing: '-0.012em',
+            lineHeight: 1.2,
+            marginBottom: 2,
+            color: 'var(--color-ink)',
+          }}
+        >
+          {creator.displayName}
+        </h3>
+        <p
+          style={{
+            fontFamily: 'var(--font-sans)',
+            fontSize: 12,
+            color: 'var(--color-muted)',
+            marginBottom: 8,
+          }}
+        >
+          @{creator.username}
+        </p>
+
+        {creator.bio && (
+          <p
+            style={{
+              fontFamily: 'var(--font-sans)',
+              fontSize: 13,
+              color: 'var(--color-ink-subtle)',
+              lineHeight: 1.55,
+              marginBottom: 8,
+              overflow: 'hidden',
+              display: '-webkit-box',
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: 'vertical',
+            }}
+          >
+            {creator.bio}
+          </p>
+        )}
+
+        <p
+          style={{
+            fontFamily: 'var(--font-sans)',
+            fontSize: 12,
+            color: 'var(--color-muted)',
+          }}
+        >
+          {creator.projectCount} project{creator.projectCount === 1 ? '' : 's'}
+        </p>
+      </div>
+    </Link>
   );
 }
