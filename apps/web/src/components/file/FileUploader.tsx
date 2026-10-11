@@ -1,7 +1,6 @@
 import { useRef, useState } from 'react';
-import { Button } from '@/components/ui/Button';
-import { fileApi, uploadToPresignedUrl } from '@/features/files/fileApi';
 import { useQueryClient } from '@tanstack/react-query';
+import { fileApi, uploadToPresignedUrl } from '@/features/files/fileApi';
 import { fileKeys } from '@/features/files/useFiles';
 
 const MAX_FILE_SIZE_BYTES = 50 * 1024 * 1024;
@@ -28,7 +27,7 @@ export function FileUploader({ projectId }: { projectId: string }) {
       setState({
         status: 'error',
         filename: file.name,
-        message: `File exceeds the maximum size of 50 MB.`,
+        message: 'File exceeds the maximum size of 50 MB.',
       });
       return;
     }
@@ -40,24 +39,20 @@ export function FileUploader({ projectId }: { projectId: string }) {
     setState({ status: 'preparing', filename: file.name });
 
     try {
-      // 1. Ask server for upload intent
       const intent = await fileApi.createUploadIntent(projectId, {
         originalFilename: file.name,
         mimeType: file.type || 'application/octet-stream',
         sizeBytes: file.size,
       });
 
-      // 2. Upload directly to Supabase Storage
       setState({ status: 'uploading', filename: file.name, percent: 0 });
       await uploadToPresignedUrl(intent.uploadUrl, file, (percent) => {
         setState({ status: 'uploading', filename: file.name, percent });
       });
 
-      // 3. Tell server to finalize
       setState({ status: 'finalizing', filename: file.name });
       await fileApi.finalize(projectId, intent.fileId);
 
-      // 4. Refresh file list
       qc.invalidateQueries({ queryKey: fileKeys.list(projectId) });
 
       setState({ status: 'done', filename: file.name });
@@ -80,51 +75,125 @@ export function FileUploader({ projectId }: { projectId: string }) {
     state.status === 'finalizing';
 
   return (
-    <div className="rounded-card border border-dashed border-border bg-surface p-5">
+    <div
+      style={{
+        background: 'var(--color-card)',
+        border: '1px dashed var(--color-line-strong)',
+        borderRadius: 10,
+        padding: 24,
+      }}
+    >
       <input
         ref={inputRef}
         type="file"
         onChange={onChange}
         className="hidden"
+        style={{ display: 'none' }}
         disabled={busy}
       />
 
-      <div className="flex flex-col items-center text-center">
-        <p className="text-sm font-medium mb-1">Upload a file</p>
-        <p className="text-xs text-text-muted mb-4">
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          textAlign: 'center',
+        }}
+      >
+        <p
+          style={{
+            fontFamily: 'var(--font-display)',
+            fontSize: 18,
+            fontWeight: 500,
+            letterSpacing: '-0.01em',
+            marginBottom: 4,
+            color: 'var(--color-ink)',
+          }}
+        >
+          Upload a file
+        </p>
+        <p
+          style={{
+            fontFamily: 'var(--font-sans)',
+            fontSize: 13,
+            color: 'var(--color-muted)',
+            marginBottom: 18,
+          }}
+        >
           Images, PDFs, CAD, ZIP archives, code. Max 50 MB per file.
         </p>
-        <Button onClick={pick} disabled={busy} loading={busy}>
+        <button
+          onClick={pick}
+          disabled={busy}
+          style={{
+            padding: '11px 22px',
+            background: 'var(--color-accent)',
+            color: 'var(--color-on-ink)',
+            border: 0,
+            borderRadius: 6,
+            fontWeight: 600,
+            fontSize: 14,
+            cursor: busy ? 'wait' : 'pointer',
+            fontFamily: 'var(--font-sans)',
+          }}
+        >
           {busy ? 'Uploading...' : 'Choose file'}
-        </Button>
+        </button>
       </div>
 
       {state.status !== 'idle' && (
-        <div className="mt-4 text-sm">
+        <div
+          style={{
+            marginTop: 18,
+            fontFamily: 'var(--font-sans)',
+            fontSize: 14,
+          }}
+        >
           {state.status === 'preparing' && (
-            <p className="text-text-secondary">Preparing upload for {state.filename}...</p>
+            <p style={{ color: 'var(--color-muted)', margin: 0 }}>
+              Preparing upload for {state.filename}...
+            </p>
           )}
           {state.status === 'uploading' && (
             <div>
-              <p className="text-text-secondary mb-2">
+              <p style={{ color: 'var(--color-muted)', marginBottom: 8 }}>
                 Uploading {state.filename} — {state.percent}%
               </p>
-              <div className="h-1.5 w-full bg-muted rounded-pill overflow-hidden">
+              <div
+                style={{
+                  height: 6,
+                  width: '100%',
+                  background: 'var(--color-paper-muted)',
+                  borderRadius: 999,
+                  overflow: 'hidden',
+                }}
+              >
                 <div
-                  className="h-full bg-brand-primary transition-all"
-                  style={{ width: `${state.percent}%` }}
+                  style={{
+                    height: '100%',
+                    width: `${state.percent}%`,
+                    background: 'var(--color-accent)',
+                    transition: 'width 0.15s',
+                  }}
                 />
               </div>
             </div>
           )}
           {state.status === 'finalizing' && (
-            <p className="text-text-secondary">Finalizing {state.filename}...</p>
+            <p style={{ color: 'var(--color-muted)', margin: 0 }}>
+              Finalizing {state.filename}...
+            </p>
           )}
           {state.status === 'done' && (
-            <p className="text-success">Uploaded {state.filename}.</p>
+            <p style={{ color: 'var(--color-success)', margin: 0 }}>
+              Uploaded {state.filename}.
+            </p>
           )}
           {state.status === 'error' && (
-            <p className="text-error" role="alert">
+            <p
+              style={{ color: 'var(--color-error)', margin: 0 }}
+              role="alert"
+            >
               {state.filename}: {state.message}
             </p>
           )}
