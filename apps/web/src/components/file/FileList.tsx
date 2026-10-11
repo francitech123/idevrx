@@ -13,9 +13,22 @@ export function FileList({
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))',
+          gap: 12,
+        }}
+      >
         {[1, 2].map((i) => (
-          <div key={i} className="h-28 rounded-card border border-border bg-surface animate-pulse" />
+          <div
+            key={i}
+            style={{
+              height: 130,
+              borderRadius: 10,
+              background: 'var(--color-paper-muted)',
+            }}
+          />
         ))}
       </div>
     );
@@ -23,7 +36,17 @@ export function FileList({
 
   if (isError) {
     return (
-      <div className="rounded-card border border-error bg-error/5 p-4 text-sm text-error">
+      <div
+        style={{
+          padding: 18,
+          border: '1px solid var(--color-error)',
+          background: 'var(--color-error-bg)',
+          color: 'var(--color-error)',
+          borderRadius: 8,
+          fontFamily: 'var(--font-sans)',
+          fontSize: 13,
+        }}
+      >
         Could not load files.
       </div>
     );
@@ -31,14 +54,31 @@ export function FileList({
 
   if (!files || files.length === 0) {
     return (
-      <div className="rounded-card border border-border bg-surface p-6 text-center text-sm text-text-secondary">
+      <div
+        style={{
+          padding: 22,
+          textAlign: 'center',
+          fontFamily: 'var(--font-sans)',
+          fontSize: 13,
+          color: 'var(--color-muted)',
+          background: 'var(--color-card)',
+          border: '1px solid var(--color-line)',
+          borderRadius: 8,
+        }}
+      >
         No files yet.
       </div>
     );
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+    <div
+      style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))',
+        gap: 12,
+      }}
+    >
       {files.map((f) => (
         <FileCard
           key={f.id}
