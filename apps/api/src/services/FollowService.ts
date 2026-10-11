@@ -52,4 +52,45 @@ export const FollowService = {
     ]);
     return { followers, following };
   },
+
+  async listFollowing(userId: string, page = 1, limit = 24) {
+    const skip = (page - 1) * limit;
+    const [rows, total] = await Promise.all([
+      Follow.find({ followerId: userId })
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit),
+      Follow.countDocuments({ followerId: userId }),
+    ]);
+
+    const userIds = rows.map((r) => r.followingId);
+    const users = await User.find({ _id: { $in: userIds } }).select(
+      'username displayName bio roles creatorStatus createdAt'
+    );
+    const map = new Map(users.map((u) => [u._id.toString(), u]));
+
+    const items = await Promise.all(
+      rows.map(async (r) => {
+        const u = map.get(r.followingId.toString());
+        if (!u) return null;
+        return {
+          id: u._id.toString(),
+          username: u.username,
+          displayName: u.displayName,
+          bio: u.bio ?? '',
+          roles: u.roles,
+          creatorStatus: u.creatorStatus,
+          followedAt: (r as any).createdAt?.toISOString?.() ?? null,
+        };
+      })
+    );
+
+    return {
+      items: items.filter(Boolean),
+      page,
+      limit,
+      total,
+      hasNextPage: page * limit < total,
+    };
+  },
 };
