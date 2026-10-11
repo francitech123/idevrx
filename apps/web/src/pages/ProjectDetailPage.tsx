@@ -539,7 +539,7 @@ export function ProjectDetailPage() {
                 }}
               >
                 <Link
-                  to={`/@${author.username}`}
+                  to={`/creators/${author.username}`}
                   style={{
                     width: 40,
                     height: 40,
