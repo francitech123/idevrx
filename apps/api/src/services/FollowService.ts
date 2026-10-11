@@ -1,6 +1,7 @@
 import { Follow } from '../models/Follow.js';
 import { User } from '../models/User.js';
 import { Notification } from '../models/Notification.js';
+import { Project } from '../models/Project.js';
 
 export const FollowService = {
   async follow(followerId: string, followingId: string): Promise<{ following: boolean }> {
@@ -53,25 +54,45 @@ export const FollowService = {
     return { followers, following };
   },
 
-  async listFollowing(userId: string, page = 1, limit = 24) {
-    const skip = (page - 1) * limit;
-    const [rows, total] = await Promise.all([
+  async listFollowing(userId: string, page = 1, limit = 30) {
+    const pageNum = Math.max(1, page);
+    const limitNum = Math.min(limit, 50);
+    const skip = (pageNum - 1) * limitNum;
+
+    const [follows, total] = await Promise.all([
       Follow.find({ followerId: userId })
         .sort({ createdAt: -1 })
         .skip(skip)
-        .limit(limit),
+        .limit(limitNum),
       Follow.countDocuments({ followerId: userId }),
     ]);
 
-    const userIds = rows.map((r) => r.followingId);
-    const users = await User.find({ _id: { $in: userIds } }).select(
+    if (follows.length === 0) {
+      return { items: [], page: pageNum, limit: limitNum, total: 0, hasNextPage: false };
+    }
+
+    const followingIds = follows.map((f) => f.followingId);
+    const users = await User.find({ _id: { $in: followingIds } }).select(
       'username displayName bio roles creatorStatus createdAt'
     );
-    const map = new Map(users.map((u) => [u._id.toString(), u]));
+    const userMap = new Map(users.map((u) => [u._id.toString(), u]));
 
-    const items = await Promise.all(
-      rows.map(async (r) => {
-        const u = map.get(r.followingId.toString());
+    const projectCounts = await Promise.all(
+      followingIds.map((id) =>
+        Project.countDocuments({
+          authorId: id,
+          status: { $in: ['published', 'updated'] },
+          visibility: 'public',
+        })
+      )
+    );
+    const projectCountMap = new Map(
+      followingIds.map((id, i) => [id.toString(), projectCounts[i]])
+    );
+
+    const items = follows
+      .map((f) => {
+        const u = userMap.get(f.followingId.toString());
         if (!u) return null;
         return {
           id: u._id.toString(),
@@ -80,17 +101,18 @@ export const FollowService = {
           bio: u.bio ?? '',
           roles: u.roles,
           creatorStatus: u.creatorStatus,
-          followedAt: (r as any).createdAt?.toISOString?.() ?? null,
+          projectCount: projectCountMap.get(f.followingId.toString()) ?? 0,
+          followedAt: f.createdAt.toISOString(),
         };
       })
-    );
+      .filter(Boolean);
 
     return {
-      items: items.filter(Boolean),
-      page,
-      limit,
+      items,
+      page: pageNum,
+      limit: limitNum,
       total,
-      hasNextPage: page * limit < total,
+      hasNextPage: pageNum * limitNum < total,
     };
   },
 };
