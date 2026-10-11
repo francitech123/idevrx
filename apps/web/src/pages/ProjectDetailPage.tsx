@@ -12,6 +12,7 @@ import { StepList } from '@/components/project/StepList';
 import { FileListSection } from '@/components/project/FileListSection';
 import { RelatedProjects } from '@/components/project/RelatedProjects';
 import { CommentSection } from '@/components/project/CommentSection';
+import { Heart, Bookmark, Share2, Code2, MessageCircle } from 'lucide-react';
 
 interface Author {
   id: string;
