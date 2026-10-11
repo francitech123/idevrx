@@ -15,18 +15,20 @@ export function RelatedProjects({ projects }: { projects: RelatedProject[] }) {
   return (
     <div
       style={{
-        background: '#fff',
-        border: '1px solid #E2E8F0',
-        borderRadius: 16,
-        padding: 18,
+        background: 'var(--color-card)',
+        border: '1px solid var(--color-line)',
+        borderRadius: 10,
+        padding: 20,
       }}
     >
       <h3
         style={{
-          fontSize: 15,
-          fontWeight: 700,
-          marginBottom: 12,
-          color: '#0F172A',
+          fontFamily: 'var(--font-display)',
+          fontSize: 20,
+          fontWeight: 500,
+          letterSpacing: '-0.012em',
+          marginBottom: 14,
+          color: 'var(--color-ink)',
         }}
       >
         More like this
@@ -40,7 +42,7 @@ export function RelatedProjects({ projects }: { projects: RelatedProject[] }) {
               display: 'flex',
               gap: 12,
               alignItems: 'center',
-              padding: '9px 0',
+              padding: '10px 0',
               textDecoration: 'none',
               color: 'inherit',
             }}
@@ -48,30 +50,36 @@ export function RelatedProjects({ projects }: { projects: RelatedProject[] }) {
             <span
               style={{
                 width: 84,
-                aspectRatio: '16/10',
-                borderRadius: 8,
-                background: 'linear-gradient(135deg, #0A1225 0%, #1E293B 100%)',
+                aspectRatio: '3 / 2',
+                borderRadius: 6,
+                background: 'var(--color-paper-muted)',
                 flexShrink: 0,
               }}
             />
             <span style={{ minWidth: 0 }}>
               <b
                 style={{
-                  lineHeight: 1.3,
-                  fontSize: 13,
+                  fontFamily: 'var(--font-display)',
+                  lineHeight: 1.25,
+                  fontSize: 16,
+                  fontWeight: 500,
+                  letterSpacing: '-0.01em',
                   overflow: 'hidden',
                   display: '-webkit-box',
                   WebkitLineClamp: 2,
                   WebkitBoxOrient: 'vertical',
+                  color: 'var(--color-ink)',
                 }}
               >
                 {p.title}
               </b>
               <small
                 style={{
-                  color: '#64748B',
+                  fontFamily: 'var(--font-sans)',
+                  color: 'var(--color-muted)',
                   fontSize: 11,
                   display: 'block',
+                  marginTop: 4,
                 }}
               >
                 Project {String(p.projectNumber).padStart(3, '0')}
