@@ -99,17 +99,40 @@ export function CourseDetailPage() {
 
   if (loading) {
     return (
-      <div style={{ padding: 40, color: '#64748B' }}>Loading course...</div>
+      <div
+        style={{
+          padding: 40,
+          color: 'var(--color-muted)',
+          fontFamily: 'var(--font-sans)',
+        }}
+      >
+        Loading course...
+      </div>
     );
   }
 
   if (error || !course) {
     return (
       <div style={{ padding: 40, textAlign: 'center' }}>
-        <h2 style={{ marginBottom: 12 }}>Course not found</h2>
+        <h2
+          style={{
+            fontFamily: 'var(--font-display)',
+            fontSize: 28,
+            fontWeight: 500,
+            marginBottom: 14,
+            color: 'var(--color-ink)',
+          }}
+        >
+          Course not found
+        </h2>
         <Link
           to="/learning-hub"
-          style={{ color: '#2563EB', textDecoration: 'none' }}
+          style={{
+            color: 'var(--color-accent)',
+            textDecoration: 'none',
+            fontFamily: 'var(--font-sans)',
+            fontWeight: 600,
+          }}
         >
           Back to Learning Hub
         </Link>
@@ -137,14 +160,15 @@ export function CourseDetailPage() {
           alignItems: 'center',
           gap: 8,
           padding: '9px 16px',
-          border: '1px solid #E2E8F0',
-          background: '#fff',
-          borderRadius: 10,
+          border: '1px solid var(--color-line)',
+          background: 'var(--color-card)',
+          borderRadius: 6,
           cursor: 'pointer',
-          fontFamily: 'inherit',
+          fontFamily: 'var(--font-sans)',
           fontWeight: 600,
           fontSize: 13,
-          marginBottom: 20,
+          marginBottom: 22,
+          color: 'var(--color-ink)',
         }}
       >
         <ArrowLeft size={14} /> All courses
@@ -152,36 +176,49 @@ export function CourseDetailPage() {
 
       <div
         style={{
-          background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)',
-          color: '#fff',
-          borderRadius: 22,
+          background: 'var(--color-ink)',
+          color: 'var(--color-paper)',
+          borderRadius: 12,
           padding: 'clamp(24px, 4vw, 44px)',
-          marginBottom: 24,
+          marginBottom: 26,
+          border: '1px solid var(--color-line)',
         }}
       >
         <div
           style={{
-            fontFamily: 'var(--font-mono)',
+            fontFamily: 'var(--font-sans)',
             fontSize: 11,
+            fontWeight: 600,
             letterSpacing: '0.16em',
             textTransform: 'uppercase',
-            color: '#67E8F9',
-            marginBottom: 12,
+            color: 'var(--color-accent)',
+            marginBottom: 14,
           }}
         >
-          {course.category || 'COURSE'}
+          {course.category || 'Course'}
         </div>
         <h1
           style={{
-            fontSize: 'clamp(24px, 3.6vw, 44px)',
-            fontWeight: 700,
-            letterSpacing: '-0.025em',
-            marginBottom: 12,
+            fontFamily: 'var(--font-display)',
+            fontSize: 'clamp(28px, 3.6vw, 44px)',
+            fontWeight: 500,
+            letterSpacing: '-0.02em',
+            marginBottom: 14,
+            color: 'var(--color-paper)',
           }}
         >
           {course.title}
         </h1>
-        <p style={{ color: '#AAB8C4', maxWidth: '60ch', marginBottom: 20 }}>
+        <p
+          style={{
+            color: 'rgba(246, 241, 231, 0.75)',
+            maxWidth: '60ch',
+            marginBottom: 22,
+            fontFamily: 'var(--font-sans)',
+            fontSize: 16,
+            lineHeight: 1.6,
+          }}
+        >
           {course.description}
         </p>
 
@@ -191,14 +228,13 @@ export function CourseDetailPage() {
             disabled={actionBusy}
             style={{
               padding: '11px 22px',
-              background:
-                'linear-gradient(135deg, #06B6D4 0%, #2563EB 55%, #7C3AED 100%)',
-              color: '#fff',
+              background: 'var(--color-accent)',
+              color: 'var(--color-on-ink)',
               border: 0,
-              borderRadius: 10,
+              borderRadius: 6,
               fontWeight: 600,
               cursor: actionBusy ? 'wait' : 'pointer',
-              fontFamily: 'inherit',
+              fontFamily: 'var(--font-sans)',
             }}
           >
             {actionBusy ? 'Enrolling...' : 'Enroll in course'}
@@ -210,10 +246,10 @@ export function CourseDetailPage() {
             <div
               style={{
                 height: 6,
-                background: 'rgba(255,255,255,0.15)',
-                borderRadius: 99,
+                background: 'rgba(246, 241, 231, 0.15)',
+                borderRadius: 999,
                 overflow: 'hidden',
-                marginBottom: 10,
+                marginBottom: 12,
                 maxWidth: 400,
               }}
             >
@@ -221,27 +257,33 @@ export function CourseDetailPage() {
                 style={{
                   height: '100%',
                   width: `${percent}%`,
-                  background:
-                    'linear-gradient(135deg, #06B6D4 0%, #2563EB 55%, #7C3AED 100%)',
+                  background: 'var(--color-accent)',
                 }}
               />
             </div>
-            <div style={{ fontSize: 13, color: '#AAB8C4' }}>
+            <div
+              style={{
+                fontFamily: 'var(--font-sans)',
+                fontSize: 13,
+                color: 'rgba(246, 241, 231, 0.75)',
+              }}
+            >
               {course.enrollment.completedCount} of {course.enrollment.totalLessons} lessons · {percent}%
             </div>
             {course.enrollment.certificateIssuedAt && (
               <div
                 style={{
-                  marginTop: 14,
+                  marginTop: 16,
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: 8,
                   padding: '8px 14px',
-                  background: 'rgba(22, 163, 74, 0.15)',
-                  color: '#4ADE80',
-                  borderRadius: 99,
+                  background: 'rgba(63, 110, 74, 0.25)',
+                  color: '#A0D9A8',
+                  borderRadius: 999,
                   fontSize: 13,
                   fontWeight: 600,
+                  fontFamily: 'var(--font-sans)',
                 }}
               >
                 <Award size={14} /> Certificate issued
@@ -253,18 +295,34 @@ export function CourseDetailPage() {
 
       <div
         style={{
-          background: '#fff',
-          border: '1px solid #E2E8F0',
-          borderRadius: 16,
-          padding: 20,
+          background: 'var(--color-card)',
+          border: '1px solid var(--color-line)',
+          borderRadius: 10,
+          padding: 22,
         }}
       >
-        <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 16 }}>
+        <h2
+          style={{
+            fontFamily: 'var(--font-display)',
+            fontSize: 22,
+            fontWeight: 500,
+            letterSpacing: '-0.012em',
+            marginBottom: 18,
+            color: 'var(--color-ink)',
+          }}
+        >
           Curriculum
         </h2>
 
         {course.lessons.length === 0 && (
-          <p style={{ color: '#64748B' }}>No lessons in this course yet.</p>
+          <p
+            style={{
+              color: 'var(--color-muted)',
+              fontFamily: 'var(--font-sans)',
+            }}
+          >
+            No lessons in this course yet.
+          </p>
         )}
 
         {course.lessons.map((lesson) => (
@@ -275,22 +333,42 @@ export function CourseDetailPage() {
               justifyContent: 'space-between',
               alignItems: 'center',
               gap: 16,
-              padding: '13px 0',
-              borderBottom: '1px solid #E2E8F0',
+              padding: '14px 0',
+              borderBottom: '1px solid var(--color-line)',
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               {lesson.completed ? (
-                <CheckCircle2 size={20} style={{ color: '#16A34A', flexShrink: 0 }} />
+                <CheckCircle2
+                  size={20}
+                  style={{ color: 'var(--color-success)', flexShrink: 0 }}
+                />
               ) : (
-                <Circle size={20} style={{ color: '#CBD5E1', flexShrink: 0 }} />
+                <Circle
+                  size={20}
+                  style={{ color: 'var(--color-line-strong)', flexShrink: 0 }}
+                />
               )}
               <div>
-                <div style={{ fontWeight: 600, fontSize: 14 }}>
+                <div
+                  style={{
+                    fontFamily: 'var(--font-sans)',
+                    fontWeight: 600,
+                    fontSize: 14,
+                    color: 'var(--color-ink)',
+                  }}
+                >
                   {lesson.order}. {lesson.title}
                 </div>
                 {lesson.description && (
-                  <div style={{ fontSize: 12, color: '#64748B', marginTop: 2 }}>
+                  <div
+                    style={{
+                      fontFamily: 'var(--font-sans)',
+                      fontSize: 12,
+                      color: 'var(--color-muted)',
+                      marginTop: 2,
+                    }}
+                  >
                     {lesson.description}
                   </div>
                 )}
@@ -302,13 +380,14 @@ export function CourseDetailPage() {
                 disabled={actionBusy}
                 style={{
                   padding: '7px 14px',
-                  border: '1px solid #E2E8F0',
-                  background: '#fff',
-                  borderRadius: 10,
+                  border: '1px solid var(--color-line-strong)',
+                  background: 'var(--color-paper)',
+                  borderRadius: 6,
                   fontWeight: 600,
                   fontSize: 12,
                   cursor: actionBusy ? 'wait' : 'pointer',
-                  fontFamily: 'inherit',
+                  fontFamily: 'var(--font-sans)',
+                  color: 'var(--color-ink)',
                 }}
               >
                 Mark complete
@@ -317,8 +396,9 @@ export function CourseDetailPage() {
             {lesson.completed && (
               <span
                 style={{
+                  fontFamily: 'var(--font-sans)',
                   fontSize: 12,
-                  color: '#16A34A',
+                  color: 'var(--color-success)',
                   fontWeight: 600,
                 }}
               >
@@ -331,19 +411,19 @@ export function CourseDetailPage() {
         {course.enrollment.enrolled &&
           allLessonsDone &&
           !course.enrollment.passedAssessmentAt && (
-            <div style={{ marginTop: 20 }}>
+            <div style={{ marginTop: 22 }}>
               <button
                 onClick={passAssessment}
                 disabled={actionBusy}
                 style={{
                   padding: '11px 22px',
-                  background: '#16A34A',
-                  color: '#fff',
+                  background: 'var(--color-success)',
+                  color: 'var(--color-on-ink)',
                   border: 0,
-                  borderRadius: 10,
+                  borderRadius: 6,
                   fontWeight: 600,
                   cursor: actionBusy ? 'wait' : 'pointer',
-                  fontFamily: 'inherit',
+                  fontFamily: 'var(--font-sans)',
                 }}
               >
                 {actionBusy ? 'Submitting...' : 'Pass assessment & get certificate'}
