@@ -1,8 +1,14 @@
 import type { RequestHandler } from 'express';
 import { User } from '../models/User.js';
 import { UserPreferences } from '../models/UserPreferences.js';
+import { ProfileService } from '../services/ProfileService.js';
 import { ok } from '../utils/apiResponse.js';
-import { AuthRequiredError, ValidationError, NotFoundError } from '../utils/errors.js';
+import { AuthRequiredError, ValidationError } from '../utils/errors.js';
+
+function param(value: string | string[] | undefined): string {
+  if (Array.isArray(value)) return value[0] ?? '';
+  return value ?? '';
+}
 
 function toPublicProfile(u: any) {
   return {
@@ -67,7 +73,10 @@ export const updatePreferences: RequestHandler = async (req, res, next) => {
 
     const body = req.body ?? {};
 
-    const setSection = (section: 'notifications' | 'playback' | 'privacy' | 'appearance', patch: any) => {
+    const setSection = (
+      section: 'notifications' | 'playback' | 'privacy' | 'appearance',
+      patch: any
+    ) => {
       if (!patch || typeof patch !== 'object') return;
       for (const [key, value] of Object.entries(patch)) {
         prefs!.set(`${section}.${key}`, value);
@@ -86,14 +95,28 @@ export const updatePreferences: RequestHandler = async (req, res, next) => {
 
 export const getPublicProfile: RequestHandler = async (req, res, next) => {
   try {
-    const key = req.params.username as string;
-    let user;
-    if (/^[0-9a-fA-F]{24}$/.test(key)) {
-      user = await User.findById(key);
-    } else {
-      user = await User.findOne({ username: key });
-    }
-    if (!user) throw new NotFoundError();
-    return ok(res, { profile: toPublicProfile(user) });
+    const user = (req as any).user;
+    const result = await ProfileService.getByUsernameOrId(
+      param(req.params.username),
+      user ? { id: user._id.toString() } : null
+    );
+    return ok(res, result);
+  } catch (err) { next(err); }
+};
+
+export const listCreatorProjects: RequestHandler = async (req, res, next) => {
+  try {
+    const query = (req as any).validatedQuery ?? {};
+    const result = await ProfileService.listProjects(
+      param(req.params.username),
+      query.page ?? 1,
+      query.limit ?? 12
+    );
+    return ok(res, { items: result.items }, {
+      page: result.page,
+      limit: result.limit,
+      total: result.total,
+      hasNextPage: result.hasNextPage,
+    });
   } catch (err) { next(err); }
 };
