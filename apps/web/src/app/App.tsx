@@ -7,6 +7,7 @@ import { ExplorePage } from '@/pages/ExplorePage';
 import { CreatorProfilePage } from '@/pages/CreatorProfilePage';
 import { ProjectDetailPage } from '@/pages/ProjectDetailPage';
 import { LoginPage } from '@/pages/LoginPage';
+import { CreatorProfilePage } from '@/pages/CreatorProfilePage';
 import { RegisterPage } from '@/pages/RegisterPage';
 import { SettingsPage } from '@/pages/SettingsPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
