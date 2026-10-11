@@ -11,6 +11,7 @@ export function ExplorePage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const category = searchParams.get('category') ?? '';
+  const query = searchParams.get('q') ?? '';
 
   const [page, setPage] = useState(1);
   const isGuest = !authLoading && !user;
@@ -24,6 +25,14 @@ export function ExplorePage() {
 
   const projects = data?.items ?? [];
 
+  const filtered = query.trim()
+    ? projects.filter((p) =>
+        (p.title + ' ' + p.shortDescription)
+          .toLowerCase()
+          .includes(query.trim().toLowerCase())
+      )
+    : projects;
+
   return (
     <div className="idx-block">
       <div className="idx-container">
@@ -31,7 +40,11 @@ export function ExplorePage() {
           <div className="idx-section-head-left">
             <div className="idx-eyebrow">Explore</div>
             <h1 className="idx-section-title">
-              {category ? `Domain: ${category}` : 'Explore engineering projects'}
+              {query
+                ? `Results for "${query}"`
+                : category
+                ? `Domain: ${category}`
+                : 'Explore engineering projects'}
             </h1>
             <p className="idx-section-sub">
               {isGuest
@@ -44,11 +57,22 @@ export function ExplorePage() {
         {isLoading && (
           <div className="idx-projects-grid">
             {[1, 2, 3, 4, 5, 6].map((i) => (
-              <div key={i} className="idx-project-card">
-                <div className="idx-project-image" />
-                <div className="idx-project-body">
-                  <div style={{ height: 60 }} />
-                </div>
+              <div
+                key={i}
+                style={{
+                  borderRadius: 'var(--radius-card)',
+                  overflow: 'hidden',
+                  border: '1px solid var(--color-line)',
+                  background: 'var(--color-card)',
+                }}
+              >
+                <div
+                  style={{
+                    aspectRatio: '3 / 2',
+                    background: 'var(--color-paper-muted)',
+                  }}
+                />
+                <div style={{ padding: 18, height: 100 }} />
               </div>
             ))}
           </div>
@@ -56,42 +80,60 @@ export function ExplorePage() {
 
         {isError && (
           <div className="idx-empty-projects">
-            <p>Could not load projects. Please try again.</p>
+            <p
+              style={{
+                fontFamily: 'var(--font-sans)',
+                color: 'var(--color-muted)',
+              }}
+            >
+              Could not load projects. Please try again.
+            </p>
           </div>
         )}
 
-        {!isLoading && !isError && projects.length === 0 && (
+        {!isLoading && !isError && filtered.length === 0 && (
           <div className="idx-empty-projects">
             <p
               style={{
-                fontFamily: 'var(--font-mono)',
+                fontFamily: 'var(--font-sans)',
                 fontSize: 11,
                 letterSpacing: '0.18em',
                 textTransform: 'uppercase',
-                color: 'var(--color-text-muted)',
+                color: 'var(--color-muted)',
                 marginBottom: 12,
               }}
             >
               No projects yet
             </p>
-            <p style={{ marginBottom: 24 }}>
+            <p
+              style={{
+                fontFamily: 'var(--font-sans)',
+                color: 'var(--color-muted)',
+                marginBottom: 22,
+              }}
+            >
               Be the first to publish an engineering record.
             </p>
-            <Link to="/register?intent=creator" className="idx-btn idx-btn-primary">
+            <Link
+              to="/register?intent=creator"
+              className="idx-btn idx-btn-primary"
+            >
               Become a Creator →
             </Link>
           </div>
         )}
 
-        {!isLoading && !isError && projects.length > 0 && (
+        {!isLoading && !isError && filtered.length > 0 && (
           <div className="idx-projects-grid">
-            {projects.map((p) => {
+            {filtered.map((p) => {
               const cardUrl = `/ide/project-${String(p.projectNumber).padStart(3, '0')}/${p.slug}`;
               if (isGuest) {
                 return (
                   <div
                     key={p.id}
-                    onClick={() => navigate('/login', { state: { from: cardUrl } })}
+                    onClick={() =>
+                      navigate('/login', { state: { from: cardUrl } })
+                    }
                     style={{ cursor: 'pointer' }}
                   >
                     <ProjectCard project={p} />
@@ -103,27 +145,32 @@ export function ExplorePage() {
           </div>
         )}
 
-        {!isLoading && projects.length > 0 && (
+        {!isLoading && !isError && filtered.length > 0 && (
           <div
             style={{
               display: 'flex',
               justifyContent: 'center',
-              gap: 8,
+              gap: 10,
               marginTop: 40,
+              alignItems: 'center',
             }}
           >
             <button
               className="idx-btn idx-btn-outline"
               disabled={page <= 1}
               onClick={() => setPage((p) => Math.max(1, p - 1))}
+              style={{
+                opacity: page <= 1 ? 0.4 : 1,
+                cursor: page <= 1 ? 'not-allowed' : 'pointer',
+              }}
             >
               Previous
             </button>
             <span
               style={{
-                alignSelf: 'center',
+                fontFamily: 'var(--font-sans)',
                 fontSize: 14,
-                color: 'var(--color-text-muted)',
+                color: 'var(--color-muted)',
               }}
             >
               Page {page}
@@ -132,6 +179,10 @@ export function ExplorePage() {
               className="idx-btn idx-btn-outline"
               disabled={!data?.hasNextPage}
               onClick={() => setPage((p) => p + 1)}
+              style={{
+                opacity: !data?.hasNextPage ? 0.4 : 1,
+                cursor: !data?.hasNextPage ? 'not-allowed' : 'pointer',
+              }}
             >
               Next
             </button>
