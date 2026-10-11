@@ -1,62 +1,14 @@
-import { useState } from 'react';
-import { Download } from 'lucide-react';
-
-interface ProjectFile {
+interface Step {
   id: string;
-  originalFilename: string;
-  mimeType: string;
-  sizeBytes: number;
-  category: string;
-  downloadEnabled: boolean;
+  stepNumber: number;
+  title: string;
+  body: string;
+  mediaFileIds: string[];
+  warnings: string[];
 }
 
-function extBadge(filename: string): string {
-  const ext = filename.split('.').pop()?.toUpperCase() ?? 'FILE';
-  return ext.length > 4 ? ext.slice(0, 4) : ext;
-}
-
-function formatBytes(b: number): string {
-  if (b < 1024) return `${b} B`;
-  if (b < 1024 * 1024) return `${(b / 1024).toFixed(1)} KB`;
-  return `${(b / (1024 * 1024)).toFixed(1)} MB`;
-}
-
-export function FileListSection({
-  files,
-  projectId,
-  canDownload,
-}: {
-  files: ProjectFile[];
-  projectId: string;
-  canDownload: boolean;
-}) {
-  const [busy, setBusy] = useState<string | null>(null);
-
-  async function download(fileId: string) {
-    setBusy(fileId);
-    const apiUrl = import.meta.env.VITE_API_URL ?? '';
-    try {
-      const res = await fetch(
-        `${apiUrl}/api/v1/projects/${projectId}/files/${fileId}/download`,
-        { credentials: 'include' }
-      );
-      if (!res.ok) return;
-      const body = await res.json();
-      if (body.success && body.data.downloadUrl) {
-        const a = document.createElement('a');
-        a.href = body.data.downloadUrl;
-        a.download = body.data.filename;
-        a.rel = 'noopener';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-      }
-    } finally {
-      setBusy(null);
-    }
-  }
-
-  if (files.length === 0) {
+export function StepList({ steps }: { steps: Step[] }) {
+  if (steps.length === 0) {
     return (
       <p
         style={{
@@ -66,92 +18,97 @@ export function FileListSection({
           fontFamily: 'var(--font-sans)',
         }}
       >
-        No files attached to this project yet.
+        No build steps yet.
       </p>
     );
   }
 
   return (
-    <div>
-      {files.map((f, idx) => (
-        <div
-          key={f.id}
+    <ol
+      style={{
+        display: 'grid',
+        gap: 14,
+        padding: 0,
+        margin: 0,
+        listStyle: 'none',
+      }}
+    >
+      {steps.map((s) => (
+        <li
+          key={s.id}
           style={{
-            display: 'flex',
+            display: 'grid',
+            gridTemplateColumns: '34px 1fr',
             gap: 12,
-            alignItems: 'center',
-            padding: '12px 0',
-            borderBottom:
-              idx < files.length - 1 ? '1px solid var(--color-line)' : 'none',
           }}
         >
           <span
             style={{
-              width: 40,
-              height: 40,
-              borderRadius: 8,
-              background: 'var(--color-paper)',
-              color: 'var(--color-accent)',
+              width: 30,
+              height: 30,
+              borderRadius: '50%',
+              background: 'var(--color-accent)',
+              color: 'var(--color-on-ink)',
               display: 'grid',
               placeItems: 'center',
-              fontFamily: 'var(--font-mono)',
-              fontSize: 10,
+              fontFamily: 'var(--font-display)',
               fontWeight: 500,
+              fontSize: 14,
               flexShrink: 0,
-              border: '1px solid var(--color-line)',
             }}
           >
-            {extBadge(f.originalFilename)}
+            {s.stepNumber}
           </span>
-          <div style={{ flex: 1, minWidth: 0, lineHeight: 1.35 }}>
+          <div>
             <b
               style={{
-                fontFamily: 'var(--font-sans)',
+                fontFamily: 'var(--font-display)',
                 display: 'block',
-                fontSize: 14,
+                lineHeight: 1.3,
+                fontSize: 18,
+                fontWeight: 500,
+                letterSpacing: '-0.012em',
                 color: 'var(--color-ink)',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
               }}
             >
-              {f.originalFilename}
+              {s.title}
             </b>
-            <small
-              style={{
-                fontFamily: 'var(--font-sans)',
-                display: 'block',
-                color: 'var(--color-muted)',
-                fontSize: 12,
-                marginTop: 2,
-              }}
-            >
-              {f.category} · {formatBytes(f.sizeBytes)}
-            </small>
+            {s.body && (
+              <span
+                style={{
+                  fontFamily: 'var(--font-sans)',
+                  color: 'var(--color-ink-subtle)',
+                  fontSize: 14,
+                  lineHeight: 1.65,
+                  display: 'block',
+                  marginTop: 4,
+                  whiteSpace: 'pre-wrap',
+                }}
+              >
+                {s.body}
+              </span>
+            )}
+            {s.warnings.length > 0 && (
+              <div
+                style={{
+                  marginTop: 10,
+                  padding: '8px 12px',
+                  background: 'var(--color-warning-bg)',
+                  border: '1px solid var(--color-warning)',
+                  borderRadius: 6,
+                  fontFamily: 'var(--font-sans)',
+                  fontSize: 13,
+                  color: 'var(--color-warning)',
+                }}
+              >
+                {s.warnings.map((w, i) => (
+                  <div key={i}>⚠ {w}</div>
+                ))}
+              </div>
+            )}
           </div>
-          {(f.downloadEnabled || canDownload) && (
-            <button
-              onClick={() => download(f.id)}
-              disabled={busy === f.id}
-              aria-label={`Download ${f.originalFilename}`}
-              style={{
-                width: 36,
-                height: 36,
-                borderRadius: '50%',
-                border: '1px solid var(--color-line)',
-                background: 'var(--color-paper)',
-                color: 'var(--color-ink)',
-                display: 'grid',
-                placeItems: 'center',
-                cursor: busy === f.id ? 'wait' : 'pointer',
-                flexShrink: 0,
-              }}
-            >
-              <Download size={15} />
-            </button>
-          )}
-        </div>
+        </li>
       ))}
-    </div>
+    </ol>
   );
 }
