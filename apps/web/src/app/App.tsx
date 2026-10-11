@@ -80,9 +80,7 @@ export default function App() {
         <Route path="/explore" element={<ExplorePage />} />
         <Route path="/ide/:projectNumber/:slug" element={<ProjectDetailPage />} />
 
-        <Route path="/@:username" element={<CreatorProfilePage />} />
         <Route path="/creators/:username" element={<CreatorProfilePage />} />
-
         <Route path="/about" element={<AboutPage />} />
         <Route path="/contact" element={<ContactPage />} />
         <Route path="/help" element={<HelpPage />} />
