@@ -132,34 +132,42 @@ export function ProjectDetailPage() {
         setLikesCount(p.counts.likes);
         setBookmarksCount(p.counts.bookmarks);
 
-        const [authorRes, filesRes, commentsRes, compRes, stepsRes, codeRes, relRes, authorProjectsRes] =
-          await Promise.all([
-            fetch(`${apiUrl}/api/v1/profiles/${p.authorId}`, {
-              credentials: 'include',
-            }).catch(() => null),
-            fetch(`${apiUrl}/api/v1/projects/${p.id}/files`, {
-              credentials: 'include',
-            }).catch(() => null),
-            fetch(`${apiUrl}/api/v1/projects/${p.id}/comments`, {
-              credentials: 'include',
-            }).catch(() => null),
-            fetch(`${apiUrl}/api/v1/projects/${p.id}/components`, {
-              credentials: 'include',
-            }).catch(() => null),
-            fetch(`${apiUrl}/api/v1/projects/${p.id}/steps`, {
-              credentials: 'include',
-            }).catch(() => null),
-            fetch(`${apiUrl}/api/v1/projects/${p.id}/code`, {
-              credentials: 'include',
-            }).catch(() => null),
-            fetch(
-              `${apiUrl}/api/v1/projects?categoryId=${p.categoryId ?? ''}&limit=4`,
-              { credentials: 'include' }
-            ).catch(() => null),
-            fetch(`${apiUrl}/api/v1/profiles/${p.authorId}/projects?limit=6`, {
-              credentials: 'include',
-            }).catch(() => null),
-          ]);
+        const [
+          authorRes,
+          filesRes,
+          commentsRes,
+          compRes,
+          stepsRes,
+          codeRes,
+          relRes,
+          authorProjectsRes,
+        ] = await Promise.all([
+          fetch(`${apiUrl}/api/v1/profiles/${p.authorId}`, {
+            credentials: 'include',
+          }).catch(() => null),
+          fetch(`${apiUrl}/api/v1/projects/${p.id}/files`, {
+            credentials: 'include',
+          }).catch(() => null),
+          fetch(`${apiUrl}/api/v1/projects/${p.id}/comments`, {
+            credentials: 'include',
+          }).catch(() => null),
+          fetch(`${apiUrl}/api/v1/projects/${p.id}/components`, {
+            credentials: 'include',
+          }).catch(() => null),
+          fetch(`${apiUrl}/api/v1/projects/${p.id}/steps`, {
+            credentials: 'include',
+          }).catch(() => null),
+          fetch(`${apiUrl}/api/v1/projects/${p.id}/code`, {
+            credentials: 'include',
+          }).catch(() => null),
+          fetch(
+            `${apiUrl}/api/v1/projects?categoryId=${p.categoryId ?? ''}&limit=4`,
+            { credentials: 'include' }
+          ).catch(() => null),
+          fetch(`${apiUrl}/api/v1/profiles/${p.authorId}/projects?limit=6`, {
+            credentials: 'include',
+          }).catch(() => null),
+        ]);
 
         if (authorRes?.ok) {
           const b = await authorRes.json();
@@ -933,68 +941,3 @@ export function ProjectDetailPage() {
                     }}
                   >
                     <span
-                      style={{
-                        width: 84,
-                        aspectRatio: '3 / 2',
-                        borderRadius: 6,
-                        background: 'var(--color-paper-muted)',
-                        flexShrink: 0,
-                      }}
-                    />
-                    <span style={{ minWidth: 0 }}>
-                      <b
-                        style={{
-                          fontFamily: 'var(--font-display)',
-                          lineHeight: 1.25,
-                          fontSize: 15,
-                          fontWeight: 500,
-                          letterSpacing: '-0.01em',
-                          overflow: 'hidden',
-                          display: '-webkit-box',
-                          WebkitLineClamp: 2,
-                          WebkitBoxOrient: 'vertical',
-                          color: 'var(--color-ink)',
-                        }}
-                      >
-                        {p.title}
-                      </b>
-                      <small
-                        style={{
-                          fontFamily: 'var(--font-sans)',
-                          color: 'var(--color-muted)',
-                          fontSize: 11,
-                          display: 'block',
-                          marginTop: 4,
-                        }}
-                      >
-                        Project {String(p.projectNumber).padStart(3, '0')}
-                      </small>
-                    </span>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          )}
-
-          <RelatedProjects projects={related} />
-        </aside>
-      </div>
-
-      {openCode && (
-        <CodeDialog
-          open={!!openCode}
-          filename={openCode.filename}
-          code={openCode.code}
-          onClose={() => setOpenCode(null)}
-        />
-      )}
-
-      <style>{`
-        @media (max-width: 1180px) {
-          .project-layout { grid-template-columns: 1fr !important; }
-          .project-aside { position: static !important; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); }
-        }
-      `}</style>
-    </div>
-  );
-}
