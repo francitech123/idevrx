@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { Navigate } from 'react-router-dom';
-import { Button } from '@/components/ui/Button';
 import { useCurrentUser } from '@/features/auth/useAuth';
 import { useReviewList, useReviewApplication } from '@/features/creator/useCreator';
 import type { CreatorApplicationForReview } from '@/features/creator/creatorApi';
@@ -19,8 +18,15 @@ export function AdminCreatorApplicationsPage() {
 
   if (authLoading) {
     return (
-      <div className="max-w-container mx-auto px-6 py-12">
-        <div className="h-8 w-48 bg-muted rounded animate-pulse" />
+      <div className="idx-page">
+        <div
+          style={{
+            height: 32,
+            width: 200,
+            background: 'var(--color-paper-muted)',
+            borderRadius: 6,
+          }}
+        />
       </div>
     );
   }
@@ -31,49 +37,108 @@ export function AdminCreatorApplicationsPage() {
   const applications = data?.applications ?? [];
 
   return (
-    <div className="max-w-container mx-auto px-6 py-12">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold mb-2">Creator applications</h1>
-        <p className="text-text-secondary text-sm">
-          Review requests from Registered Users who want to become Creators.
-        </p>
-      </div>
+    <div className="idx-page" style={{ maxWidth: 900 }}>
+      <div className="idx-eyebrow">Moderation</div>
+      <h1
+        style={{
+          fontFamily: 'var(--font-display)',
+          fontSize: 'clamp(32px, 4.2vw, 48px)',
+          fontWeight: 500,
+          letterSpacing: '-0.02em',
+          lineHeight: 1.08,
+          margin: '14px 0 12px',
+          color: 'var(--color-ink)',
+        }}
+      >
+        Creator applications
+      </h1>
+      <p
+        style={{
+          fontFamily: 'var(--font-sans)',
+          color: 'var(--color-muted)',
+          fontSize: 16,
+          marginBottom: 32,
+        }}
+      >
+        Review requests from Registered Users who want to become Creators.
+      </p>
 
-      <div className="flex gap-2 mb-6">
+      <div
+        style={{
+          display: 'flex',
+          gap: 8,
+          marginBottom: 28,
+          borderBottom: '1px solid var(--color-line)',
+        }}
+      >
         {(['pending', 'approved', 'denied'] as const).map((s) => (
           <button
             key={s}
             onClick={() => setStatus(s)}
-            className={
-              'px-3 py-1.5 text-sm rounded-button border transition-colors ' +
-              (status === s
-                ? 'bg-brand-primary text-white border-brand-primary'
-                : 'bg-surface border-border text-text-secondary hover:text-text-primary')
-            }
+            style={{
+              padding: '10px 4px',
+              border: 0,
+              background: 'none',
+              borderBottom:
+                status === s
+                  ? '2px solid var(--color-accent)'
+                  : '2px solid transparent',
+              color:
+                status === s ? 'var(--color-ink)' : 'var(--color-muted)',
+              fontWeight: 600,
+              fontSize: 14,
+              cursor: 'pointer',
+              marginBottom: -1,
+              fontFamily: 'var(--font-sans)',
+              textTransform: 'capitalize',
+            }}
           >
-            {s.charAt(0).toUpperCase() + s.slice(1)}
+            {s}
           </button>
         ))}
       </div>
 
-      {isLoading ? (
-        <div className="space-y-3">
+      {isLoading && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-24 bg-muted rounded-card animate-pulse" />
+            <div
+              key={i}
+              style={{
+                height: 140,
+                background: 'var(--color-paper-muted)',
+                borderRadius: 10,
+              }}
+            />
           ))}
         </div>
-      ) : applications.length === 0 ? (
-        <div className="rounded-card border border-border bg-surface p-8 text-center text-text-secondary">
+      )}
+
+      {!isLoading && applications.length === 0 && (
+        <div
+          style={{
+            padding: 60,
+            textAlign: 'center',
+            border: '1px dashed var(--color-line-strong)',
+            borderRadius: 10,
+            color: 'var(--color-muted)',
+            background: 'var(--color-card)',
+            fontFamily: 'var(--font-sans)',
+          }}
+        >
           No {status} applications.
         </div>
-      ) : (
-        <div className="space-y-4">
+      )}
+
+      {!isLoading && applications.length > 0 && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           {applications.map((app) => (
             <ApplicationCard
               key={app.id}
               app={app}
               onApprove={() => review.mutate({ id: app.id, decision: 'approved' })}
-              onDeny={(note) => review.mutate({ id: app.id, decision: 'denied', note })}
+              onDeny={(note) =>
+                review.mutate({ id: app.id, decision: 'denied', note })
+              }
               busy={review.isPending}
             />
           ))}
@@ -97,104 +162,224 @@ function ApplicationCard({
   const [showDeny, setShowDeny] = useState(false);
   const [note, setNote] = useState('');
 
+  const statusColor =
+    app.status === 'pending'
+      ? 'var(--color-warning)'
+      : app.status === 'approved'
+      ? 'var(--color-success)'
+      : 'var(--color-error)';
+
+  const statusBg =
+    app.status === 'pending'
+      ? 'var(--color-warning-bg)'
+      : app.status === 'approved'
+      ? 'var(--color-success-bg)'
+      : 'var(--color-error-bg)';
+
   return (
-    <div className="rounded-card border border-border bg-surface p-5">
-      <div className="flex items-start justify-between gap-4 mb-3">
+    <div
+      style={{
+        background: 'var(--color-card)',
+        border: '1px solid var(--color-line)',
+        borderRadius: 10,
+        padding: 22,
+      }}
+    >
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'flex-start',
+          gap: 16,
+          marginBottom: 16,
+        }}
+      >
         <div>
-          <p className="font-semibold text-text-primary">
+          <p
+            style={{
+              fontFamily: 'var(--font-display)',
+              fontSize: 20,
+              fontWeight: 500,
+              letterSpacing: '-0.012em',
+              marginBottom: 4,
+              color: 'var(--color-ink)',
+            }}
+          >
             {app.user?.displayName ?? 'Unknown user'}
           </p>
-          <p className="text-sm text-text-secondary">
+          <p
+            style={{
+              fontFamily: 'var(--font-sans)',
+              fontSize: 13,
+              color: 'var(--color-muted)',
+            }}
+          >
             @{app.user?.username ?? '—'} · {app.user?.email ?? '—'}
           </p>
         </div>
         <span
-          className={
-            'text-xs px-2 py-0.5 rounded-pill border ' +
-            (app.status === 'pending'
-              ? 'border-warning text-warning'
-              : app.status === 'approved'
-              ? 'border-success text-success'
-              : 'border-error text-error')
-          }
+          style={{
+            fontFamily: 'var(--font-sans)',
+            fontSize: 11,
+            fontWeight: 600,
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase',
+            color: statusColor,
+            background: statusBg,
+            border: `1px solid ${statusColor}`,
+            padding: '3px 10px',
+            borderRadius: 999,
+          }}
         >
           {app.status}
         </span>
       </div>
 
-      <div className="space-y-3 text-sm">
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 14,
+          fontFamily: 'var(--font-sans)',
+          fontSize: 14,
+        }}
+      >
         <Section label="Motivation" value={app.motivation} />
         {app.experience && <Section label="Experience" value={app.experience} />}
         {app.portfolioUrl && (
           <div>
-            <p className="text-text-muted text-xs mb-1">Portfolio</p>
+            <p
+              style={{
+                fontFamily: 'var(--font-sans)',
+                fontSize: 12,
+                color: 'var(--color-muted)',
+                marginBottom: 4,
+              }}
+            >
+              Portfolio
+            </p>
             <a
               href={app.portfolioUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-brand-primary hover:underline break-all"
+              style={{
+                color: 'var(--color-accent)',
+                textDecoration: 'none',
+                wordBreak: 'break-all',
+              }}
             >
               {app.portfolioUrl}
             </a>
           </div>
         )}
-        <p className="text-xs text-text-muted">
+        <p
+          style={{
+            fontFamily: 'var(--font-sans)',
+            fontSize: 12,
+            color: 'var(--color-muted)',
+          }}
+        >
           Submitted {new Date(app.submittedAt).toLocaleString()}
         </p>
       </div>
 
       {app.status === 'pending' && (
-        <div className="mt-4 space-y-2">
+        <div style={{ marginTop: 18 }}>
           {!showDeny ? (
-            <div className="flex gap-2">
-              <Button
-                variant="primary"
-                size="md"
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button
                 onClick={onApprove}
                 disabled={busy}
+                style={{
+                  padding: '9px 20px',
+                  background: 'var(--color-accent)',
+                  color: 'var(--color-on-ink)',
+                  border: 0,
+                  borderRadius: 6,
+                  fontWeight: 600,
+                  fontSize: 13,
+                  cursor: busy ? 'wait' : 'pointer',
+                  fontFamily: 'var(--font-sans)',
+                }}
               >
                 Approve
-              </Button>
-              <Button
-                variant="secondary"
-                size="md"
+              </button>
+              <button
                 onClick={() => setShowDeny(true)}
                 disabled={busy}
+                style={{
+                  padding: '9px 20px',
+                  background: 'var(--color-card)',
+                  border: '1px solid var(--color-line-strong)',
+                  color: 'var(--color-ink)',
+                  borderRadius: 6,
+                  fontWeight: 600,
+                  fontSize: 13,
+                  cursor: busy ? 'wait' : 'pointer',
+                  fontFamily: 'var(--font-sans)',
+                }}
               >
                 Deny
-              </Button>
+              </button>
             </div>
           ) : (
-            <div className="space-y-2">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               <textarea
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
                 rows={3}
                 maxLength={1000}
                 placeholder="Optional note to the applicant (they will see this)"
-                className="w-full rounded-input border border-border bg-surface px-3 py-2 text-sm text-text-primary"
+                style={{
+                  width: '100%',
+                  border: '1px solid var(--color-line)',
+                  borderRadius: 6,
+                  padding: '10px 12px',
+                  fontFamily: 'var(--font-sans)',
+                  fontSize: 14,
+                  background: 'var(--color-paper)',
+                  color: 'var(--color-ink)',
+                  outline: 'none',
+                  resize: 'vertical',
+                }}
               />
-              <div className="flex gap-2">
-                <Button
-                  variant="danger"
-                  size="md"
+              <div style={{ display: 'flex', gap: 10 }}>
+                <button
                   onClick={() => onDeny(note)}
                   disabled={busy}
-                  loading={busy}
+                  style={{
+                    padding: '9px 20px',
+                    background: 'var(--color-error)',
+                    color: 'var(--color-on-ink)',
+                    border: 0,
+                    borderRadius: 6,
+                    fontWeight: 600,
+                    fontSize: 13,
+                    cursor: busy ? 'wait' : 'pointer',
+                    fontFamily: 'var(--font-sans)',
+                  }}
                 >
-                  Confirm denial
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="md"
+                  {busy ? 'Denying...' : 'Confirm denial'}
+                </button>
+                <button
                   onClick={() => {
                     setShowDeny(false);
                     setNote('');
                   }}
                   disabled={busy}
+                  style={{
+                    padding: '9px 20px',
+                    background: 'transparent',
+                    border: 0,
+                    color: 'var(--color-muted)',
+                    fontWeight: 600,
+                    fontSize: 13,
+                    cursor: 'pointer',
+                    fontFamily: 'var(--font-sans)',
+                  }}
                 >
                   Cancel
-                </Button>
+                </button>
               </div>
             </div>
           )}
@@ -202,7 +387,14 @@ function ApplicationCard({
       )}
 
       {app.status !== 'pending' && app.reviewNote && (
-        <div className="mt-3 text-xs text-text-secondary">
+        <div
+          style={{
+            marginTop: 16,
+            fontFamily: 'var(--font-sans)',
+            fontSize: 13,
+            color: 'var(--color-muted)',
+          }}
+        >
           Review note: {app.reviewNote}
         </div>
       )}
@@ -213,8 +405,27 @@ function ApplicationCard({
 function Section({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <p className="text-text-muted text-xs mb-1">{label}</p>
-      <p className="text-text-primary whitespace-pre-wrap">{value}</p>
+      <p
+        style={{
+          fontFamily: 'var(--font-sans)',
+          fontSize: 12,
+          color: 'var(--color-muted)',
+          marginBottom: 4,
+        }}
+      >
+        {label}
+      </p>
+      <p
+        style={{
+          fontFamily: 'var(--font-sans)',
+          fontSize: 14,
+          color: 'var(--color-ink)',
+          whiteSpace: 'pre-wrap',
+          lineHeight: 1.6,
+        }}
+      >
+        {value}
+      </p>
     </div>
   );
 }
