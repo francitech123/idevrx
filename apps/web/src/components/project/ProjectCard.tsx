@@ -3,11 +3,11 @@ import type { ProjectListItem } from '@/features/projects/projectApi';
 
 export function ProjectCard({ project }: { project: ProjectListItem }) {
   const url = `/ide/project-${String(project.projectNumber).padStart(3, '0')}/${project.slug}`;
-  const meta = [
-    `PROJECT ${String(project.projectNumber).padStart(3, '0')}`,
-    project.difficulty ? project.difficulty.toUpperCase() : null,
-    project.estimatedBuildTime ? `EST. ${project.estimatedBuildTime.toUpperCase()}` : null,
-  ].filter(Boolean) as string[];
+
+  const metaParts: string[] = [];
+  metaParts.push(`PROJECT ${String(project.projectNumber).padStart(3, '0')}`);
+  if (project.difficulty) metaParts.push(project.difficulty.toUpperCase());
+  if (project.estimatedBuildTime) metaParts.push(`EST. ${project.estimatedBuildTime.toUpperCase()}`);
 
   return (
     <Link to={url} className="idx-project-card">
@@ -16,7 +16,7 @@ export function ProjectCard({ project }: { project: ProjectListItem }) {
       </div>
       <div className="idx-project-body">
         <div className="idx-project-meta">
-          {meta.map((m, i) => (
+          {metaParts.map((m, i) => (
             <span key={i} style={{ display: 'contents' }}>
               {i > 0 && <span>·</span>}
               <span className={i === 0 ? 'num' : undefined}>{m}</span>
@@ -30,9 +30,6 @@ export function ProjectCard({ project }: { project: ProjectListItem }) {
         <div className="idx-project-author">
           <span className="idx-project-author-avatar" />
           <span>Creator</span>
-        </div>
-        <div className="idx-project-tags">
-          <span className="idx-project-tag">PROJECT</span>
         </div>
         <div className="idx-project-footer">
           <div className="idx-project-stats">
