@@ -83,8 +83,9 @@ export default function App() {
 
         <Route path="/@:username" element={<CreatorProfilePage />} />
         <Route path="/creators/:username" element={<CreatorProfilePage />} />
+        <Route path="/@:username" element={<CreatorProfilePage />} />
+        <Route path="/creators/:username" element={<CreatorProfilePage />} />
 
-        <Route path="/about" element={<AboutPage />} />
         <Route path="/contact" element={<ContactPage />} />
         <Route path="/help" element={<HelpPage />} />
         <Route path="/learning" element={<LearningPage />} />
