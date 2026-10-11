@@ -9,6 +9,7 @@ import { LibraryService } from '../services/LibraryService.js';
 import { FeedService } from '../services/FeedService.js';
 import { ok } from '../utils/apiResponse.js';
 import { AuthRequiredError } from '../utils/errors.js';
+import { FollowService } from '../services/FollowService.js';
 
 function param(value: string | string[] | undefined): string {
   if (Array.isArray(value)) return value[0] ?? '';
@@ -85,6 +86,24 @@ export const bookmarkStatus: RequestHandler = async (req, res, next) => {
     if (!user) throw new AuthRequiredError();
     const result = await BookmarkService.status(user._id.toString(), param(req.params.id));
     return ok(res, result);
+  } catch (err) { next(err); }
+};
+export const listFollowing: RequestHandler = async (req, res, next) => {
+  try {
+    const user = (req as any).user;
+    if (!user) throw new AuthRequiredError();
+    const query = (req as any).validatedQuery ?? {};
+    const result = await FollowService.listFollowing(
+      user._id.toString(),
+      query.page ?? 1,
+      query.limit ?? 30
+    );
+    return ok(res, { items: result.items }, {
+      page: result.page,
+      limit: result.limit,
+      total: result.total,
+      hasNextPage: result.hasNextPage,
+    });
   } catch (err) { next(err); }
 };
 
