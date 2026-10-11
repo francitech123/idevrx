@@ -68,9 +68,9 @@ export function CommentSection({
   return (
     <section
       style={{
-        marginTop: 28,
-        paddingTop: 24,
-        borderTop: '1px solid #E2E8F0',
+        marginTop: 32,
+        paddingTop: 28,
+        borderTop: '1px solid var(--color-line)',
       }}
     >
       <div
@@ -78,16 +78,32 @@ export function CommentSection({
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          marginBottom: 14,
+          marginBottom: 16,
         }}
       >
-        <h2 style={{ fontSize: 20, fontWeight: 700 }}>Discussion</h2>
-        <span style={{ color: '#64748B', fontSize: 13 }}>
+        <h2
+          style={{
+            fontFamily: 'var(--font-display)',
+            fontSize: 26,
+            fontWeight: 500,
+            letterSpacing: '-0.012em',
+            color: 'var(--color-ink)',
+          }}
+        >
+          Discussion
+        </h2>
+        <span
+          style={{
+            fontFamily: 'var(--font-sans)',
+            color: 'var(--color-muted)',
+            fontSize: 13,
+          }}
+        >
           {comments.length} comment{comments.length === 1 ? '' : 's'}
         </span>
       </div>
 
-      <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
+      <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
         <input
           type="text"
           placeholder="Ask a question or share an idea"
@@ -101,12 +117,13 @@ export function CommentSection({
           }}
           style={{
             flex: 1,
-            background: '#F8FAFC',
-            border: '1px solid #E2E8F0',
-            borderRadius: 99,
-            padding: '10px 16px',
-            fontFamily: 'inherit',
+            background: 'var(--color-card)',
+            border: '1px solid var(--color-line)',
+            borderRadius: 999,
+            padding: '12px 18px',
+            fontFamily: 'var(--font-sans)',
             fontSize: 14,
+            color: 'var(--color-ink)',
             outline: 'none',
           }}
         />
@@ -115,16 +132,16 @@ export function CommentSection({
           disabled={busy || !body.trim()}
           aria-label="Post comment"
           style={{
-            width: 42,
-            height: 42,
+            width: 44,
+            height: 44,
             borderRadius: '50%',
             border: 0,
-            background: '#2563EB',
-            color: '#fff',
+            background: 'var(--color-accent)',
+            color: 'var(--color-on-ink)',
             display: 'grid',
             placeItems: 'center',
             cursor: busy ? 'wait' : 'pointer',
-            opacity: !body.trim() ? 0.5 : 1,
+            opacity: !body.trim() ? 0.4 : 1,
             flexShrink: 0,
           }}
         >
@@ -133,7 +150,14 @@ export function CommentSection({
       </div>
 
       {comments.length === 0 && (
-        <p style={{ color: '#64748B', fontSize: 13 }}>
+        <p
+          style={{
+            fontFamily: 'var(--font-sans)',
+            color: 'var(--color-muted)',
+            fontSize: 13,
+            marginTop: 16,
+          }}
+        >
           No comments yet. Be the first.
         </p>
       )}
@@ -144,38 +168,55 @@ export function CommentSection({
           style={{
             display: 'flex',
             gap: 12,
-            padding: '12px 0',
-            borderTop: '1px solid #E2E8F0',
+            padding: '14px 0',
+            borderTop: '1px solid var(--color-line)',
           }}
         >
           <span
             style={{
-              width: 38,
-              height: 38,
+              width: 40,
+              height: 40,
               borderRadius: '50%',
-              background: 'linear-gradient(135deg, #06B6D4 0%, #2563EB 55%, #7C3AED 100%)',
-              color: '#fff',
+              background: 'var(--color-accent)',
+              color: 'var(--color-on-ink)',
               display: 'grid',
               placeItems: 'center',
-              fontFamily: 'var(--font-sans)',
-              fontWeight: 600,
-              fontSize: 12,
+              fontFamily: 'var(--font-display)',
+              fontWeight: 500,
+              fontSize: 15,
               flexShrink: 0,
             }}
           >
             {c.author ? initials(c.author.displayName) : '?'}
           </span>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 13, marginBottom: 2 }}>
-              <b>{c.author?.displayName ?? 'Unknown'}</b>{' '}
-              <small style={{ color: '#64748B' }}>{timeAgo(c.createdAt)}</small>
+            <div style={{ marginBottom: 4 }}>
+              <b
+                style={{
+                  fontFamily: 'var(--font-sans)',
+                  fontSize: 14,
+                  color: 'var(--color-ink)',
+                }}
+              >
+                {c.author?.displayName ?? 'Unknown'}
+              </b>{' '}
+              <small
+                style={{
+                  fontFamily: 'var(--font-sans)',
+                  color: 'var(--color-muted)',
+                  fontSize: 12,
+                }}
+              >
+                {timeAgo(c.createdAt)}
+              </small>
             </div>
             <p
               style={{
-                margin: '2px 0 0',
-                fontSize: 14,
-                color: '#334155',
-                lineHeight: 1.55,
+                margin: 0,
+                fontFamily: 'var(--font-sans)',
+                fontSize: 14.5,
+                color: 'var(--color-ink-subtle)',
+                lineHeight: 1.6,
                 whiteSpace: 'pre-wrap',
               }}
             >
