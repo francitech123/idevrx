@@ -3,9 +3,6 @@ import { Navigate, useNavigate, useParams, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
-import { FormField } from '@/components/ui/FormField';
 import { ApiRequestError } from '@/api/client';
 import { useCurrentUser, isCreator } from '@/features/auth/useAuth';
 import {
@@ -24,7 +21,10 @@ const schema = z.object({
   shortDescription: z.string().max(500).optional().default(''),
   description: z.string().max(20000).optional().default(''),
   categoryId: z.string().optional().default(''),
-  difficulty: z.enum(['', 'beginner', 'intermediate', 'advanced', 'expert']).optional().default(''),
+  difficulty: z
+    .enum(['', 'beginner', 'intermediate', 'advanced', 'expert'])
+    .optional()
+    .default(''),
   estimatedCost: z.string().optional().default(''),
   estimatedBuildTime: z.string().max(100).optional().default(''),
   youtubeUrl: z
@@ -81,7 +81,8 @@ export function EditProjectPage() {
         description: project.description,
         categoryId: project.categoryId ?? '',
         difficulty: project.difficulty ?? '',
-        estimatedCost: project.estimatedCost != null ? String(project.estimatedCost) : '',
+        estimatedCost:
+          project.estimatedCost != null ? String(project.estimatedCost) : '',
         estimatedBuildTime: project.estimatedBuildTime ?? '',
         youtubeUrl: project.youtubeUrl ?? '',
         version: project.version,
@@ -91,8 +92,15 @@ export function EditProjectPage() {
 
   if (authLoading || projectLoading) {
     return (
-      <div className="max-w-reading mx-auto px-6 py-12">
-        <div className="h-8 w-48 bg-muted rounded animate-pulse" />
+      <div className="idx-page">
+        <div
+          style={{
+            height: 32,
+            width: 200,
+            background: 'var(--color-paper-muted)',
+            borderRadius: 6,
+          }}
+        />
       </div>
     );
   }
@@ -101,11 +109,42 @@ export function EditProjectPage() {
   if (!isCreator(user)) return <Navigate to="/creator/apply" replace />;
   if (isError || !project) {
     return (
-      <div className="max-w-reading mx-auto px-6 py-16 text-center">
-        <p className="text-sm font-mono text-text-muted mb-2">404</p>
-        <h1 className="text-2xl font-bold mb-3">Project not found</h1>
-        <Link to="/studio">
-          <Button>Back to Studio</Button>
+      <div className="idx-page" style={{ textAlign: 'center' }}>
+        <p
+          style={{
+            fontFamily: 'var(--font-mono)',
+            fontSize: 12,
+            color: 'var(--color-muted)',
+            marginBottom: 12,
+          }}
+        >
+          404
+        </p>
+        <h1
+          style={{
+            fontFamily: 'var(--font-display)',
+            fontSize: 32,
+            fontWeight: 500,
+            marginBottom: 20,
+            color: 'var(--color-ink)',
+          }}
+        >
+          Project not found
+        </h1>
+        <Link
+          to="/studio"
+          style={{
+            display: 'inline-block',
+            padding: '10px 20px',
+            background: 'var(--color-accent)',
+            color: 'var(--color-on-ink)',
+            borderRadius: 6,
+            fontWeight: 600,
+            textDecoration: 'none',
+            fontFamily: 'var(--font-sans)',
+          }}
+        >
+          Back to Studio
         </Link>
       </div>
     );
@@ -113,11 +152,42 @@ export function EditProjectPage() {
 
   if (project.authorId !== user.id) {
     return (
-      <div className="max-w-reading mx-auto px-6 py-16 text-center">
-        <p className="text-sm font-mono text-text-muted mb-2">403</p>
-        <h1 className="text-2xl font-bold mb-3">Not your project</h1>
-        <Link to="/studio">
-          <Button>Back to Studio</Button>
+      <div className="idx-page" style={{ textAlign: 'center' }}>
+        <p
+          style={{
+            fontFamily: 'var(--font-mono)',
+            fontSize: 12,
+            color: 'var(--color-muted)',
+            marginBottom: 12,
+          }}
+        >
+          403
+        </p>
+        <h1
+          style={{
+            fontFamily: 'var(--font-display)',
+            fontSize: 32,
+            fontWeight: 500,
+            marginBottom: 20,
+            color: 'var(--color-ink)',
+          }}
+        >
+          Not your project
+        </h1>
+        <Link
+          to="/studio"
+          style={{
+            display: 'inline-block',
+            padding: '10px 20px',
+            background: 'var(--color-accent)',
+            color: 'var(--color-on-ink)',
+            borderRadius: 6,
+            fontWeight: 600,
+            textDecoration: 'none',
+            fontFamily: 'var(--font-sans)',
+          }}
+        >
+          Back to Studio
         </Link>
       </div>
     );
@@ -170,7 +240,9 @@ export function EditProjectPage() {
       await unpublishProject.mutateAsync(project!.id);
       setActionMessage('Unpublished.');
     } catch (err) {
-      setServerError(err instanceof ApiRequestError ? err.message : 'Unpublish failed.');
+      setServerError(
+        err instanceof ApiRequestError ? err.message : 'Unpublish failed.'
+      );
     }
   }
 
@@ -189,48 +261,146 @@ export function EditProjectPage() {
   const publicUrl = `/ide/project-${String(project.projectNumber).padStart(3, '0')}/${project.slug}`;
 
   return (
-    <div className="max-w-reading mx-auto px-6 py-12">
-      <div className="flex items-start justify-between gap-4 mb-2">
+    <div className="idx-page" style={{ maxWidth: 900 }}>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'flex-start',
+          gap: 20,
+          flexWrap: 'wrap',
+          marginBottom: 8,
+        }}
+      >
         <div>
-          <p className="text-xs font-mono text-brand-primary mb-1">
+          <p
+            style={{
+              fontFamily: 'var(--font-sans)',
+              fontSize: 11,
+              fontWeight: 600,
+              letterSpacing: '0.14em',
+              textTransform: 'uppercase',
+              color: 'var(--color-accent)',
+              marginBottom: 8,
+            }}
+          >
             PROJECT {String(project.projectNumber).padStart(3, '0')} · {project.status}
           </p>
-          <h1 className="text-2xl font-bold">Edit project</h1>
+          <h1
+            style={{
+              fontFamily: 'var(--font-display)',
+              fontSize: 34,
+              fontWeight: 500,
+              letterSpacing: '-0.02em',
+              lineHeight: 1.1,
+              color: 'var(--color-ink)',
+            }}
+          >
+            Edit project
+          </h1>
         </div>
-        <div className="flex gap-2">
+
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           {isLive && (
-            <Link to={publicUrl} target="_blank">
-              <Button variant="ghost" size="md">View public</Button>
+            <Link
+              to={publicUrl}
+              target="_blank"
+              style={{
+                display: 'inline-block',
+                padding: '9px 16px',
+                border: '1px solid var(--color-line-strong)',
+                background: 'var(--color-card)',
+                color: 'var(--color-ink)',
+                borderRadius: 6,
+                fontWeight: 600,
+                fontSize: 13,
+                textDecoration: 'none',
+                fontFamily: 'var(--font-sans)',
+              }}
+            >
+              View public
             </Link>
           )}
           {isLive ? (
-            <Button variant="secondary" size="md" onClick={handleUnpublish} loading={unpublishProject.isPending}>
-              Unpublish
-            </Button>
+            <button
+              onClick={handleUnpublish}
+              disabled={unpublishProject.isPending}
+              style={{
+                padding: '9px 16px',
+                border: '1px solid var(--color-line-strong)',
+                background: 'var(--color-card)',
+                color: 'var(--color-ink)',
+                borderRadius: 6,
+                fontWeight: 600,
+                fontSize: 13,
+                cursor: unpublishProject.isPending ? 'wait' : 'pointer',
+                fontFamily: 'var(--font-sans)',
+              }}
+            >
+              {unpublishProject.isPending ? 'Unpublishing...' : 'Unpublish'}
+            </button>
           ) : (
-            <Button size="md" onClick={handlePublish} loading={publishProject.isPending}>
-              Publish
-            </Button>
+            <button
+              onClick={handlePublish}
+              disabled={publishProject.isPending}
+              style={{
+                padding: '9px 20px',
+                background: 'var(--color-accent)',
+                color: 'var(--color-on-ink)',
+                border: 0,
+                borderRadius: 6,
+                fontWeight: 600,
+                fontSize: 13,
+                cursor: publishProject.isPending ? 'wait' : 'pointer',
+                fontFamily: 'var(--font-sans)',
+              }}
+            >
+              {publishProject.isPending ? 'Publishing...' : 'Publish'}
+            </button>
           )}
         </div>
       </div>
 
       {actionMessage && (
-        <div className="rounded-button border border-success bg-success/5 px-3 py-2 text-sm text-success mb-4">
+        <div
+          style={{
+            padding: '10px 14px',
+            border: '1px solid var(--color-success)',
+            background: 'var(--color-success-bg)',
+            color: 'var(--color-success)',
+            borderRadius: 6,
+            fontFamily: 'var(--font-sans)',
+            fontSize: 13,
+            marginBottom: 20,
+            marginTop: 16,
+          }}
+        >
           {actionMessage}
         </div>
       )}
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 mt-6" noValidate>
-        <FormField label="Title" htmlFor="title" error={errors.title?.message} required>
-          <Input id="title" invalid={!!errors.title} {...register('title')} />
-        </FormField>
+      <form onSubmit={handleSubmit(onSubmit)} noValidate style={{ marginTop: 24 }}>
+        <Field label="Title" htmlFor="title" error={errors.title?.message} required>
+          <input
+            id="title"
+            {...register('title')}
+            className="idx-input"
+          />
+        </Field>
 
-        <FormField label="Short description" htmlFor="shortDescription" error={errors.shortDescription?.message}>
-          <Input id="shortDescription" {...register('shortDescription')} />
-        </FormField>
+        <Field
+          label="Short description"
+          htmlFor="shortDescription"
+          error={errors.shortDescription?.message}
+        >
+          <input
+            id="shortDescription"
+            {...register('shortDescription')}
+            className="idx-input"
+          />
+        </Field>
 
-        <FormField
+        <Field
           label="Full description"
           htmlFor="description"
           error={errors.description?.message}
@@ -239,29 +409,39 @@ export function EditProjectPage() {
           <textarea
             id="description"
             rows={10}
-            className="w-full rounded-input border border-border bg-surface px-3 py-2 text-sm"
             {...register('description')}
+            className="idx-input"
           />
-        </FormField>
+        </Field>
 
-        <FormField label="Category" htmlFor="categoryId" error={errors.categoryId?.message}>
+        <Field
+          label="Category"
+          htmlFor="categoryId"
+          error={errors.categoryId?.message}
+        >
           <select
             id="categoryId"
-            className="h-10 w-full rounded-input border border-border bg-surface px-3 text-sm"
             {...register('categoryId')}
+            className="idx-input"
           >
             <option value="">No category</option>
             {categories.map((c) => (
-              <option key={c.id} value={c.id}>{c.name}</option>
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
             ))}
           </select>
-        </FormField>
+        </Field>
 
-        <FormField label="Difficulty" htmlFor="difficulty" error={errors.difficulty?.message}>
+        <Field
+          label="Difficulty"
+          htmlFor="difficulty"
+          error={errors.difficulty?.message}
+        >
           <select
             id="difficulty"
-            className="h-10 w-full rounded-input border border-border bg-surface px-3 text-sm"
             {...register('difficulty')}
+            className="idx-input"
           >
             <option value="">Not specified</option>
             <option value="beginner">Beginner</option>
@@ -269,68 +449,271 @@ export function EditProjectPage() {
             <option value="advanced">Advanced</option>
             <option value="expert">Expert</option>
           </select>
-        </FormField>
+        </Field>
 
-        <div className="grid grid-cols-2 gap-4">
-          <FormField label="Estimated cost" htmlFor="estimatedCost" hint="USD">
-            <Input id="estimatedCost" type="number" min="0" {...register('estimatedCost')} />
-          </FormField>
-          <FormField label="Build time" htmlFor="estimatedBuildTime">
-            <Input id="estimatedBuildTime" {...register('estimatedBuildTime')} />
-          </FormField>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr',
+            gap: 16,
+            marginBottom: 20,
+          }}
+          className="two-col"
+        >
+          <Field label="Estimated cost" htmlFor="estimatedCost" hint="USD">
+            <input
+              id="estimatedCost"
+              type="number"
+              min="0"
+              {...register('estimatedCost')}
+              className="idx-input"
+            />
+          </Field>
+          <Field label="Build time" htmlFor="estimatedBuildTime">
+            <input
+              id="estimatedBuildTime"
+              {...register('estimatedBuildTime')}
+              className="idx-input"
+            />
+          </Field>
         </div>
 
-        <FormField label="YouTube URL" htmlFor="youtubeUrl" error={errors.youtubeUrl?.message}>
-          <Input id="youtubeUrl" invalid={!!errors.youtubeUrl} {...register('youtubeUrl')} />
-        </FormField>
+        <Field
+          label="YouTube URL"
+          htmlFor="youtubeUrl"
+          error={errors.youtubeUrl?.message}
+        >
+          <input
+            id="youtubeUrl"
+            {...register('youtubeUrl')}
+            className="idx-input"
+          />
+        </Field>
 
-        <FormField label="Version" htmlFor="version" hint="e.g. v0.1, v1.0, v2.0">
-          <Input id="version" {...register('version')} />
-        </FormField>
+        <Field
+          label="Version"
+          htmlFor="version"
+          hint="e.g. v0.1, v1.0, v2.0"
+        >
+          <input id="version" {...register('version')} className="idx-input" />
+        </Field>
 
         {serverError && (
-          <div className="rounded-button border border-error bg-error/5 px-3 py-2 text-sm text-error" role="alert">
+          <div
+            style={{
+              padding: '12px 16px',
+              border: '1px solid var(--color-error)',
+              background: 'var(--color-error-bg)',
+              color: 'var(--color-error)',
+              borderRadius: 8,
+              fontFamily: 'var(--font-sans)',
+              fontSize: 14,
+              marginBottom: 16,
+            }}
+            role="alert"
+          >
             {serverError}
           </div>
         )}
 
-        <div className="flex gap-3">
-          <Button type="submit" loading={isSubmitting} disabled={!isDirty} size="lg">
-            Save changes
-          </Button>
-          <Link to="/studio">
-            <Button type="button" variant="ghost" size="lg">
-              Back to Studio
-            </Button>
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+          <button
+            type="submit"
+            disabled={isSubmitting || !isDirty}
+            style={{
+              padding: '12px 24px',
+              background: 'var(--color-accent)',
+              color: 'var(--color-on-ink)',
+              border: 0,
+              borderRadius: 6,
+              fontWeight: 600,
+              fontSize: 14,
+              cursor:
+                isSubmitting || !isDirty ? 'not-allowed' : 'pointer',
+              fontFamily: 'var(--font-sans)',
+              opacity: !isDirty ? 0.6 : 1,
+            }}
+          >
+            {isSubmitting ? 'Saving...' : 'Save changes'}
+          </button>
+          <Link
+            to="/studio"
+            style={{
+              display: 'inline-block',
+              padding: '12px 24px',
+              border: '1px solid var(--color-line-strong)',
+              background: 'var(--color-card)',
+              color: 'var(--color-ink)',
+              borderRadius: 6,
+              fontWeight: 600,
+              fontSize: 14,
+              textDecoration: 'none',
+              fontFamily: 'var(--font-sans)',
+            }}
+          >
+            Back to Studio
           </Link>
         </div>
       </form>
 
-      {/* ---- Files section ---- */}
-      <div className="mt-12 pt-8 border-t border-border">
-        <div className="mb-4">
-          <h2 className="text-lg font-semibold mb-1">Files</h2>
-          <p className="text-sm text-text-secondary">
+      <div
+        style={{
+          marginTop: 48,
+          paddingTop: 32,
+          borderTop: '1px solid var(--color-line)',
+        }}
+      >
+        <div style={{ marginBottom: 18 }}>
+          <h2
+            style={{
+              fontFamily: 'var(--font-display)',
+              fontSize: 24,
+              fontWeight: 500,
+              letterSpacing: '-0.012em',
+              marginBottom: 6,
+              color: 'var(--color-ink)',
+            }}
+          >
+            Files
+          </h2>
+          <p
+            style={{
+              fontFamily: 'var(--font-sans)',
+              fontSize: 14,
+              color: 'var(--color-muted)',
+            }}
+          >
             Upload images, PDFs, CAD files, code, and other project assets.
           </p>
         </div>
 
-        <div className="mb-4">
+        <div style={{ marginBottom: 20 }}>
           <FileUploader projectId={project.id} />
         </div>
 
         <FileList projectId={project.id} canEdit={true} />
       </div>
 
-      {/* ---- Danger zone ---- */}
-      <div className="mt-12 pt-6 border-t border-border">
-        <p className="text-xs text-text-muted mb-3">
+      <div
+        style={{
+          marginTop: 48,
+          paddingTop: 24,
+          borderTop: '1px solid var(--color-line)',
+        }}
+      >
+        <p
+          style={{
+            fontFamily: 'var(--font-sans)',
+            fontSize: 12,
+            color: 'var(--color-muted)',
+            marginBottom: 12,
+          }}
+        >
           Danger zone. This removes the project from public view. It cannot be undone from the UI.
         </p>
-        <Button variant="danger" size="md" onClick={handleDelete} loading={deleteProject.isPending}>
-          Remove project
-        </Button>
+        <button
+          onClick={handleDelete}
+          disabled={deleteProject.isPending}
+          style={{
+            padding: '9px 18px',
+            background: 'transparent',
+            color: 'var(--color-error)',
+            border: '1px solid var(--color-error)',
+            borderRadius: 6,
+            fontWeight: 600,
+            fontSize: 13,
+            cursor: deleteProject.isPending ? 'wait' : 'pointer',
+            fontFamily: 'var(--font-sans)',
+          }}
+        >
+          {deleteProject.isPending ? 'Removing...' : 'Remove project'}
+        </button>
       </div>
+
+      <style>{`
+        .idx-input {
+          display: block;
+          width: 100%;
+          border: 1px solid var(--color-line);
+          border-radius: 6px;
+          padding: 10px 12px;
+          font-family: var(--font-sans);
+          font-size: 14px;
+          background: var(--color-paper);
+          color: var(--color-ink);
+          outline: none;
+          resize: vertical;
+        }
+        .idx-input:focus {
+          border-color: var(--color-accent);
+        }
+        @media (max-width: 600px) {
+          .two-col { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
+    </div>
+  );
+}
+
+function Field({
+  label,
+  htmlFor,
+  error,
+  required,
+  hint,
+  children,
+}: {
+  label: string;
+  htmlFor: string;
+  error?: string;
+  required?: boolean;
+  hint?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div style={{ marginBottom: 20 }}>
+      <label
+        htmlFor={htmlFor}
+        style={{
+          display: 'block',
+          fontFamily: 'var(--font-sans)',
+          fontSize: 13,
+          fontWeight: 600,
+          color: 'var(--color-ink)',
+          marginBottom: 6,
+        }}
+      >
+        {label}
+        {required && (
+          <span style={{ color: 'var(--color-accent)', marginLeft: 4 }}>*</span>
+        )}
+      </label>
+      {children}
+      {hint && !error && (
+        <p
+          style={{
+            fontFamily: 'var(--font-sans)',
+            fontSize: 12,
+            color: 'var(--color-muted)',
+            marginTop: 4,
+          }}
+        >
+          {hint}
+        </p>
+      )}
+      {error && (
+        <p
+          style={{
+            fontFamily: 'var(--font-sans)',
+            fontSize: 12,
+            color: 'var(--color-error)',
+            marginTop: 4,
+          }}
+          role="alert"
+        >
+          {error}
+        </p>
+      )}
     </div>
   );
 }
